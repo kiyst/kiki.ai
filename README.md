@@ -32,6 +32,8 @@ switches back without mixing the two conversation histories. Useful commands:
 | `/weather Boston, MA` | Fetch current conditions and a short forecast. |
 | `/status` | Show the active mode, database, and models. |
 | `/debug` | Show validated tool calls and retrieval mode. |
+| `/personality` | Show persistent warmth, wit, opinions, and verbosity controls. |
+| `/personality preset lively` | Apply the lively, balanced, or quiet preset. |
 | `/clear` | Clear history for the active mode only. |
 | `/help` | Show all interactive commands. |
 
@@ -107,7 +109,7 @@ diagnostic, not proof that every answer is factually correct.
 ## Verification receipt
 
 - Python 3.12 virtual environment created locally.
-- Unit tests: 31 passing.
+- Unit tests: 35 passing.
 - CommonMark corpus: 12 supported files indexed; cited search verified.
 - py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
   as encrypted, image-only/OCR-required, or malformed.

@@ -20,6 +20,7 @@ from .model_client import (
     ToolTrace,
 )
 from .providers.weather import OpenMeteoWeatherProvider
+from .personality import PRESETS, PersonalitySettings, personality_prompt
 from .retrieval import SearchResult, TextIndex
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .tools import ToolRegistry
@@ -40,6 +41,8 @@ class TerminalSession:
         self.mode = "chat"
         self.debug = False
         self.pending_weather_choices: list[dict[str, Any]] = []
+        self.personality_path = database.resolve().parent / "kiki-personality.json"
+        self.personality = PersonalitySettings.load(self.personality_path)
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": []}
         self._set_index(database)
 
@@ -114,7 +117,7 @@ class TerminalSession:
                 registry,
                 model=self.model,
                 pre_retrieve=weather_location is None,
-                system_prompt=RAG_SYSTEM_PROMPT,
+                system_prompt=f"{RAG_SYSTEM_PROMPT}\n\n{personality_prompt(self.personality)}",
             )
         else:
             retrieval_mode = "none"
@@ -127,7 +130,7 @@ class TerminalSession:
                 registry,
                 model=self.model,
                 pre_retrieve=False,
-                system_prompt=CHAT_SYSTEM_PROMPT,
+                system_prompt=f"{CHAT_SYSTEM_PROMPT}\n\n{personality_prompt(self.personality)}",
             )
         outcome = assistant.ask(prompt, history=self.histories[self.mode])
         return self._remember(prompt, outcome, retrieval_mode)
@@ -334,6 +337,9 @@ def _handle_command(
         session.debug = not session.debug
         console.print(f"Debug trace {'enabled' if session.debug else 'disabled'}.")
         return False, None
+    if name == "/personality":
+        _handle_personality(console, session, parts[1:])
+        return False, None
     if name == "/clear":
         session.histories[session.mode].clear()
         session.pending_weather_choices.clear()
@@ -389,12 +395,53 @@ def _render_help(console: Console) -> None:
         ("/database PATH", "Change the SQLite index used by RAG mode."),
         ("/status", "Show active model, database, mode, and embedding count."),
         ("/debug", "Toggle validated tool traces."),
+        ("/personality", "Show or adjust warmth, wit, opinions, and verbosity."),
         ("/clear", "Clear history for the active mode."),
         ("/quit", "Close the terminal session."),
     )
     for command, purpose in rows:
         table.add_row(command, purpose)
     console.print(table)
+
+
+def _handle_personality(
+    console: Console, session: TerminalSession, arguments: list[str]
+) -> None:
+    if not arguments:
+        render_mapping(
+            console,
+            "Kiki personality · 0 restrained, 3 strongest",
+            {
+                **session.personality.__dict__,
+                "presets": ", ".join(PRESETS),
+                "usage": "/personality wit 3 · /personality preset lively",
+            },
+        )
+        return
+    if len(arguments) == 2 and arguments[0].casefold() == "preset":
+        preset = arguments[1].casefold()
+        selected = PRESETS.get(preset)
+        if selected is None:
+            console.print(f"[yellow]Unknown preset.[/yellow] Choose: {', '.join(PRESETS)}")
+            return
+        session.personality = PersonalitySettings(**selected.__dict__)
+    elif len(arguments) == 2 and arguments[0].casefold() in session.personality.__dict__:
+        try:
+            value = int(arguments[1])
+        except ValueError:
+            value = -1
+        if not 0 <= value <= 3:
+            console.print("[yellow]Personality levels must be integers from 0 to 3.[/yellow]")
+            return
+        setattr(session.personality, arguments[0].casefold(), value)
+    else:
+        console.print(
+            "[yellow]Usage: /personality, /personality preset lively, or "
+            "/personality wit 0-3[/yellow]"
+        )
+        return
+    session.personality.save(session.personality_path)
+    console.print("[bold]Personality updated and saved.[/bold]")
 
 
 def _result_location(result: SearchResult) -> str:
