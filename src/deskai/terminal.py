@@ -39,6 +39,7 @@ class TerminalSession:
         self.weather = OpenMeteoWeatherProvider()
         self.mode = "chat"
         self.debug = False
+        self.pending_weather_choices: list[dict[str, Any]] = []
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": []}
         self._set_index(database)
 
@@ -60,6 +61,28 @@ class TerminalSession:
 
     def ask(self, prompt: str) -> tuple[ChatOutcome, str]:
         weather_location = _weather_location_from_prompt(prompt)
+        if not weather_location and self.pending_weather_choices:
+            if prompt.strip().casefold() in {"cancel", "never mind", "nevermind"}:
+                self.pending_weather_choices.clear()
+                return self._remember(
+                    prompt,
+                    ChatOutcome("Weather selection cancelled.", [], []),
+                    "none",
+                )
+            selected = _select_weather_choice(prompt, self.pending_weather_choices)
+            if selected:
+                weather_location = _choice_query(selected)
+            elif len(prompt.split()) <= 4:
+                return self._remember(
+                    prompt,
+                    ChatOutcome(
+                        "I still need one of the listed weather locations. "
+                        "Reply with its number, state name, full label, or `cancel`.",
+                        [],
+                        [],
+                    ),
+                    "none",
+                )
         if weather_location:
             registry = ToolRegistry(weather=self.weather, include_search=False)
             arguments = {"location": weather_location}
@@ -76,15 +99,13 @@ class TerminalSession:
                 ],
                 sources=[],
             )
-            history = self.histories[self.mode]
-            history.extend(
-                [
-                    {"role": "user", "content": prompt},
-                    {"role": "assistant", "content": outcome.answer},
-                ]
+            data = result.get("data")
+            self.pending_weather_choices = (
+                list(data.get("choices", []))
+                if isinstance(data, dict) and not data.get("resolved")
+                else []
             )
-            del history[:-12]
-            return outcome, "none"
+            return self._remember(prompt, outcome, "none")
         if self.mode == "rag":
             backend, retrieval_mode = self.retrieval_backend()
             registry = ToolRegistry(backend, weather=self.weather)
@@ -108,8 +129,13 @@ class TerminalSession:
                 pre_retrieve=False,
                 system_prompt=CHAT_SYSTEM_PROMPT,
             )
+        outcome = assistant.ask(prompt, history=self.histories[self.mode])
+        return self._remember(prompt, outcome, retrieval_mode)
+
+    def _remember(
+        self, prompt: str, outcome: ChatOutcome, retrieval_mode: str
+    ) -> tuple[ChatOutcome, str]:
         history = self.histories[self.mode]
-        outcome = assistant.ask(prompt, history=history)
         history.extend(
             [
                 {"role": "user", "content": prompt},
@@ -310,6 +336,7 @@ def _handle_command(
         return False, None
     if name == "/clear":
         session.histories[session.mode].clear()
+        session.pending_weather_choices.clear()
         console.print(f"Cleared {session.mode.upper()} conversation history.")
         return False, None
     if name in {"/database", "/db"}:
@@ -407,7 +434,10 @@ def _weather_answer(result: dict[str, Any]) -> str:
         choices = data.get("choices") or []
         if choices:
             lines.append("\nPossible matches:")
-            lines.extend(f"- {choice.get('label')}" for choice in choices[:5])
+            lines.extend(
+                f"{number}. {choice.get('label')}"
+                for number, choice in enumerate(choices[:5], start=1)
+            )
         return "\n".join(lines)
 
     current = data["current"]
@@ -431,3 +461,29 @@ def _weather_answer(result: dict[str, Any]) -> str:
         f"Retrieved {data.get('retrieved_at', 'just now')}._"
     )
     return "\n".join(lines)
+
+
+def _select_weather_choice(
+    response: str, choices: list[dict[str, Any]]
+) -> dict[str, Any] | None:
+    requested = response.strip().casefold().strip(" .?!")
+    ordinals = {"first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5}
+    if requested.isdigit():
+        position = int(requested)
+        return choices[position - 1] if 1 <= position <= len(choices) else None
+    if requested in ordinals:
+        position = ordinals[requested]
+        return choices[position - 1] if position <= len(choices) else None
+
+    matches: list[dict[str, Any]] = []
+    for choice in choices:
+        label = str(choice.get("label", ""))
+        components = {part.strip().casefold() for part in label.split(",")}
+        if requested == label.casefold() or requested in components:
+            matches.append(choice)
+    return matches[0] if len(matches) == 1 else None
+
+
+def _choice_query(choice: dict[str, Any]) -> str:
+    parts = [part.strip() for part in str(choice.get("label", "")).split(",")]
+    return ", ".join(parts[:2])
