@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+import json
 from typing import Any, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from .providers.weather import WeatherProvider
+from .resilience import ErrorCode, safe_error
 from .retrieval import SearchResult, TextIndex
 
 
@@ -80,16 +82,40 @@ class ToolRegistry:
     def call(self, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         entry = self._tools.get(name)
         if entry is None:
-            return {"status": "error", "error": f"Unknown tool: {name}", "data": None}
+            return {
+                "status": "error",
+                "error": f"Unknown tool: {name}",
+                "code": ErrorCode.INVALID_REQUEST.value,
+                "retryable": False,
+                "data": None,
+            }
         model, handler = entry
         try:
             validated = model.model_validate(arguments)
         except ValidationError as exc:
-            return {"status": "error", "error": "Invalid arguments", "details": exc.errors(), "data": None}
+            return {
+                "status": "error",
+                "error": "Invalid arguments",
+                "code": ErrorCode.INVALID_REQUEST.value,
+                "retryable": False,
+                "details": json.loads(exc.json(include_url=False)),
+                "data": None,
+            }
         try:
             return {"status": "ok", "error": None, "data": handler(validated)}
         except (OSError, ValueError) as exc:
-            return {"status": "error", "error": str(exc), "data": None}
+            return {
+                "status": "error",
+                "error": str(exc),
+                "code": ErrorCode.SERVICE_UNAVAILABLE.value
+                if isinstance(exc, OSError)
+                else ErrorCode.PROVIDER_RESPONSE.value,
+                "retryable": isinstance(exc, OSError),
+                "data": None,
+            }
+        except Exception as exc:
+            # Tool boundaries never expose a traceback or take down the model loop.
+            return safe_error(exc)
 
     def _search_files(self, arguments: BaseModel) -> list[dict[str, Any]]:
         assert isinstance(arguments, SearchFilesArgs)

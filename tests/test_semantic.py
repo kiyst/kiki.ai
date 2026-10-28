@@ -13,6 +13,11 @@ class FakeEmbedder:
         return vectors
 
 
+class OfflineEmbedder:
+    def embed(self, texts: list[str], model: str) -> list[list[float]]:
+        raise OSError("embedding service offline")
+
+
 def test_semantic_search_finds_concept_without_keyword_overlap(tmp_path: Path) -> None:
     corpus = tmp_path / "corpus"
     corpus.mkdir()
@@ -51,4 +56,19 @@ def test_explicit_comparison_is_searched_as_full_query_and_both_sides() -> None:
         "Paine's monarchy",
         "Madison's faction remedy",
     ]
+
+
+def test_hybrid_search_falls_back_to_lexical_when_embeddings_fail(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "policy.md").write_text("Retry transient failures.", encoding="utf-8")
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(corpus)
+    SemanticIndex(index, FakeEmbedder(), model="fake").embed_pending()
+    hybrid = HybridRetriever(index, SemanticIndex(index, OfflineEmbedder(), model="fake"))
+
+    results = hybrid.search("transient failures")
+
+    assert results[0].path.endswith("policy.md")
+    assert hybrid.last_fallback_reason == "embedding service offline"
 

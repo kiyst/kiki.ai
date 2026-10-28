@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+import httpx
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -19,9 +20,11 @@ from .model_client import (
     ToolCallingAssistant,
     ToolTrace,
 )
-from .providers.weather import OpenMeteoWeatherProvider
+from .input_editor import ChatInput
+from .providers.weather import GEOCODING_URL, OpenMeteoWeatherProvider
 from .personality import PRESETS, PersonalitySettings, personality_prompt
 from .retrieval import SearchResult, TextIndex
+from .resilience import DeskAIError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .tools import ToolRegistry
 
@@ -47,8 +50,8 @@ class TerminalSession:
         self._set_index(database)
 
     def _set_index(self, database: Path) -> None:
-        self.database = database
         self.index = TextIndex(database)
+        self.database = self.index.database
 
     def set_database(self, database: Path) -> None:
         self._set_index(database)
@@ -133,7 +136,52 @@ class TerminalSession:
                 system_prompt=f"{CHAT_SYSTEM_PROMPT}\n\n{personality_prompt(self.personality)}",
             )
         outcome = assistant.ask(prompt, history=self.histories[self.mode])
+        if self.mode == "rag" and isinstance(backend, HybridRetriever):
+            if backend.last_fallback_reason:
+                retrieval_mode = "lexical fallback (embedding service unavailable)"
         return self._remember(prompt, outcome, retrieval_mode)
+
+    def doctor(self) -> dict[str, Any]:
+        try:
+            response = httpx.get("http://127.0.0.1:11434/api/tags", timeout=2)
+            response.raise_for_status()
+            payload = response.json()
+            installed = {
+                str(item.get("name"))
+                for item in payload.get("models", [])
+                if isinstance(item, dict)
+            }
+            ollama: dict[str, Any] = {
+                "status": "ok",
+                "generation_model": "installed" if self.model in installed else "missing",
+                "embedding_model": "installed" if self.embedding_model in installed else "missing",
+            }
+        except Exception as exc:
+            ollama = {"status": "unavailable", "error": str(exc)}
+        try:
+            weather_response = httpx.get(
+                GEOCODING_URL,
+                params={"name": "Boston", "count": 1, "format": "json"},
+                timeout=3,
+            )
+            weather_response.raise_for_status()
+            weather_status: dict[str, Any] = {
+                "status": "ok",
+                "http_status": weather_response.status_code,
+            }
+        except Exception as exc:
+            weather_status = {"status": "unavailable", "error": str(exc)}
+        weather_status.update(
+            {
+                "circuit": self.weather.circuit_breaker.state,
+                "cached_locations": len(self.weather._cache),
+            }
+        )
+        return {
+            "ollama": ollama,
+            "index": self.index.health(),
+            "weather": weather_status,
+        }
 
     def _remember(
         self, prompt: str, outcome: ChatOutcome, retrieval_mode: str
@@ -161,10 +209,11 @@ def run_shell(
         database, model=model, embedding_model=embedding_model
     )
     _render_banner(console, session)
+    editor = ChatInput()
 
     while True:
         try:
-            prompt = console.input(_prompt_text(session))
+            prompt = editor.prompt(session.mode, session.debug)
         except (EOFError, KeyboardInterrupt):
             console.print("\n[dim]Session closed.[/dim]")
             return
@@ -192,7 +241,9 @@ def run_shell(
                 debug=session.debug,
             )
         except Exception as exc:  # terminal boundary: preserve session after provider/model errors
-            console.print(Panel(str(exc), title="Request failed", border_style="red"))
+            error = exc.payload() if isinstance(exc, DeskAIError) else safe_error(exc)
+            message = f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}"
+            console.print(Panel(message, title="Request failed", border_style="red"))
 
 
 def render_outcome(
@@ -366,6 +417,11 @@ def _handle_command(
             },
         )
         return False, None
+    if name == "/doctor":
+        report = session.doctor()
+        for component, details in report.items():
+            render_mapping(console, f"Health · {component}", details)
+        return False, None
     if name == "/weather":
         if not rest:
             console.print("[yellow]Usage: /weather City, State[/yellow]")
@@ -394,6 +450,7 @@ def _render_help(console: Console) -> None:
         ("/weather City, State", "Fetch a current Open-Meteo forecast directly."),
         ("/database PATH", "Change the SQLite index used by RAG mode."),
         ("/status", "Show active model, database, mode, and embedding count."),
+        ("/doctor", "Check Ollama models, index integrity, and provider health."),
         ("/debug", "Toggle validated tool traces."),
         ("/personality", "Show or adjust warmth, wit, opinions, and verbosity."),
         ("/clear", "Clear history for the active mode."),
@@ -497,6 +554,8 @@ def _weather_answer(result: dict[str, Any]) -> str:
         f"precipitation {current['precipitation_mm']} mm.",
         "\n**Forecast:**",
     ]
+    if data.get("stale"):
+        lines.insert(0, f"⚠️ {data.get('warning', 'Showing cached weather data.')}\n")
     for day in data.get("daily", []):
         lines.append(
             f"- {day['date']}: {day['condition']}; high {day['high_f']} °F / "

@@ -4,7 +4,10 @@ import math
 import re
 from array import array
 from dataclasses import replace
+from time import sleep
 from typing import Any, Protocol
+
+from .resilience import DeskAIError, ErrorCode
 
 from .retrieval import SearchResult, TextIndex
 
@@ -14,14 +17,40 @@ class EmbeddingClient(Protocol):
 
 
 class OllamaEmbeddingClient:
-    def __init__(self, host: str | None = None, timeout: float = 120) -> None:
+    def __init__(
+        self,
+        host: str | None = None,
+        timeout: float = 120,
+        max_attempts: int = 2,
+    ) -> None:
         from ollama import Client
 
         self.client = Client(host=host, timeout=timeout)
+        self.max_attempts = max(1, max_attempts)
 
     def embed(self, texts: list[str], model: str) -> list[list[float]]:
-        response = self.client.embed(model=model, input=texts)
-        return [list(vector) for vector in response.embeddings]
+        last_error: Exception | None = None
+        for attempt in range(self.max_attempts):
+            try:
+                response = self.client.embed(model=model, input=texts)
+                vectors = getattr(response, "embeddings", None)
+                if not isinstance(vectors, (list, tuple)):
+                    raise DeskAIError(
+                        "Ollama returned a malformed embedding response",
+                        code=ErrorCode.MODEL_RESPONSE,
+                    )
+                return [list(vector) for vector in vectors]
+            except DeskAIError:
+                raise
+            except Exception as exc:
+                last_error = exc
+                if attempt + 1 < self.max_attempts:
+                    sleep(0.2 * (2**attempt))
+        raise DeskAIError(
+            "The embedding model is unavailable",
+            code=ErrorCode.SERVICE_UNAVAILABLE,
+            retryable=True,
+        ) from last_error
 
 
 class SemanticIndex:
@@ -30,10 +59,12 @@ class SemanticIndex:
         index: TextIndex,
         client: EmbeddingClient,
         model: str = "qwen3-embedding:0.6b",
+        minimum_score: float = 0.2,
     ) -> None:
         self.index = index
         self.client = client
         self.model = model
+        self.minimum_score = minimum_score
 
     def embed_pending(self, batch_size: int = 16) -> dict[str, int]:
         if not 1 <= batch_size <= 64:
@@ -72,6 +103,8 @@ class SemanticIndex:
             score = _cosine(query_vector, vector)
             if not math.isfinite(score):
                 continue
+            if score < self.minimum_score:
+                continue
             scored.append(
                 SearchResult(
                     source_id=row["source_id"],
@@ -92,15 +125,22 @@ class HybridRetriever:
     def __init__(self, lexical: TextIndex, semantic: SemanticIndex) -> None:
         self.lexical = lexical
         self.semantic = semantic
+        self.last_fallback_reason: str | None = None
 
     def search(self, query: str, limit: int = 5) -> list[SearchResult]:
+        self.last_fallback_reason = None
         candidate_limit = min(20, max(limit * 3, 10))
         by_key: dict[tuple[str, str, int, int], SearchResult] = {}
         scores: dict[tuple[str, str, int, int], float] = {}
         result_lists: list[list[SearchResult]] = []
         for variant in _query_variants(query):
             result_lists.append(self.lexical.search(variant, candidate_limit))
-            result_lists.append(self.semantic.search(variant, candidate_limit))
+            if self.last_fallback_reason is None:
+                try:
+                    result_lists.append(self.semantic.search(variant, candidate_limit))
+                except Exception as exc:
+                    # RAG remains available through SQLite FTS when Ollama embeddings fail.
+                    self.last_fallback_reason = str(exc)
         for results in result_lists:
             for rank, result in enumerate(results, start=1):
                 key = (

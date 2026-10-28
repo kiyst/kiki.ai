@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
+from time import sleep
 from typing import Any, Protocol
 
+from .resilience import DeskAIError, ErrorCode
 from .tools import ToolRegistry
 
 
@@ -57,15 +60,42 @@ class ChatOutcome:
 class OllamaClient:
     """Thin adapter kept separate so the tool loop is testable without Ollama."""
 
-    def __init__(self, host: str = "http://127.0.0.1:11434", timeout: float = 90.0) -> None:
+    def __init__(
+        self,
+        host: str = "http://127.0.0.1:11434",
+        timeout: float = 90.0,
+        max_attempts: int = 2,
+        fallback_models: list[str] | None = None,
+    ) -> None:
         try:
             from ollama import Client
         except ImportError as exc:
             raise RuntimeError("Install the 'ollama' project extra") from exc
         self._client = Client(host=host, timeout=timeout)
+        self.max_attempts = max(1, max_attempts)
+        configured = os.getenv("KIKI_FALLBACK_MODEL", "")
+        self.fallback_models = fallback_models or [
+            item.strip() for item in configured.split(",") if item.strip()
+        ]
 
     def chat(self, **kwargs: Any) -> Any:
-        return self._client.chat(**kwargs)
+        primary = str(kwargs.get("model", ""))
+        models = list(dict.fromkeys([primary, *self.fallback_models]))
+        last_error: Exception | None = None
+        for model in models:
+            for attempt in range(self.max_attempts):
+                try:
+                    return self._client.chat(**{**kwargs, "model": model})
+                except Exception as exc:
+                    last_error = exc
+                    if attempt + 1 < self.max_attempts:
+                        sleep(0.25 * (2**attempt))
+        raise DeskAIError(
+            "The local language model is unavailable",
+            code=ErrorCode.SERVICE_UNAVAILABLE,
+            retryable=True,
+            details={"models_tried": models},
+        ) from last_error
 
 
 class ToolCallingAssistant:
@@ -156,8 +186,11 @@ class ToolCallingAssistant:
             messages.append(message)
             calls = message.get("tool_calls") or []
             if not calls:
+                answer = _visible_answer(message.get("content") or "")
+                if self.pre_retrieve:
+                    answer = _verify_grounded_answer(answer, sources)
                 return ChatOutcome(
-                    answer=_visible_answer(message.get("content") or ""),
+                    answer=answer,
                     trace=trace,
                     sources=list(sources.values()),
                 )
@@ -165,8 +198,12 @@ class ToolCallingAssistant:
             if tool_call_count + len(calls) > self.max_tool_calls:
                 raise ToolLoopLimitError("Model exceeded the tool-call limit")
             for call in calls:
-                name, arguments = _tool_call(call)
-                result = self.registry.call(name, arguments)
+                try:
+                    name, arguments = _tool_call(call)
+                    result = self.registry.call(name, arguments)
+                except DeskAIError as exc:
+                    name, arguments = "malformed_tool_call", {}
+                    result = exc.payload()
                 if name == "search_files":
                     self._collect_sources(result, sources)
                     visible_result, used = _bounded_search_result(
@@ -212,19 +249,84 @@ class ToolCallingAssistant:
 
 
 def _message_dict(response: Any) -> dict[str, Any]:
-    message = response.message if hasattr(response, "message") else response["message"]
+    try:
+        message = response.message if hasattr(response, "message") else response["message"]
+    except (KeyError, TypeError, AttributeError) as exc:
+        raise DeskAIError(
+            "Ollama returned a response without an assistant message",
+            code=ErrorCode.MODEL_RESPONSE,
+            retryable=True,
+        ) from exc
     if hasattr(message, "model_dump"):
-        return message.model_dump(exclude_none=True)
-    return dict(message)
+        message = message.model_dump(exclude_none=True)
+    try:
+        result = dict(message)
+    except (TypeError, ValueError) as exc:
+        raise DeskAIError(
+            "Ollama returned a malformed assistant message",
+            code=ErrorCode.MODEL_RESPONSE,
+            retryable=True,
+        ) from exc
+    if result.get("tool_calls") is not None and not isinstance(result["tool_calls"], list):
+        raise DeskAIError(
+            "Ollama returned malformed tool calls",
+            code=ErrorCode.MODEL_RESPONSE,
+            retryable=True,
+        )
+    if result.get("content") is not None and not isinstance(result["content"], str):
+        raise DeskAIError(
+            "Ollama returned non-text assistant content",
+            code=ErrorCode.MODEL_RESPONSE,
+            retryable=True,
+        )
+    return result
 
 
 def _tool_call(call: Any) -> tuple[str, dict[str, Any]]:
-    function = call.function if hasattr(call, "function") else call["function"]
-    name = function.name if hasattr(function, "name") else function["name"]
-    arguments = function.arguments if hasattr(function, "arguments") else function.get("arguments", {})
+    try:
+        function = call.function if hasattr(call, "function") else call["function"]
+        name = function.name if hasattr(function, "name") else function["name"]
+        arguments = function.arguments if hasattr(function, "arguments") else function.get("arguments", {})
+    except (KeyError, TypeError, AttributeError) as exc:
+        raise DeskAIError(
+            "The model emitted a malformed tool call",
+            code=ErrorCode.TOOL_CALL_FORMAT,
+        ) from exc
+    if not isinstance(name, str) or not name.strip():
+        raise DeskAIError(
+            "The model emitted a tool call without a name",
+            code=ErrorCode.TOOL_CALL_FORMAT,
+        )
+    if isinstance(arguments, str):
+        try:
+            arguments = json.loads(arguments)
+        except json.JSONDecodeError as exc:
+            raise DeskAIError(
+                "The model emitted invalid JSON tool arguments",
+                code=ErrorCode.TOOL_CALL_FORMAT,
+            ) from exc
     if not isinstance(arguments, dict):
-        return name, {}
-    return name, arguments
+        raise DeskAIError(
+            "The model's tool arguments were not an object",
+            code=ErrorCode.TOOL_CALL_FORMAT,
+        )
+    return name.strip(), arguments
+
+
+def _verify_grounded_answer(
+    answer: str, sources: dict[str, dict[str, Any]]
+) -> str:
+    """Reject RAG prose whose source IDs cannot be checked against retrieved evidence."""
+    if answer.casefold().startswith("evidence is insufficient"):
+        return answer
+    available = {str(source["source_id"]) for source in sources.values()}
+    cited = set(re.findall(r"\[source:([^\]]+)\]", answer))
+    if not available or not cited or not cited.issubset(available):
+        return (
+            "Evidence is insufficient to verify the generated response. "
+            "I retrieved the sources listed below, but the model did not produce valid citations."
+        )
+    return answer
 
 
 def _visible_answer(content: str) -> str:

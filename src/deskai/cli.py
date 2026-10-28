@@ -14,6 +14,7 @@ from .evals import load_cases, run_evaluation
 from .model_client import RAG_SYSTEM_PROMPT, OllamaClient, ToolCallingAssistant
 from .providers.weather import OpenMeteoWeatherProvider
 from .retrieval import TextIndex
+from .resilience import DeskAIError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .terminal import (
     TerminalSession,
@@ -103,6 +104,10 @@ def _parser() -> argparse.ArgumentParser:
     tool.add_argument("name", choices=("search_files", "get_weather"))
     tool.add_argument("arguments", help="JSON object")
 
+    commands.add_parser(
+        "doctor", help="Check Ollama models, index integrity, and provider readiness"
+    )
+
     evaluate = commands.add_parser(
         "eval-rag", help="Run the fixed lexical/hybrid RAG evaluation"
     )
@@ -150,11 +155,18 @@ def main() -> None:
 
     try:
         output, kind = _dispatch(arguments)
-    except (OSError, RuntimeError, ValueError) as exc:
+    except Exception as exc:
+        error = exc.payload() if isinstance(exc, DeskAIError) else safe_error(exc)
         if arguments.json:
-            print(json.dumps({"status": "error", "error": str(exc)}, indent=2))
+            print(json.dumps(error, indent=2))
         else:
-            console.print(Panel(str(exc), title="deskAI error", border_style="red"))
+            console.print(
+                Panel(
+                    f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}",
+                    title="deskAI error",
+                    border_style="red",
+                )
+            )
         raise SystemExit(1) from exc
 
     if arguments.json:
@@ -165,6 +177,8 @@ def main() -> None:
 
 def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
     index = TextIndex(arguments.database)
+    if arguments.command == "doctor":
+        return TerminalSession(arguments.database).doctor(), "mapping"
     if arguments.command == "index":
         return index.index_root(arguments.root), "mapping"
     if arguments.command == "search":

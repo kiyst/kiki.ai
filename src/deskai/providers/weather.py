@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 import re
-from time import monotonic
-from typing import Any, Protocol
+from random import random
+from time import monotonic, sleep
+from typing import Any, Callable, Protocol
 
 import httpx
+
+from ..resilience import CircuitBreaker, DeskAIError, ErrorCode
 
 
 GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
@@ -52,12 +55,24 @@ class OpenMeteoWeatherProvider:
         client: HttpClient | None = None,
         *,
         cache_seconds: float = 600,
+        stale_seconds: float = 3600,
+        max_attempts: int = 3,
+        base_delay: float = 0.25,
+        sleeper: Callable[[float], None] = sleep,
+        random_source: Callable[[], float] = random,
+        circuit_breaker: CircuitBreaker | None = None,
     ) -> None:
         self.client = client or httpx.Client(
             timeout=10,
             headers={"User-Agent": "deskAI/0.1 (local personal assistant)"},
         )
         self.cache_seconds = cache_seconds
+        self.stale_seconds = max(stale_seconds, cache_seconds)
+        self.max_attempts = max(1, max_attempts)
+        self.base_delay = max(0.0, base_delay)
+        self._sleep = sleeper
+        self._random = random_source
+        self.circuit_breaker = circuit_breaker or CircuitBreaker("Open-Meteo")
         self._cache: dict[tuple[str, str, int], tuple[float, dict[str, Any]]] = {}
 
     def get_weather(
@@ -69,41 +84,51 @@ class OpenMeteoWeatherProvider:
         cached = self._cache.get(key)
         if cached and monotonic() - cached[0] <= self.cache_seconds:
             return {**cached[1], "cached": True}
+        try:
+            matches = self._geocode(location, country_code)
+            if not matches:
+                return {
+                    "resolved": False,
+                    "needs_clarification": True,
+                    "message": f"No location matched {original_location!r} in {country_code}.",
+                    "choices": [],
+                    "provider": "Open-Meteo",
+                }
 
-        matches = self._geocode(location, country_code)
-        if not matches:
-            return {
-                "resolved": False,
-                "needs_clarification": True,
-                "message": f"No location matched {original_location!r} in {country_code}.",
-                "choices": [],
+            plausible = _plausible_matches(location, matches)
+            if len(plausible) != 1:
+                return {
+                    "resolved": False,
+                    "needs_clarification": True,
+                    "message": "The location is ambiguous; use City, State or a more specific postal code.",
+                    "choices": [_location_choice(match) for match in plausible[:5]],
+                    "provider": "Open-Meteo",
+                }
+
+            selected = plausible[0]
+            forecast = self._forecast(selected, days)
+            result = {
+                "resolved": True,
+                "needs_clarification": False,
+                "location": _location_choice(selected),
+                **forecast,
+                "retrieved_at": datetime.now(UTC).isoformat(),
+                "cached": False,
+                "stale": False,
                 "provider": "Open-Meteo",
+                "attribution": "Weather data by Open-Meteo.com (CC BY 4.0); location data by GeoNames.",
             }
-
-        plausible = _plausible_matches(location, matches)
-        if len(plausible) != 1:
-            return {
-                "resolved": False,
-                "needs_clarification": True,
-                "message": "The location is ambiguous; use City, State or a more specific postal code.",
-                "choices": [_location_choice(match) for match in plausible[:5]],
-                "provider": "Open-Meteo",
-            }
-
-        selected = plausible[0]
-        forecast = self._forecast(selected, days)
-        result = {
-            "resolved": True,
-            "needs_clarification": False,
-            "location": _location_choice(selected),
-            **forecast,
-            "retrieved_at": datetime.now(UTC).isoformat(),
-            "cached": False,
-            "provider": "Open-Meteo",
-            "attribution": "Weather data by Open-Meteo.com (CC BY 4.0); location data by GeoNames.",
-        }
-        self._cache[key] = (monotonic(), result)
-        return result
+            self._cache[key] = (monotonic(), result)
+            return result
+        except (DeskAIError, OSError, ValueError):
+            if cached and monotonic() - cached[0] <= self.stale_seconds:
+                return {
+                    **cached[1],
+                    "cached": True,
+                    "stale": True,
+                    "warning": "Live weather is unavailable; showing the most recent cached result.",
+                }
+            raise
 
     def _geocode(self, location: str, country_code: str) -> list[dict[str, Any]]:
         payload = self._request_json(
@@ -120,11 +145,13 @@ class OpenMeteoWeatherProvider:
         return results if isinstance(results, list) else []
 
     def _forecast(self, location: dict[str, Any], days: int) -> dict[str, Any]:
+        latitude = _number(location, "latitude")
+        longitude = _number(location, "longitude")
         payload = self._request_json(
             FORECAST_URL,
             {
-                "latitude": location["latitude"],
-                "longitude": location["longitude"],
+                "latitude": latitude,
+                "longitude": longitude,
                 "timezone": "auto",
                 "forecast_days": days,
                 "current": (
@@ -141,7 +168,10 @@ class OpenMeteoWeatherProvider:
         current = payload.get("current")
         daily = payload.get("daily")
         if not isinstance(current, dict) or not isinstance(daily, dict):
-            raise ValueError("Open-Meteo returned an incomplete forecast")
+            raise DeskAIError(
+                "Open-Meteo returned an incomplete forecast",
+                code=ErrorCode.PROVIDER_RESPONSE,
+            )
 
         current_c = _number(current, "temperature_2m")
         apparent_c = _number(current, "apparent_temperature")
@@ -183,21 +213,65 @@ class OpenMeteoWeatherProvider:
 
     def _request_json(self, url: str, params: dict[str, Any]) -> dict[str, Any]:
         last_error: Exception | None = None
-        for _ in range(2):
+        self.circuit_breaker.allow()
+        for attempt in range(self.max_attempts):
             try:
                 response = self.client.get(url, params=params)
                 response.raise_for_status()
                 payload = response.json()
                 if not isinstance(payload, dict):
-                    raise ValueError("Provider returned a non-object response")
+                    raise DeskAIError(
+                        "Open-Meteo returned a malformed response",
+                        code=ErrorCode.PROVIDER_RESPONSE,
+                    )
                 if payload.get("error"):
-                    raise ValueError(str(payload.get("reason", "Provider rejected the request")))
+                    raise DeskAIError(
+                        str(payload.get("reason", "Provider rejected the request")),
+                        code=ErrorCode.PROVIDER_RESPONSE,
+                    )
+                self.circuit_breaker.success()
                 return payload
             except (httpx.TimeoutException, httpx.TransportError) as exc:
                 last_error = exc
             except httpx.HTTPStatusError as exc:
-                raise OSError(f"Open-Meteo HTTP error: {exc.response.status_code}") from exc
-        raise OSError("Open-Meteo request timed out or could not connect") from last_error
+                status = exc.response.status_code
+                if status not in {408, 429, 500, 502, 503, 504}:
+                    self.circuit_breaker.failure()
+                    raise DeskAIError(
+                        f"Open-Meteo rejected the request (HTTP {status})",
+                        code=ErrorCode.PROVIDER_RESPONSE,
+                    ) from exc
+                last_error = exc
+            except DeskAIError:
+                self.circuit_breaker.failure()
+                raise
+            if attempt + 1 < self.max_attempts:
+                self._sleep(self._retry_delay(attempt, last_error))
+        self.circuit_breaker.failure()
+        code = (
+            ErrorCode.RATE_LIMITED
+            if isinstance(last_error, httpx.HTTPStatusError)
+            and last_error.response.status_code == 429
+            else ErrorCode.TIMEOUT
+            if isinstance(last_error, httpx.TimeoutException)
+            else ErrorCode.SERVICE_UNAVAILABLE
+        )
+        raise DeskAIError(
+            "Open-Meteo timed out or could not be reached",
+            code=code,
+            retryable=True,
+        ) from last_error
+
+    def _retry_delay(self, attempt: int, error: Exception | None) -> float:
+        if isinstance(error, httpx.HTTPStatusError):
+            retry_after = error.response.headers.get("Retry-After")
+            if retry_after:
+                try:
+                    return min(10.0, max(0.0, float(retry_after)))
+                except ValueError:
+                    pass
+        exponential = self.base_delay * (2**attempt)
+        return min(5.0, exponential + exponential * 0.25 * self._random())
 
 
 def _plausible_matches(location: str, matches: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -254,14 +328,20 @@ def _location_choice(location: dict[str, Any]) -> dict[str, Any]:
 def _number(mapping: dict[str, Any], key: str) -> float:
     value = mapping.get(key)
     if not isinstance(value, (int, float)):
-        raise ValueError(f"Open-Meteo response omitted {key}")
+        raise DeskAIError(
+            f"Open-Meteo response omitted {key}",
+            code=ErrorCode.PROVIDER_RESPONSE,
+        )
     return float(value)
 
 
 def _list(mapping: dict[str, Any], key: str) -> list[Any]:
     value = mapping.get(key)
     if not isinstance(value, list):
-        raise ValueError(f"Open-Meteo response omitted {key}")
+        raise DeskAIError(
+            f"Open-Meteo response omitted {key}",
+            code=ErrorCode.PROVIDER_RESPONSE,
+        )
     return value
 
 

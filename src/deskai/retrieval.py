@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import hashlib
+import gc
+import json
 import re
 import sqlite3
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
+from time import sleep
 from typing import Iterator
 
 from .extraction import (
@@ -15,6 +19,7 @@ from .extraction import (
     ExtractionError,
     extract_chunks,
 )
+from .resilience import DeskAIError, ErrorCode
 
 
 @dataclass(frozen=True)
@@ -54,22 +59,110 @@ class TextIndex:
     def __init__(self, database: Path) -> None:
         self.database = database.resolve()
         self.database.parent.mkdir(parents=True, exist_ok=True)
-        self._initialize()
+        self.recovery_notice: str | None = None
+        try:
+            self._initialize()
+        except sqlite3.DatabaseError as exc:
+            self._recover_corrupt_database(exc)
 
     def _connect(self) -> sqlite3.Connection:
-        connection = sqlite3.connect(self.database)
+        connection = sqlite3.connect(self.database, timeout=5)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA busy_timeout = 5000")
         return connection
 
     @contextmanager
     def _session(self) -> Iterator[sqlite3.Connection]:
         connection = self._connect()
         try:
-            with connection:
-                yield connection
+            try:
+                with connection:
+                    yield connection
+            except sqlite3.OperationalError as exc:
+                retryable = "locked" in str(exc).casefold() or "busy" in str(exc).casefold()
+                raise DeskAIError(
+                    "The document index is busy; try again shortly"
+                    if retryable
+                    else "The document index could not complete the operation",
+                    code=ErrorCode.INDEX_UNAVAILABLE,
+                    retryable=retryable,
+                ) from exc
         finally:
             connection.close()
+
+    @property
+    def roots_manifest(self) -> Path:
+        return self.database.with_suffix(self.database.suffix + ".roots.json")
+
+    def _record_roots(self) -> None:
+        with self._session() as connection:
+            roots = [row["path"] for row in connection.execute("SELECT path FROM roots ORDER BY path")]
+        self.roots_manifest.write_text(json.dumps(roots, indent=2), encoding="utf-8")
+
+    def backup(self) -> Path:
+        destination = self.database.with_suffix(self.database.suffix + ".backup")
+        source = self._connect()
+        target = sqlite3.connect(destination)
+        try:
+            source.backup(target)
+        finally:
+            target.close()
+            source.close()
+        return destination
+
+    def health(self) -> dict[str, object]:
+        try:
+            with self._session() as connection:
+                result = connection.execute("PRAGMA quick_check").fetchone()[0]
+                files = connection.execute("SELECT COUNT(*) FROM files").fetchone()[0]
+                chunks = connection.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
+            return {
+                "status": "ok" if result == "ok" else "degraded",
+                "integrity": result,
+                "files": int(files),
+                "chunks": int(chunks),
+                "recovery_notice": self.recovery_notice,
+            }
+        except Exception as exc:
+            return {"status": "error", "error": str(exc)}
+
+    def _recover_corrupt_database(self, cause: sqlite3.DatabaseError) -> None:
+        stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+        quarantined = self.database.with_suffix(self.database.suffix + f".corrupt-{stamp}")
+        roots: list[str] = []
+        if self.roots_manifest.is_file():
+            try:
+                loaded = json.loads(self.roots_manifest.read_text(encoding="utf-8"))
+                roots = [value for value in loaded if isinstance(value, str)]
+            except (OSError, ValueError, TypeError):
+                roots = []
+        if self.database.exists():
+            gc.collect()
+            moved = False
+            for attempt in range(3):
+                try:
+                    self.database.replace(quarantined)
+                    moved = True
+                    break
+                except PermissionError:
+                    if attempt < 2:
+                        sleep(0.05)
+            if not moved:
+                # Some Windows SQLite builds briefly retain the bad file handle.
+                # Preserve it in place and recover to an adjacent active database.
+                quarantined = self.database
+                self.database = self.database.with_suffix(
+                    self.database.suffix + f".recovered-{stamp}"
+                )
+        self._initialize()
+        self.recovery_notice = (
+            f"Recovered a corrupt index ({cause}); preserved it at {quarantined}"
+        )
+        for root in roots:
+            path = Path(root)
+            if path.is_dir():
+                self.index_root(path)
 
     def _initialize(self) -> None:
         with self._session() as connection:
@@ -160,6 +253,8 @@ class TextIndex:
             for row in stale:
                 self._delete_source(connection, row["source_id"])
             counts["removed"] = len(stale)
+        self._record_roots()
+        self.backup()
         return {**counts, "issues": issues}
 
     def _replace_file(self, connection: sqlite3.Connection, root: Path, path: Path) -> bool:

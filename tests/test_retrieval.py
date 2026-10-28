@@ -64,3 +64,28 @@ def test_search_ignores_stop_words_and_prioritizes_matching_filename(tmp_path: P
 
     assert results[0].path.endswith("united_states_constitution.txt")
 
+
+def test_index_writes_recovery_manifest_and_backup(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "notes.md").write_text("Reliable evidence.", encoding="utf-8")
+    index = TextIndex(tmp_path / "index.sqlite3")
+
+    index.index_root(corpus)
+
+    assert index.roots_manifest.is_file()
+    assert index.database.with_suffix(".sqlite3.backup").is_file()
+    assert index.health()["integrity"] == "ok"
+
+
+def test_corrupt_index_is_quarantined_and_recreated(tmp_path: Path) -> None:
+    database = tmp_path / "index.sqlite3"
+    database.write_bytes(b"definitely not sqlite")
+
+    index = TextIndex(database)
+
+    assert index.health()["status"] == "ok"
+    assert index.recovery_notice is not None
+    assert database.is_file()
+    assert index.database != database or list(tmp_path.glob("index.sqlite3.corrupt-*"))
+

@@ -31,11 +31,18 @@ switches back without mixing the two conversation histories. Useful commands:
 | `/rag [question]` | Ground answers in indexed evidence and show verified sources. |
 | `/weather Boston, MA` | Fetch current conditions and a short forecast. |
 | `/status` | Show the active mode, database, and models. |
+| `/doctor` | Check Ollama models, SQLite integrity, and weather circuit state. |
 | `/debug` | Show validated tool calls and retrieval mode. |
 | `/personality` | Show persistent warmth, wit, opinions, and verbosity controls. |
 | `/personality preset lively` | Apply the lively, balanced, or quiet preset. |
 | `/clear` | Clear history for the active mode only. |
 | `/help` | Show all interactive commands. |
+
+The input area accepts multiline clipboard paste without executing each pasted
+line. `Enter` sends, `Alt+Enter` or `F2` inserts a newline, and `Ctrl+A`,
+`Ctrl+C`, `Ctrl+V`, and `Ctrl+Z` provide select-all, copy, paste, and undo.
+Mouse selection is enabled. `Ctrl+C` still cancels the prompt when no text is
+selected, and `Ctrl+D` exits.
 
 ## Current commands
 
@@ -49,6 +56,7 @@ python -m deskai.cli tool search_files '{"query":"retry policy","limit":3}'
 python -m deskai.cli chat "Explain mercantilism in plain language."
 python -m deskai.cli rag "What does Paine say about hereditary monarchy?" --debug
 python -m deskai.cli weather "Boston, Massachusetts"
+python -m deskai.cli --database .deskai\history.sqlite3 doctor
 python -m deskai.cli --database .deskai\history.sqlite3 eval-rag
 ```
 
@@ -59,19 +67,32 @@ the rest of an indexing run. OCR is intentionally not included.
 
 Embeddings are stored alongside paragraph-aware chunks in SQLite. RAG mode uses
 reciprocal-rank fusion when vectors exist and falls back to lexical search when
-they do not; pass `--lexical-only` on a one-shot `rag` command to force exact-term
+they do not or when Ollama's embedding endpoint fails; pass `--lexical-only` on a one-shot `rag` command to force exact-term
 search. Explicit comparison questions search each side independently before
 fusion. Evidence and conversation history are bounded to fit the local model's
 4,096-token context. Verified source records are returned separately from model
 prose, and `--json` keeps every command scriptable.
+Semantic candidates below the configured similarity floor are discarded. RAG
+answers without a valid retrieved source ID are replaced with an
+insufficient-evidence notice instead of being displayed as grounded prose.
 
 Weather uses Open-Meteo through a fixed, validated provider. It has a short
-cache, bounded retries, location disambiguation, and never lets the model choose
+cache, exponential-backoff retries for timeouts, 408, 429, and selected 5xx
+responses, `Retry-After` support, a circuit breaker, stale-cache fallback,
+location disambiguation, and never lets the model choose
 an arbitrary URL. Obvious natural-language weather questions are routed
 directly through the provider so the model cannot skip the tool, discard state
 details, or relabel live results as simulated data. When a place is ambiguous,
 Kiki remembers the displayed choices and accepts a number, ordinal, state name,
 full label, or `cancel` on the next turn.
+
+Tool calls use strict schemas that reject missing, extra, and wrongly typed
+fields. Malformed model envelopes and unexpected handler failures are contained
+as categorized errors with short diagnostic references. Ollama generation is
+retried locally and can try comma-separated fallback models from the
+`KIKI_FALLBACK_MODEL` environment variable. SQLite uses a busy timeout, writes
+a recoverable backup and corpus-root manifest after indexing, checks integrity
+through `/doctor`, and preserves corrupt databases before rebuilding an index.
 
 ## Development setup
 
@@ -109,7 +130,7 @@ diagnostic, not proof that every answer is factually correct.
 ## Verification receipt
 
 - Python 3.12 virtual environment created locally.
-- Unit tests: 35 passing.
+- Unit tests: 51 passing.
 - CommonMark corpus: 12 supported files indexed; cited search verified.
 - py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
   as encrypted, image-only/OCR-required, or malformed.

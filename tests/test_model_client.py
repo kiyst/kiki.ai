@@ -3,8 +3,15 @@ from typing import Any
 
 import pytest
 
-from deskai.model_client import ToolCallingAssistant, ToolLoopLimitError, _bounded_search_result
+from deskai.model_client import (
+    ToolCallingAssistant,
+    ToolLoopLimitError,
+    _bounded_search_result,
+    _message_dict,
+    _tool_call,
+)
 from deskai.retrieval import TextIndex
+from deskai.resilience import DeskAIError
 from deskai.tools import ToolRegistry
 
 
@@ -132,4 +139,47 @@ def test_pre_retrieval_does_not_depend_on_model_tool_choice(tmp_path: Path) -> N
     assert outcome.trace[0].name == "search_files"
     assert outcome.sources[0]["path"].endswith("evidence.md")
     assert fake.requests[0]["messages"][-1]["role"] == "tool"
+
+
+def test_string_encoded_tool_arguments_are_parsed() -> None:
+    name, arguments = _tool_call(
+        {"function": {"name": "search_files", "arguments": '{"query": "history"}'}}
+    )
+
+    assert name == "search_files"
+    assert arguments == {"query": "history"}
+
+
+def test_malformed_tool_call_is_classified() -> None:
+    with pytest.raises(DeskAIError) as caught:
+        _tool_call({"wrong": "shape"})
+
+    assert caught.value.code == "tool_call_format"
+
+
+def test_malformed_model_response_is_classified() -> None:
+    with pytest.raises(DeskAIError) as caught:
+        _message_dict({"not_message": {}})
+
+    assert caught.value.code == "model_response"
+
+    with pytest.raises(DeskAIError):
+        _message_dict({"message": {"role": "assistant", "content": 42}})
+
+
+def test_rag_answer_without_valid_citation_is_rejected(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "evidence.md").write_text("The event occurred in 1776.", encoding="utf-8")
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(corpus)
+    fake = FakeClient(
+        [{"message": {"role": "assistant", "content": "It happened in 1776."}}]
+    )
+
+    outcome = ToolCallingAssistant(
+        fake, ToolRegistry(index), pre_retrieve=True
+    ).ask("When did the event happen?")
+
+    assert outcome.answer.startswith("Evidence is insufficient to verify")
 
