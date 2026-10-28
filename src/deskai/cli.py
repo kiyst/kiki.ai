@@ -51,6 +51,9 @@ def _parser() -> argparse.ArgumentParser:
     shell = commands.add_parser("shell", help="Open the interactive chat/RAG terminal")
     _add_model_options(shell)
 
+    run = commands.add_parser("run", help="Open the interactive assistant (friendly alias)")
+    _add_model_options(run)
+
     chat = commands.add_parser(
         "chat", help="One ordinary conversational turn (no document search)"
     )
@@ -132,7 +135,7 @@ def main() -> None:
     arguments = parser.parse_args()
     console = Console()
 
-    if arguments.command in (None, "shell"):
+    if arguments.command in (None, "shell", "run"):
         if arguments.json:
             parser.error("--json is not available for the interactive shell")
         run_shell(

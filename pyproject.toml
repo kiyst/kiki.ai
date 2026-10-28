@@ -20,6 +20,7 @@ ollama = ["ollama>=0.4,<1"]
 
 [project.scripts]
 deskai = "deskai.cli:main"
+kiki = "deskai.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

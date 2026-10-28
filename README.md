@@ -14,6 +14,13 @@ Open the interactive terminal against the included history index:
 deskai --database .deskai\history.sqlite3
 ```
 
+On this workstation, the installed convenience launcher starts the same history
+assistant from any PowerShell window:
+
+```powershell
+kiki run
+```
+
 The prompt clearly shows the active mode. Start in `CHAT` for normal
 conversation, then type `/rag` to ask the indexed books questions. `/chat`
 switches back without mixing the two conversation histories. Useful commands:
