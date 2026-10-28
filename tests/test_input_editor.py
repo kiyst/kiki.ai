@@ -8,6 +8,7 @@ def test_editor_buffer_preserves_multiline_paste() -> None:
     with create_pipe_input() as pipe:
         editor = ChatInput(input=pipe, output=DummyOutput())
         assert editor._session.multiline is True
+        assert editor._session.mouse_support is False
 
 
 def test_editor_registers_copy_paste_and_select_all_shortcuts() -> None:

@@ -48,7 +48,9 @@ class ChatInput:
             clipboard=PyperclipClipboard(),
             key_bindings=bindings,
             multiline=True,
-            mouse_support=True,
+            # Let the terminal own mouse drag events so users can highlight and
+            # copy both conversation output and the current input normally.
+            mouse_support=False,
             enable_open_in_editor=False,
             input=input,
             output=output,

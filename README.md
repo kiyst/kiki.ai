@@ -41,8 +41,9 @@ switches back without mixing the two conversation histories. Useful commands:
 The input area accepts multiline clipboard paste without executing each pasted
 line. `Enter` sends, `Alt+Enter` or `F2` inserts a newline, and `Ctrl+A`,
 `Ctrl+C`, `Ctrl+V`, and `Ctrl+Z` provide select-all, copy, paste, and undo.
-Mouse selection is enabled. `Ctrl+C` still cancels the prompt when no text is
-selected, and `Ctrl+D` exits.
+Mouse selection remains owned by the terminal, so click-drag and the terminal's
+normal copy shortcut work across the transcript. `Ctrl+C` still cancels the
+prompt when no editor text is selected, and `Ctrl+D` exits.
 
 ## Current commands
 
