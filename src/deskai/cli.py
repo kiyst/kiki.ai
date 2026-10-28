@@ -10,9 +10,16 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from .coding_evals import load_coding_cases, run_coding_evaluation
 from .evals import load_cases, run_evaluation
-from .model_client import RAG_SYSTEM_PROMPT, OllamaClient, ToolCallingAssistant
+from .model_client import (
+    CHAT_SYSTEM_PROMPT,
+    RAG_SYSTEM_PROMPT,
+    OllamaClient,
+    ToolCallingAssistant,
+)
 from .providers.weather import OpenMeteoWeatherProvider
+from .personality import PersonalitySettings, personality_prompt
 from .retrieval import TextIndex
 from .resilience import DeskAIError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
@@ -126,6 +133,19 @@ def _parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--model", default=DEFAULT_MODEL)
     evaluate.add_argument("--embedding-model", default=DEFAULT_EMBEDDING_MODEL)
     evaluate.add_argument("--output", type=Path, help="Optional JSON receipt path")
+
+    coding = commands.add_parser(
+        "eval-chat", help="Run live medium/hard coding refusal and concept regressions"
+    )
+    coding.add_argument(
+        "--cases", type=Path, default=Path("evals/coding_cases.json")
+    )
+    coding.add_argument("--model", default=DEFAULT_MODEL)
+    coding.add_argument(
+        "--case", action="append", dest="case_ids", help="Run a named case (repeatable)"
+    )
+    coding.add_argument("--limit", type=int, default=0, help="Run only the first N cases")
+    coding.add_argument("--output", type=Path, help="Optional JSON receipt path")
     return parser
 
 
@@ -228,6 +248,38 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
         }, "outcome"
     if arguments.command == "eval-rag":
         return _run_eval(arguments, index), "evaluation"
+    if arguments.command == "eval-chat":
+        cases = load_coding_cases(arguments.cases)
+        if arguments.case_ids:
+            requested = set(arguments.case_ids)
+            cases = [case for case in cases if case.identifier in requested]
+            missing = requested - {case.identifier for case in cases}
+            if missing:
+                raise ValueError(f"Unknown coding case(s): {', '.join(sorted(missing))}")
+        if arguments.limit:
+            cases = cases[: arguments.limit]
+        assistant = ToolCallingAssistant(
+            OllamaClient(),
+            ToolRegistry(weather=OpenMeteoWeatherProvider(), include_search=False),
+            model=arguments.model,
+            system_prompt=(
+                f"{CHAT_SYSTEM_PROMPT}\n\n"
+                f"{personality_prompt(PersonalitySettings.load(arguments.database.resolve().parent / 'kiki-personality.json'))}"
+            ),
+        )
+        receipt = run_coding_evaluation(
+            cases, lambda prompt: assistant.ask(prompt).answer
+        )
+        receipt["configuration"] = {
+            "cases": str(arguments.cases.resolve()),
+            "model": arguments.model,
+        }
+        if arguments.output:
+            arguments.output.parent.mkdir(parents=True, exist_ok=True)
+            arguments.output.write_text(
+                json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        return receipt, "coding_evaluation"
     raise ValueError(f"Unknown command: {arguments.command}")
 
 
@@ -296,6 +348,8 @@ def _render(
         )
     elif kind == "evaluation":
         _render_evaluation(console, output)
+    elif kind == "coding_evaluation":
+        _render_coding_evaluation(console, output)
     else:
         render_mapping(
             console, arguments.command.replace("-", " ").title(), output
@@ -324,6 +378,33 @@ def _render_evaluation(console: Console, receipt: dict[str, Any]) -> None:
     console.print(
         "[dim]Retrieval hits measure expected-source presence, not factual correctness. "
         "Model answers still require human support review.[/dim]"
+    )
+
+
+def _render_coding_evaluation(console: Console, receipt: dict[str, Any]) -> None:
+    render_mapping(console, "Coding regression summary", receipt["summary"])
+    table = Table(title="Medium/hard coding cases", show_lines=True)
+    table.add_column("Case")
+    table.add_column("Level")
+    table.add_column("No refusal")
+    table.add_column("Concepts")
+    table.add_column("Code")
+    table.add_column("Syntax")
+    table.add_column("Overall")
+    for case in receipt["cases"]:
+        table.add_row(
+            case["id"],
+            case["difficulty"],
+            _mark(case["no_false_refusal"]),
+            _mark(case["concept_signals_passed"]),
+            _mark(case["has_code"]),
+            _mark(case["python_syntax_valid"]),
+            _mark(case["passed"]),
+        )
+    console.print(table)
+    console.print(
+        "[dim]This checks refusal behavior and expected algorithm signals. "
+        "Generated code is not executed without a dedicated sandbox.[/dim]"
     )
 
 

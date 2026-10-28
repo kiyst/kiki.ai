@@ -1,10 +1,13 @@
 from deskai.terminal import (
     TerminalSession,
+    _handle_command,
     _choice_query,
     _select_weather_choice,
     _weather_answer,
     _weather_location_from_prompt,
 )
+from deskai.model_client import ChatOutcome
+from rich.console import Console
 
 
 class ChoiceWeather:
@@ -115,3 +118,41 @@ def test_session_uses_followup_to_select_pending_weather_choice(tmp_path) -> Non
     assert second.trace[0].arguments == {"location": "Ohio, Illinois"}
     assert "Ohio, Illinois, United States" in second.answer
     assert session.pending_weather_choices == []
+
+
+def test_retry_copy_sources_and_transcript_workflow(tmp_path, monkeypatch) -> None:
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    outcome = ChatOutcome(
+        "A useful answer.",
+        [],
+        [{"source_id": "abc", "path": "notes.md", "citation": "[source:abc] notes.md (lines 1-2)"}],
+    )
+    session._remember("Original prompt", outcome, "none")
+    console = Console(record=True, width=100)
+    copied: list[str] = []
+    monkeypatch.setattr("deskai.terminal.pyperclip.copy", copied.append)
+
+    _handle_command(console, session, "/copy")
+    _handle_command(console, session, "/sources")
+    transcript = tmp_path / "saved conversation.md"
+    _handle_command(console, session, f'/save "{transcript}"')
+    should_exit, retried = _handle_command(console, session, "/retry")
+
+    assert should_exit is False
+    assert retried == "Original prompt"
+    assert session.histories["chat"] == []
+    assert session.turns == []
+    assert copied == ["A useful answer."]
+    assert "Original prompt" in transcript.read_text(encoding="utf-8")
+    assert "source:abc" in transcript.read_text(encoding="utf-8")
+
+
+def test_new_command_clears_active_conversation(tmp_path) -> None:
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    session._remember("hello", ChatOutcome("hi", [], []), "none")
+
+    _handle_command(Console(), session, "/new")
+
+    assert session.histories["chat"] == []
+    assert session.last_prompts["chat"] is None
+    assert session.turns == []

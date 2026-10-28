@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import shlex
 import re
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import httpx
+import pyperclip
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
@@ -29,6 +31,27 @@ from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .tools import ToolRegistry
 
 
+INTERACTIVE_COMMANDS = (
+    "/chat",
+    "/rag",
+    "/retry",
+    "/copy",
+    "/sources",
+    "/history",
+    "/save",
+    "/new",
+    "/clear",
+    "/weather",
+    "/database",
+    "/status",
+    "/doctor",
+    "/debug",
+    "/personality",
+    "/help",
+    "/exit",
+)
+
+
 class TerminalSession:
     def __init__(
         self,
@@ -47,6 +70,9 @@ class TerminalSession:
         self.personality_path = database.resolve().parent / "kiki-personality.json"
         self.personality = PersonalitySettings.load(self.personality_path)
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": []}
+        self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None}
+        self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None}
+        self.turns: list[dict[str, Any]] = []
         self._set_index(database)
 
     def _set_index(self, database: Path) -> None:
@@ -183,6 +209,57 @@ class TerminalSession:
             "weather": weather_status,
         }
 
+    def clear_mode(self) -> None:
+        self.histories[self.mode].clear()
+        self.last_prompts[self.mode] = None
+        self.last_outcomes[self.mode] = None
+        self.pending_weather_choices.clear()
+        self.turns = [turn for turn in self.turns if turn["mode"] != self.mode]
+
+    def prepare_retry(self) -> str | None:
+        prompt = self.last_prompts[self.mode]
+        if prompt is None:
+            return None
+        history = self.histories[self.mode]
+        if len(history) >= 2 and history[-2].get("content") == prompt:
+            del history[-2:]
+        for index in range(len(self.turns) - 1, -1, -1):
+            if self.turns[index]["mode"] == self.mode:
+                del self.turns[index]
+                break
+        self.last_prompts[self.mode] = None
+        self.last_outcomes[self.mode] = None
+        return prompt
+
+    def export_transcript(self, path: Path | None = None) -> Path:
+        if path is None:
+            folder = self.database.parent / "transcripts"
+            stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            path = folder / f"kiki-{stamp}.md"
+        path = path.expanduser().resolve()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        lines = ["# Kiki transcript", ""]
+        for turn in self.turns:
+            lines.extend(
+                [
+                    f"## {str(turn['mode']).upper()} · You",
+                    "",
+                    str(turn["prompt"]),
+                    "",
+                    "## Kiki",
+                    "",
+                    str(turn["answer"]),
+                    "",
+                ]
+            )
+            sources = turn.get("sources") or []
+            if sources:
+                lines.append("Sources:")
+                lines.extend(f"- {source.get('citation')}" for source in sources)
+                lines.append("")
+        path.write_text("\n".join(lines), encoding="utf-8")
+        return path
+
     def _remember(
         self, prompt: str, outcome: ChatOutcome, retrieval_mode: str
     ) -> tuple[ChatOutcome, str]:
@@ -194,6 +271,16 @@ class TerminalSession:
             ]
         )
         del history[:-12]
+        self.last_prompts[self.mode] = prompt
+        self.last_outcomes[self.mode] = outcome
+        self.turns.append(
+            {
+                "mode": self.mode,
+                "prompt": prompt,
+                "answer": outcome.answer,
+                "sources": outcome.sources,
+            }
+        )
         return outcome, retrieval_mode
 
 
@@ -209,7 +296,10 @@ def run_shell(
         database, model=model, embedding_model=embedding_model
     )
     _render_banner(console, session)
-    editor = ChatInput()
+    editor = ChatInput(
+        history_path=session.database.parent / "kiki-input-history",
+        commands=INTERACTIVE_COMMANDS,
+    )
 
     while True:
         try:
@@ -256,20 +346,25 @@ def render_outcome(
 ) -> None:
     title = "deskAI · RAG" if mode == "rag" else "deskAI · Chat"
     console.print(Panel(Markdown(outcome.answer or "_(No response)_"), title=title, border_style="cyan"))
-    if outcome.sources:
-        table = Table(title="Verified sources", show_lines=True)
-        table.add_column("ID", style="cyan", no_wrap=True)
-        table.add_column("Document", style="bold")
-        table.add_column("Location", no_wrap=True)
-        for source in outcome.sources:
-            table.add_row(
-                str(source["source_id"]),
-                Path(str(source["path"])).name,
-                _citation_location(str(source.get("citation") or "")),
-            )
-        console.print(table)
+    render_sources(console, outcome.sources)
     if debug:
         render_trace(console, outcome, retrieval_mode)
+
+
+def render_sources(console: Console, sources: list[dict[str, Any]]) -> None:
+    if not sources:
+        return
+    table = Table(title="Verified sources", show_lines=True)
+    table.add_column("ID", style="cyan", no_wrap=True)
+    table.add_column("Document", style="bold")
+    table.add_column("Location", no_wrap=True)
+    for source in sources:
+        table.add_row(
+            str(source["source_id"]),
+            Path(str(source["path"])).name,
+            _citation_location(str(source.get("citation") or "")),
+        )
+    console.print(table)
 
 
 def render_trace(console: Console, outcome: ChatOutcome, retrieval_mode: str) -> None:
@@ -355,7 +450,8 @@ def _render_banner(console: Console, session: TerminalSession) -> None:
     text = (
         "[bold]Local assistant[/bold]\n"
         "[cyan]CHAT[/cyan] is ordinary conversation. [magenta]RAG[/magenta] answers from indexed evidence.\n"
-        "Type [bold]/rag[/bold] or [bold]/chat[/bold] to switch, [bold]/help[/bold] for commands.\n\n"
+        "Type [bold]/rag[/bold] or [bold]/chat[/bold] to switch; press [bold]Tab[/bold] for commands.\n"
+        "Use [bold]/help[/bold] for shortcuts and [bold]/new[/bold] for a fresh conversation.\n\n"
         f"Database: [dim]{session.database.resolve()}[/dim]"
     )
     console.print(Panel(text, title="deskAI", border_style="cyan"))
@@ -391,10 +487,50 @@ def _handle_command(
     if name == "/personality":
         _handle_personality(console, session, parts[1:])
         return False, None
-    if name == "/clear":
-        session.histories[session.mode].clear()
-        session.pending_weather_choices.clear()
-        console.print(f"Cleared {session.mode.upper()} conversation history.")
+    if name == "/retry":
+        previous = session.prepare_retry()
+        if previous is None:
+            console.print("[yellow]There is no previous message to retry.[/yellow]")
+            return False, None
+        console.print("[dim]Regenerating the previous response…[/dim]")
+        return False, previous
+    if name == "/copy":
+        previous = session.last_outcomes[session.mode]
+        if previous is None:
+            console.print("[yellow]There is no response to copy.[/yellow]")
+            return False, None
+        try:
+            pyperclip.copy(previous.answer)
+            console.print("[green]Copied the last response.[/green]")
+        except pyperclip.PyperclipException as exc:
+            console.print(f"[red]Clipboard unavailable:[/red] {exc}")
+        return False, None
+    if name == "/sources":
+        previous = session.last_outcomes[session.mode]
+        if previous is None or not previous.sources:
+            console.print("[yellow]The last response has no verified sources.[/yellow]")
+        else:
+            render_sources(console, previous.sources)
+        return False, None
+    if name == "/history":
+        recent = [turn for turn in session.turns if turn["mode"] == session.mode][-10:]
+        if not recent:
+            console.print("[yellow]This conversation has no messages yet.[/yellow]")
+            return False, None
+        table = Table(title=f"Recent {session.mode.upper()} prompts")
+        table.add_column("#", justify="right", style="dim")
+        table.add_column("Prompt", overflow="fold")
+        for number, turn in enumerate(recent, start=1):
+            table.add_row(str(number), str(turn["prompt"]))
+        console.print(table)
+        return False, None
+    if name == "/save":
+        path = session.export_transcript(Path(rest) if rest else None)
+        console.print(f"[green]Transcript saved to[/green] {path}")
+        return False, None
+    if name in {"/clear", "/new"}:
+        session.clear_mode()
+        console.print(f"Started a new {session.mode.upper()} conversation.")
         return False, None
     if name in {"/database", "/db"}:
         if not rest:
@@ -447,13 +583,19 @@ def _render_help(console: Console) -> None:
     rows = (
         ("/chat [message]", "Switch to ordinary local conversation."),
         ("/rag [question]", "Switch to evidence-grounded document Q&A."),
+        ("/retry", "Regenerate the last response."),
+        ("/copy", "Copy the last response to the system clipboard."),
+        ("/sources", "Show the last response's verified RAG sources again."),
+        ("/history", "Show the last ten prompts in this conversation."),
+        ("/save [PATH]", "Export this session to a Markdown transcript."),
+        ("/new", "Start a fresh conversation in the active mode."),
         ("/weather City, State", "Fetch a current Open-Meteo forecast directly."),
         ("/database PATH", "Change the SQLite index used by RAG mode."),
         ("/status", "Show active model, database, mode, and embedding count."),
         ("/doctor", "Check Ollama models, index integrity, and provider health."),
         ("/debug", "Toggle validated tool traces."),
         ("/personality", "Show or adjust warmth, wit, opinions, and verbosity."),
-        ("/clear", "Clear history for the active mode."),
+        ("/clear", "Alias for /new."),
         ("/quit", "Close the terminal session."),
     )
     for command, purpose in rows:

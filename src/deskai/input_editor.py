@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from typing import Any
+from pathlib import Path
 
 from prompt_toolkit import PromptSession
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.clipboard.pyperclip import PyperclipClipboard
+from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.filters import has_selection
 from prompt_toolkit.formatted_text import HTML
-from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.selection import SelectionType
 
@@ -14,7 +17,14 @@ from prompt_toolkit.selection import SelectionType
 class ChatInput:
     """Terminal-native multiline editor with familiar clipboard behavior."""
 
-    def __init__(self, *, input: Any = None, output: Any = None) -> None:
+    def __init__(
+        self,
+        *,
+        history_path: Path | None = None,
+        commands: tuple[str, ...] = (),
+        input: Any = None,
+        output: Any = None,
+    ) -> None:
         bindings = KeyBindings()
 
         @bindings.add("enter")
@@ -43,8 +53,14 @@ class ChatInput:
         def paste(event: Any) -> None:
             event.current_buffer.paste_clipboard_data(event.app.clipboard.get_data())
 
+        history = FileHistory(str(history_path)) if history_path else InMemoryHistory()
+        command_completer = WordCompleter(commands, ignore_case=True, sentence=True)
         self._session: PromptSession[str] = PromptSession(
-            history=InMemoryHistory(),
+            history=history,
+            auto_suggest=AutoSuggestFromHistory(),
+            completer=command_completer,
+            complete_while_typing=False,
+            complete_in_thread=False,
             clipboard=PyperclipClipboard(),
             key_bindings=bindings,
             multiline=True,
@@ -69,6 +85,7 @@ class ChatInput:
             message,
             bottom_toolbar=HTML(
                 " <b>Enter</b> send  ·  <b>Alt+Enter/F2</b> newline  ·  "
+                "<b>Tab</b> commands  ·  <b>↑</b> history  ·  "
                 "<b>Ctrl+A/C/V/Z</b> select/copy/paste/undo  ·  <b>Ctrl+D</b> exit "
             ),
         )

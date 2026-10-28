@@ -1,0 +1,62 @@
+[
+  {
+    "id": "product_except_self",
+    "difficulty": "medium",
+    "prompt": "Write a Python solution: for each position in an integer list, return the product of every other value. Use O(n) time and no division. Explain complexity and handle zeros.",
+    "signal_groups": [["prefix", "left product"], ["suffix", "right product"], ["o(n)"], ["without division", "no division"]]
+  },
+  {
+    "id": "longest_unique_substring",
+    "difficulty": "medium",
+    "prompt": "Write a Python function that finds the length of the longest substring with no repeated characters. Target O(n), explain the invariant, and include complexity.",
+    "signal_groups": [["sliding window", "window"], ["set", "dictionary", "hash"], ["o(n)"]]
+  },
+  {
+    "id": "merge_intervals",
+    "difficulty": "medium",
+    "prompt": "Given possibly overlapping [start, end] intervals, return their merged union in Python. Explain the algorithm and complexity.",
+    "signal_groups": [["sort"], ["overlap", "merged"], ["o(n log n)", "n log n"]]
+  },
+  {
+    "id": "course_schedule",
+    "difficulty": "medium",
+    "prompt": "Write Python code to decide whether all courses can be completed from prerequisite pairs. Explain how you detect a dependency cycle and give complexity.",
+    "signal_groups": [["cycle"], ["topological", "kahn", "depth-first", "dfs"], ["o(v + e)", "o(v+e)"]]
+  },
+  {
+    "id": "lru_cache",
+    "difficulty": "medium",
+    "prompt": "Implement an LRU cache in Python whose get and put operations are O(1). Explain the data structures and edge cases.",
+    "signal_groups": [["dictionary", "hash map", "hashmap"], ["doubly linked", "ordereddict"], ["o(1)"]]
+  },
+  {
+    "id": "minimum_window_substring",
+    "difficulty": "hard",
+    "prompt": "Write a Python solution that returns the shortest substring of s containing every character of t with multiplicity. Explain the O(n) sliding-window logic.",
+    "signal_groups": [["sliding window", "window"], ["count", "frequency"], ["o(n)", "o(|s| + |t|)"]]
+  },
+  {
+    "id": "trapping_rain_water",
+    "difficulty": "hard",
+    "prompt": "Given nonnegative bar heights, compute trapped rain water in Python using O(n) time and O(1) auxiliary space. Explain why the method is correct.",
+    "signal_groups": [["two pointer", "left", "right"], ["left_max", "left max"], ["right_max", "right max"], ["o(n)"]]
+  },
+  {
+    "id": "median_two_sorted_arrays",
+    "difficulty": "hard",
+    "prompt": "Write Python code to find the median of two sorted arrays in O(log(min(m,n))) time. Explain the partition conditions and empty-side boundaries.",
+    "signal_groups": [["binary search"], ["partition"], ["o(log", "log(min"]]
+  },
+  {
+    "id": "word_ladder",
+    "difficulty": "hard",
+    "prompt": "Write a Python algorithm for the shortest one-letter-at-a-time transformation from a start word to a target using only dictionary words. Return the path length and explain complexity.",
+    "signal_groups": [["breadth-first", "bfs"], ["queue"], ["visited"]]
+  },
+  {
+    "id": "largest_rectangle_histogram",
+    "difficulty": "hard",
+    "prompt": "Write an O(n) Python solution for the largest rectangle area in a histogram. Explain the invariant and why each bar is processed a constant number of times.",
+    "signal_groups": [["monotonic", "increasing stack"], ["stack"], ["o(n)"]]
+  }
+]

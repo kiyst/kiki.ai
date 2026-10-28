@@ -29,6 +29,12 @@ switches back without mixing the two conversation histories. Useful commands:
 | --- | --- |
 | `/chat [message]` | Ordinary conversation; document search is unavailable. |
 | `/rag [question]` | Ground answers in indexed evidence and show verified sources. |
+| `/retry` | Regenerate the previous response. |
+| `/copy` | Copy the previous response to the system clipboard. |
+| `/sources` | Show the previous RAG response's sources again. |
+| `/history` | Show the ten most recent prompts in this conversation. |
+| `/save [PATH]` | Export the session as a Markdown transcript. |
+| `/new` | Start a fresh conversation in the active mode. |
 | `/weather Boston, MA` | Fetch current conditions and a short forecast. |
 | `/status` | Show the active mode, database, and models. |
 | `/doctor` | Check Ollama models, SQLite integrity, and weather circuit state. |
@@ -44,6 +50,8 @@ line. `Enter` sends, `Alt+Enter` or `F2` inserts a newline, and `Ctrl+A`,
 Mouse selection remains owned by the terminal, so click-drag and the terminal's
 normal copy shortcut work across the transcript. `Ctrl+C` still cancels the
 prompt when no editor text is selected, and `Ctrl+D` exits.
+Prompt history is saved locally beside the selected database, so the up arrow
+recalls prompts across restarts. Press `Tab` to complete slash commands.
 
 ## Current commands
 
@@ -59,6 +67,7 @@ python -m deskai.cli rag "What does Paine say about hereditary monarchy?" --debu
 python -m deskai.cli weather "Boston, Massachusetts"
 python -m deskai.cli --database .deskai\history.sqlite3 doctor
 python -m deskai.cli --database .deskai\history.sqlite3 eval-rag
+python -m deskai.cli --database .deskai\history.sqlite3 eval-chat
 ```
 
 By default, runtime data is written to `.deskai/index.sqlite3`. Only roots added
@@ -120,6 +129,13 @@ about 31 seconds. A subsequent one-chunk
 embedding operation took 3.5 seconds. Live grounded tool-calling took 19–21
 seconds in two warm trials. These are small local measurements, not benchmarks.
 
+Ordinary chat explicitly supports writing, explaining, reviewing, and debugging
+code. It distinguishes generating code from executing it instead of inventing a
+programming limitation. `eval-chat` runs ten paraphrased medium/hard algorithm
+cases and scores false refusals, expected approach signals, Python syntax, and
+the presence of code separately. Use `--case CASE_ID` for a targeted rerun. It
+does not execute generated code on the host without a dedicated sandbox.
+
 ## Evaluation
 
 `evals/history_cases.json` contains 18 fixed history questions: 11 development
@@ -131,7 +147,7 @@ diagnostic, not proof that every answer is factually correct.
 ## Verification receipt
 
 - Python 3.12 virtual environment created locally.
-- Unit tests: 51 passing.
+- Unit tests: 59 passing.
 - CommonMark corpus: 12 supported files indexed; cited search verified.
 - py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
   as encrypted, image-only/OCR-required, or malformed.
@@ -151,4 +167,9 @@ diagnostic, not proof that every answer is factually correct.
   correctly abstained on 3/3 unsupported questions, and emitted valid inline
   citations in 2/7 cases. The small Qwen model still over-abstains on one
   comparison case, so answer-level quality remains a human-review junction.
+- Live coding regression: 10/10 medium/hard cases included the expected
+  algorithm signals with 0 false refusals; 9/10 initially passed strict Python
+  syntax because one answer included a broken draft before its corrected code.
+  After adding a corrected-code-only instruction, that hard case passed its
+  targeted rerun. The full run took 245.97 seconds locally.
 
