@@ -1,0 +1,128 @@
+[
+  {
+    "id": "paine_society_government",
+    "prompt": "Why does Paine distinguish society from government?",
+    "expected_sources": ["common_sense.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "paine_hereditary",
+    "prompt": "Why did early Americans distrust rule passed down through a royal bloodline?",
+    "expected_sources": ["common_sense.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "federalist_faction",
+    "prompt": "How does Federalist No. 10 propose controlling the effects of faction?",
+    "expected_sources": ["federalist_papers.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "federalist_large_republic",
+    "prompt": "Why might a large republic restrain an organized political majority better than a small one?",
+    "expected_sources": ["federalist_papers.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "federalist_judiciary",
+    "prompt": "Why does Hamilton call the judiciary the least dangerous branch?",
+    "expected_sources": ["federalist_papers.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "constitution_preamble",
+    "prompt": "What purposes for the new government are listed in the Constitution's preamble?",
+    "expected_sources": ["united_states_constitution.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "constitution_congress",
+    "prompt": "Which powers over taxation, borrowing, commerce, and war are assigned to Congress?",
+    "expected_sources": ["united_states_constitution.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "declaration_grievances",
+    "prompt": "What complaints does the Declaration make about taxation, trials, and legislatures?",
+    "expected_sources": ["declaration_of_independence.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "declaration_consent",
+    "prompt": "According to the Declaration, where do governments obtain legitimate power?",
+    "expected_sources": ["declaration_of_independence.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "beard_after_1763",
+    "prompt": "According to the Beard history, what forces converged after 1763 to produce revolution?",
+    "expected_sources": ["history_of_the_united_states.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "beard_suffrage",
+    "prompt": "How does the Beard textbook describe the national struggle for woman suffrage?",
+    "expected_sources": ["history_of_the_united_states.txt"],
+    "answerable": true,
+    "split": "development"
+  },
+  {
+    "id": "beard_trusts",
+    "prompt": "What does the Beard history say about railways, trusts, and late nineteenth-century unrest?",
+    "expected_sources": ["history_of_the_united_states.txt"],
+    "answerable": true,
+    "split": "holdout"
+  },
+  {
+    "id": "compare_preamble_grievances",
+    "prompt": "Compare the Constitution's stated purposes with the grievances in the Declaration.",
+    "expected_sources": ["united_states_constitution.txt", "declaration_of_independence.txt"],
+    "answerable": true,
+    "split": "holdout"
+  },
+  {
+    "id": "compare_paine_madison",
+    "prompt": "Compare Paine's objection to hereditary monarchy with Madison's remedy for faction.",
+    "expected_sources": ["common_sense.txt", "federalist_papers.txt"],
+    "answerable": true,
+    "split": "holdout"
+  },
+  {
+    "id": "articles_weaknesses",
+    "prompt": "What weaknesses of the Articles of Confederation are identified in the Federalist Papers?",
+    "expected_sources": ["federalist_papers.txt"],
+    "answerable": true,
+    "split": "holdout"
+  },
+  {
+    "id": "unsupported_nuclear",
+    "prompt": "What did Madison say about nuclear deterrence?",
+    "expected_sources": [],
+    "answerable": false,
+    "split": "holdout"
+  },
+  {
+    "id": "unsupported_internet",
+    "prompt": "What policy did the framers propose for regulating social media algorithms?",
+    "expected_sources": [],
+    "answerable": false,
+    "split": "holdout"
+  },
+  {
+    "id": "unsupported_moon",
+    "prompt": "How did the Federalist Papers evaluate the Apollo moon landing?",
+    "expected_sources": [],
+    "answerable": false,
+    "split": "holdout"
+  }
+]
