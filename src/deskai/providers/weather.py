@@ -226,6 +226,13 @@ def _normalize_us_location(location: str, country_code: str) -> tuple[str, str]:
         country_code = "US"
 
     if country_code == "US":
+        if "," not in location:
+            lowered = location.casefold()
+            for state in sorted(US_STATES.values(), key=len, reverse=True):
+                suffix = f" {state.casefold()}"
+                if lowered.endswith(suffix) and len(location) > len(suffix):
+                    location = f"{location[:-len(suffix)].strip()}, {state}"
+                    break
         match = re.fullmatch(r"(.+?)(?:,|\s)\s*([A-Za-z]{2})", location)
         if match and match.group(2).upper() in US_STATES:
             location = f"{match.group(1).strip()}, {US_STATES[match.group(2).upper()]}"

@@ -65,7 +65,9 @@ prose, and `--json` keeps every command scriptable.
 
 Weather uses Open-Meteo through a fixed, validated provider. It has a short
 cache, bounded retries, location disambiguation, and never lets the model choose
-an arbitrary URL.
+an arbitrary URL. Obvious natural-language weather questions are routed
+directly through the provider so the model cannot skip the tool, discard state
+details, or relabel live results as simulated data.
 
 ## Development setup
 
@@ -103,7 +105,7 @@ diagnostic, not proof that every answer is factually correct.
 ## Verification receipt
 
 - Python 3.12 virtual environment created locally.
-- Unit tests: 24 passing.
+- Unit tests: 28 passing.
 - CommonMark corpus: 12 supported files indexed; cited search verified.
 - py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
   as encrypted, image-only/OCR-required, or malformed.

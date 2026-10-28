@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import shlex
+import re
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,7 @@ from .model_client import (
     ChatOutcome,
     OllamaClient,
     ToolCallingAssistant,
+    ToolTrace,
 )
 from .providers.weather import OpenMeteoWeatherProvider
 from .retrieval import SearchResult, TextIndex
@@ -57,6 +59,32 @@ class TerminalSession:
         return self.index, "lexical"
 
     def ask(self, prompt: str) -> tuple[ChatOutcome, str]:
+        weather_location = _weather_location_from_prompt(prompt)
+        if weather_location:
+            registry = ToolRegistry(weather=self.weather, include_search=False)
+            arguments = {"location": weather_location}
+            result = registry.call("get_weather", arguments)
+            outcome = ChatOutcome(
+                answer=_weather_answer(result),
+                trace=[
+                    ToolTrace(
+                        round=0,
+                        name="get_weather",
+                        arguments=arguments,
+                        status=result["status"],
+                    )
+                ],
+                sources=[],
+            )
+            history = self.histories[self.mode]
+            history.extend(
+                [
+                    {"role": "user", "content": prompt},
+                    {"role": "assistant", "content": outcome.answer},
+                ]
+            )
+            del history[:-12]
+            return outcome, "none"
         if self.mode == "rag":
             backend, retrieval_mode = self.retrieval_backend()
             registry = ToolRegistry(backend, weather=self.weather)
@@ -64,7 +92,7 @@ class TerminalSession:
                 OllamaClient(),
                 registry,
                 model=self.model,
-                pre_retrieve=True,
+                pre_retrieve=weather_location is None,
                 system_prompt=RAG_SYSTEM_PROMPT,
             )
         else:
@@ -354,3 +382,52 @@ def _citation_location(citation: str) -> str:
     if "(" in citation and citation.endswith(")"):
         return citation.rsplit("(", 1)[1][:-1]
     return "see JSON/debug output"
+
+
+def _weather_location_from_prompt(prompt: str) -> str | None:
+    match = re.search(
+        r"\b(?:weather|forecast|temperature)\s+(?:in|of|for|at)\s+(.+)$",
+        prompt.strip(),
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        return None
+    location = re.sub(r"\s+please\s*$", "", match.group(1), flags=re.IGNORECASE)
+    return location.strip(" \t.,?!") or None
+
+
+def _weather_answer(result: dict[str, Any]) -> str:
+    if result.get("status") != "ok":
+        return f"Weather lookup failed: {result.get('error', 'unknown provider error')}"
+    data = result.get("data")
+    if not isinstance(data, dict):
+        return "Weather lookup failed: the provider returned an invalid response."
+    if not data.get("resolved"):
+        lines = [str(data.get("message", "The location could not be resolved."))]
+        choices = data.get("choices") or []
+        if choices:
+            lines.append("\nPossible matches:")
+            lines.extend(f"- {choice.get('label')}" for choice in choices[:5])
+        return "\n".join(lines)
+
+    current = data["current"]
+    label = data["location"]["label"]
+    lines = [
+        f"**{label}:** {current['condition']}, "
+        f"{current['temperature_f']} °F / {current['temperature_c']} °C "
+        f"(feels like {current['feels_like_f']} °F / {current['feels_like_c']} °C).",
+        f"Humidity {current['relative_humidity_percent']}%; wind {current['wind_kmh']} km/h; "
+        f"precipitation {current['precipitation_mm']} mm.",
+        "\n**Forecast:**",
+    ]
+    for day in data.get("daily", []):
+        lines.append(
+            f"- {day['date']}: {day['condition']}; high {day['high_f']} °F / "
+            f"{day['high_c']} °C, low {day['low_f']} °F / {day['low_c']} °C; "
+            f"precipitation chance {day['precipitation_probability_percent']}%."
+        )
+    lines.append(
+        f"\n_{data.get('attribution', 'Weather data by Open-Meteo.')} "
+        f"Retrieved {data.get('retrieved_at', 'just now')}._"
+    )
+    return "\n".join(lines)

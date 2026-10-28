@@ -111,7 +111,12 @@ def test_weather_returns_choices_for_ambiguous_location() -> None:
 
 @pytest.mark.parametrize(
     ("location", "country_code"),
-    [("Coventry RI", "US"), ("Coventry, RI", "US"), ("Coventry", "RI")],
+    [
+        ("Coventry RI", "US"),
+        ("Coventry, RI", "US"),
+        ("Coventry Rhode Island", "US"),
+        ("Coventry", "RI"),
+    ],
 )
 def test_weather_normalizes_us_state_abbreviations(
     location: str, country_code: str
