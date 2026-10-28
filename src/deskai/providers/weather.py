@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import re
 from time import monotonic
 from typing import Any, Protocol
 
@@ -9,6 +10,22 @@ import httpx
 
 GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+
+US_STATES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+    "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+    "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia",
+}
 
 
 class HttpResponse(Protocol):
@@ -46,7 +63,9 @@ class OpenMeteoWeatherProvider:
     def get_weather(
         self, location: str, country_code: str = "US", days: int = 3
     ) -> dict[str, Any]:
-        key = (location.strip().casefold(), country_code.upper(), days)
+        original_location = location.strip()
+        location, country_code = _normalize_us_location(location, country_code)
+        key = (location.casefold(), country_code, days)
         cached = self._cache.get(key)
         if cached and monotonic() - cached[0] <= self.cache_seconds:
             return {**cached[1], "cached": True}
@@ -56,7 +75,7 @@ class OpenMeteoWeatherProvider:
             return {
                 "resolved": False,
                 "needs_clarification": True,
-                "message": f"No location matched {location!r} in {country_code.upper()}.",
+                "message": f"No location matched {original_location!r} in {country_code}.",
                 "choices": [],
                 "provider": "Open-Meteo",
             }
@@ -192,6 +211,25 @@ def _plausible_matches(location: str, matches: list[dict[str, Any]]) -> list[dic
     if exact:
         return exact
     return matches
+
+
+def _normalize_us_location(location: str, country_code: str) -> tuple[str, str]:
+    """Expand U.S. postal abbreviations so geocoding does not treat them as name text."""
+    location = location.strip()
+    country_code = country_code.strip().upper()
+
+    # Small models sometimes put a state abbreviation in the country field.
+    if country_code in US_STATES:
+        state = US_STATES[country_code]
+        if state.casefold() not in location.casefold():
+            location = f"{location}, {state}"
+        country_code = "US"
+
+    if country_code == "US":
+        match = re.fullmatch(r"(.+?)(?:,|\s)\s*([A-Za-z]{2})", location)
+        if match and match.group(2).upper() in US_STATES:
+            location = f"{match.group(1).strip()}, {US_STATES[match.group(2).upper()]}"
+    return location, country_code
 
 
 def _location_choice(location: dict[str, Any]) -> dict[str, Any]:

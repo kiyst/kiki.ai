@@ -96,7 +96,7 @@ diagnostic, not proof that every answer is factually correct.
 ## Verification receipt
 
 - Python 3.12 virtual environment created locally.
-- Unit tests: 21 passing.
+- Unit tests: 24 passing.
 - CommonMark corpus: 12 supported files indexed; cited search verified.
 - py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
   as encrypted, image-only/OCR-required, or malformed.

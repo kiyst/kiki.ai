@@ -109,6 +109,28 @@ def test_weather_returns_choices_for_ambiguous_location() -> None:
     assert len(client.calls) == 1
 
 
+@pytest.mark.parametrize(
+    ("location", "country_code"),
+    [("Coventry RI", "US"), ("Coventry, RI", "US"), ("Coventry", "RI")],
+)
+def test_weather_normalizes_us_state_abbreviations(
+    location: str, country_code: str
+) -> None:
+    client = FakeHttpClient(
+        [
+            FakeResponse({"results": [_location("Coventry", 1, "Rhode Island")]}),
+            FakeResponse(_forecast()),
+        ]
+    )
+    provider = OpenMeteoWeatherProvider(client)
+
+    result = provider.get_weather(location, country_code, 1)
+
+    assert result["resolved"] is True
+    assert client.calls[0][1]["name"] == "Coventry, Rhode Island"
+    assert client.calls[0][1]["countryCode"] == "US"
+
+
 def test_weather_retries_transport_failure_then_reports_error() -> None:
     client = FakeHttpClient(
         [httpx.ReadTimeout("slow"), httpx.ConnectError("offline")]
