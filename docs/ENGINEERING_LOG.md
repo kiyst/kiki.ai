@@ -282,3 +282,29 @@ Decision or proposal: lexical/semantic internal limits raised from 20 to 100
 Human review needed: before stage 2 (see report: model download already done,
         and a dedicated reranker adds ~0.7 GB GPU memory with ~1.3 GB headroom).
 ```
+
+## RAG pipeline milestone: expanded blind holdout
+
+```text
+Date: 2026-10-29
+Stage: evaluation set expansion (before stage 2 experiments)
+Commit before change: a779dcc
+Files changed: evals/retrieval_cases.json (+15 holdout cases),
+        evals/receipts/rag-milestone/02-expanded-holdout-baseline.json
+Behavior changed: none (evaluation data only)
+Tests/evaluations run: eval-retrieval --split holdout at default settings
+Result (29 holdout cases, top 5):
+        lexical full 12, any 14, hit@1 7, MRR 0.336, 0.05 s
+        hybrid  full 17, any 18, hit@1 11, MRR 0.467, 1.0 s
+        grader  full 25, any 26, hit@1 19, MRR 0.757, 6.9 s (6.3 s reranking)
+        Blind 15 alone: lexical 7, hybrid 11, grader 14 full@5.
+        The original 14 are unchanged (grader 11/14). GPU 2,352 idle / 6,842 peak MiB.
+Known bugs: none new.
+Decision or proposal: cases were drawn with random.Random(20261029) from
+        passages of at least 700 characters (excluding contents, index, and
+        question lists), at most three per work, and questions were written
+        from the passage text before any new configuration ran. Evidence
+        phrases were checked to exist in the corpus; no labels were adjusted
+        after seeing retrieval results.
+Human review needed: none.
+```

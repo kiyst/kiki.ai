@@ -333,5 +333,212 @@
         ]
       }
     ]
+  },
+  {
+    "id": "blind_alabama_claims",
+    "prompt": "How did the United States pursue compensation from Britain for Confederate warships built in British shipyards?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "permitted confederate cruisers",
+          "alabama_ claims arbitrated"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_mexican_cession",
+    "prompt": "What territory and payment were involved when Mexico made peace in 1848?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "ceding to the victor",
+          "california, arizona, new mexico"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_senate_tyranny",
+    "prompt": "Why would the Senate be unable to seize tyrannical power on its own, according to the Federalist?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "senate must be first corrupted",
+          "must in the first place corrupt itself"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_barre_warning",
+    "prompt": "Who warned Parliament during the Stamp Act debate that Americans would defend their liberties?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "same spirit of freedom which actuated that people"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_legislature_courts",
+    "prompt": "Can a legislature overturn a court's decision in a particular case, according to the Federalist?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "cannot reverse a determination once made"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_state_resistance",
+    "prompt": "How could the states resist federal overreach into their authority?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "signals of general alarm",
+          "means of opposition to it are powerful"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_president_duties",
+    "prompt": "What must the President report to Congress, and for what offenses can he be removed?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "information of the state of the union"
+        ]
+      },
+      {
+        "phrases": [
+          "treason, bribery, or other high crimes"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_distance_governing",
+    "prompt": "Why did Paine think Britain was too far away to govern American affairs?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "four or five months for an answer",
+          "so distant from us"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_seed_time",
+    "prompt": "Why did Paine say the present struggle would shape future generations?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "seed time of continental union",
+          "posterity are virtually involved"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_parent_country",
+    "prompt": "How did Paine answer the claim that Britain was America's mother country?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "europe, and not england, is the parent country"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_federal_jurisdiction",
+    "prompt": "What kinds of disputes can be heard by the federal courts?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "judicial power shall extend to all cases"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_state_prohibitions",
+    "prompt": "What are individual states forbidden to do, such as making treaties or coining money?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "no state shall enter into any treaty"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_war_on_colonies",
+    "prompt": "What military acts does the Declaration accuse the king of committing against the colonists?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "foreign mercenaries",
+          "plundered our seas"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_independent_powers",
+    "prompt": "What powers did the signers claim the new independent states would have?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "full power to levy war"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
+  },
+  {
+    "id": "blind_judges_salaries",
+    "prompt": "What does the Declaration charge about the king's control over judges?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "judges dependent on his will alone"
+        ]
+      }
+    ],
+    "label_note": "Blind holdout: passage sampled with random.Random(20261029); question written from the passage before any new configuration was evaluated."
   }
 ]
