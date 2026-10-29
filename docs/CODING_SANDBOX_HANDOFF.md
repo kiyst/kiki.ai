@@ -507,6 +507,12 @@ original problems below remain the plan for a contamination-free holdout.
   each run, and plain-language results. 15 tests.
 - `/apply` (separate sub-stage): diff preview, explicit approval, write under
   `LOCAL_WRITE` to a workspace chosen with the folder browser.
+- **Done (October 29), checkpoint 8 approved:** `/workspace [PATH|browse]`
+  (session-only) and `/apply FILE` in `src/kiki/apply_command.py`. Full
+  unified diff, `[y/N]` under `LOCAL_WRITE`, path must resolve inside the
+  workspace (symlinks included), UTF-8 text only, line endings preserved,
+  timestamped backup in `kiki-backups/`, atomic replace, and a refusal if the
+  file changed after the diff was shown. 17 tests.
 
 ### Stage 6: more languages, in waves (paused)
 

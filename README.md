@@ -162,6 +162,8 @@ kiki --database .kiki\history.sqlite3 run
 | `/rag [question]` | Answer from your indexed documents |
 | `/sources` | Show the last answer's sources again |
 | `/run [FILE.py]` | Run the last answer's Python (or a copy of a file) in the sandbox, after you confirm |
+| `/workspace [PATH\|browse]` | Choose the folder `/apply` may write into (this session only) |
+| `/apply FILE` | Save the last answer's code to a file in the workspace, after you approve the diff |
 | `/retry` | Ask again for a fresh answer |
 | `/copy` | Copy the last answer to the clipboard |
 | `/history` | Your last ten prompts in this mode |
@@ -228,9 +230,13 @@ What to expect:
   256 MB of memory, or after 1 MB of output. All of this was tested in the
   trial.
 - **You stay in charge.** Code runs only when you type `/run` and confirm, and
-  it runs on a temporary copy. Kiki cannot start a run herself. Editing your
-  real files is not available yet; when it is, every change will be shown as a
-  diff and need your approval.
+  it runs on a temporary copy. Kiki cannot start a run herself.
+- **Saving code to your files is separate.** `/workspace` picks a folder for
+  this session; `/apply FILE` shows the full diff of Kiki's last code block
+  against that file and writes only if you answer `y`. Nothing outside the
+  workspace can be written, the previous version is backed up to
+  `kiki-backups/` next to your library, and a file that changed after the diff
+  was shown is left alone.
 - **Limits.** Standard library plus `sortedcontainers` (which LeetCode's own
   Python provides); no other packages and no internet. No
   threads or subprocesses, and `zlib`, `sqlite3`, `multiprocessing`, `ssl`,
@@ -379,7 +385,7 @@ src/kiki/
   sandbox/           Python code sandbox (WebAssembly): runner, limits, setup
 evals/               question sets for retrieval, answers, behavior, and code
 docs/                design notes, the engineering log, development notes
-tests/               227 automated tests, no network or models required
+tests/               240 automated tests, no network or models required
 ```
 
 ## Development

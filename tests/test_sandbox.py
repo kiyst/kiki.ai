@@ -256,8 +256,20 @@ def _installed() -> bool:
 integration = pytest.mark.skipif(not _installed(), reason="run `kiki sandbox setup` first")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def runner() -> SandboxRunner:
+    return _runner_or_skip()
+
+
+def _runner_or_skip() -> SandboxRunner:
+    """Real runs need memory headroom; a busy PC skips them instead of failing."""
+    from kiki.sandbox import jobs
+    from kiki.sandbox.runner import SAFETY_MARGIN_MB
+
+    headroom = jobs.commit_headroom_mb()
+    needed = RunLimits().worker_memory_mib + SAFETY_MARGIN_MB
+    if headroom is not None and headroom < needed:
+        pytest.skip(f"only {headroom:.0f} MB of memory headroom; {needed} MB needed")
     return SandboxRunner()
 
 

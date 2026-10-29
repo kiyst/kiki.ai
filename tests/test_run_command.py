@@ -157,8 +157,10 @@ def _installed() -> bool:
 
 @pytest.mark.skipif(not _installed(), reason="run `kiki sandbox setup` first")
 def test_end_to_end_run_in_the_real_sandbox() -> None:
+    from test_sandbox import _runner_or_skip
+
     console = _console()
     result = run_command(console, answer=ANSWER, mode="chat", argument=None,
-                         read=lambda prompt: "y")
+                         read=lambda prompt: "y", runner=_runner_or_skip())
     assert result is not None and result.ok and result.stdout.strip() == "42"
     assert "Finished" in console.export_text()

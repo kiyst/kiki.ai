@@ -747,3 +747,33 @@ Decision or proposal: the benchmark keeps grading in its own trial
         sortedcontainers are regraded with it.
 Human review needed: /apply design, when wanted (checkpoint 8).
 ```
+
+## Coding sandbox milestone, stage 5b: `/apply`
+
+```text
+Date: 2026-10-29
+Stage: 5 (terminal workflow, /apply), checkpoint 8
+Commit before change: 33d0068
+Files changed: src/kiki/apply_command.py (new), terminal.py (/workspace,
+        /apply, workspace browser mode), self_knowledge.py,
+        tests/test_apply_command.py (new), tests/test_sandbox.py,
+        tests/test_run_command.py, README.md, docs
+Behavior changed: /workspace picks a folder for this session; /apply FILE
+        shows the full diff of the last answer's code block against that
+        file and writes on an explicit yes, with a backup and atomic replace.
+        Writes outside the workspace, folders, binary files, and files edited
+        after the diff was shown are refused. Kiki's self-description says
+        she cannot edit files herself.
+Tests/evaluations run: pytest 240 passed (17 new). Real-sandbox tests now
+        skip with the reason when memory headroom is too low, instead of
+        failing; they all ran and passed after unloading Ollama.
+Result: the Python coding workflow (write, /run, /apply) is complete.
+Known bugs: none found.
+Observation: Windows shrank the page file after an earlier spike (commit
+        limit 38.8 GB -> 32.9 GB) and grows it again only when commit is
+        nearly exhausted. Kiki's headroom checks read the current limit, so
+        they are conservative; a fixed page file size would make them, and
+        the benchmark guard, behave predictably.
+Human review needed: none for this stage. Next capability: the
+        generate-test-repair loop (stage 4), measured on the benchmarks.
+```

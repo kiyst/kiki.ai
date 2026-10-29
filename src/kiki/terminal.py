@@ -33,6 +33,7 @@ from .personality import PRESETS, PersonaFile, PersonalitySettings, personality_
 from .rerank import build_reranker
 from .retrieval import SearchResult, TextIndex
 from .resilience import KikiError, safe_error
+from .apply_command import apply_command
 from .run_command import run_command
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .settings import RetrievalSettings
@@ -47,6 +48,8 @@ INTERACTIVE_COMMANDS = (
     "/copy",
     "/sources",
     "/run",
+    "/workspace",
+    "/apply",
     "/history",
     "/save",
     "/new",
@@ -99,6 +102,8 @@ class TerminalSession:
         self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None}
         self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None}
         self.turns: list[dict[str, Any]] = []
+        # Folder /apply may write into; chosen by the user each session, never saved.
+        self.workspace: Path | None = None
         self._set_index(database)
 
     def _set_index(self, database: Path) -> None:
@@ -736,6 +741,38 @@ def _handle_command(
             argument=_path_argument(rest) if rest else None,
         )
         return False, None
+    if name == "/workspace":
+        if not rest:
+            console.print(
+                f"Workspace: [cyan]{session.workspace}[/cyan]" if session.workspace else
+                "No workspace chosen. [bold]/workspace PATH[/bold] or [bold]/workspace browse[/bold] "
+                "picks the folder /apply may write into."
+            )
+            return False, None
+        if rest.casefold() == "browse":
+            selected = _browse_path(console, session.workspace or Path.home(),
+                                    purpose="workspace", default_filename=None)
+        else:
+            selected = _path_argument(rest).expanduser()
+        if selected is None:
+            console.print("[dim]Workspace unchanged.[/dim]")
+        elif not selected.is_dir():
+            console.print(f"[yellow]Not a folder:[/yellow] {selected}")
+        else:
+            session.workspace = selected.resolve()
+            console.print(f"Workspace set to [cyan]{session.workspace}[/cyan]. "
+                          "/apply writes only inside it, after you approve a diff.")
+        return False, None
+    if name == "/apply":
+        previous = session.last_outcomes[session.mode]
+        apply_command(
+            console,
+            answer=previous.answer if previous else None,
+            workspace=session.workspace,
+            argument=_path_argument(rest) if rest else None,
+            backups=session.database.resolve().parent / "kiki-backups",
+        )
+        return False, None
     if name == "/history":
         recent =[turn for turn in session.turns if turn["mode"] == session.mode][-10:]
         if not recent:
@@ -913,6 +950,11 @@ def _browse_path(
                 "[dim]number: open folder · here [NAME]: save here · new NAME: create/open folder · "
                 "..: parent · path PATH: direct destination · cancel[/dim]"
             )
+        elif purpose == "workspace":
+            console.print(
+                "[dim]number: open folder · here: use this folder as the workspace · "
+                "..: parent · path PATH: direct folder · cancel[/dim]"
+            )
         else:
             console.print(
                 "[dim]number: open folder/select database · ..: parent · "
@@ -932,10 +974,17 @@ def _browse_path(
             selected = Path(choice[5:].strip().strip('"')).expanduser().resolve()
             if purpose == "save":
                 return selected / default_filename if selected.is_dir() else _markdown_path(selected)
+            if purpose == "workspace":
+                if selected.is_dir():
+                    return selected
+                console.print("[yellow]Choose an existing folder.[/yellow]")
+                continue
             if selected.is_file() and selected.suffix.casefold() in {".sqlite", ".sqlite3", ".db"}:
                 return selected
             console.print("[yellow]Choose an existing .sqlite, .sqlite3, or .db file.[/yellow]")
             continue
+        if purpose == "workspace" and lowered == "here":
+            return current
         if purpose == "save" and (lowered == "here" or lowered.startswith("here ")):
             filename = choice[4:].strip().strip('"') or str(default_filename)
             return current / _markdown_path(Path(filename)).name
