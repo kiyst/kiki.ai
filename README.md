@@ -1,253 +1,361 @@
-# deskAI
+# Kiki
 
-An incremental local-first assistant prototype. The current milestone provides
-ordinary local chat, evidence-grounded text/PDF Q&A, citation-bearing hybrid
-search, live weather, strictly validated tool dispatch, and a bounded Ollama
-tool-calling loop.
+*A small, honest assistant that lives on your own machine.* (Python package and repository code name: `deskai`.)
 
-## Start here
+Kiki is a terminal assistant that runs entirely on local models through
+[Ollama](https://ollama.com). She can hold an ordinary conversation, help with
+code, check the weather, and, more interestingly, answer questions about your
+own documents while showing exactly which passage each answer came from.
 
-Open the interactive terminal against the included history index:
+She is built around one idea: **it is better to say "the evidence is
+insufficient" than to sound confident and be wrong.** Every document answer is
+checked against the passages that were actually retrieved, and anything that
+cannot be traced back to them is not shown as fact.
 
-```powershell
-.\.venv\Scripts\Activate.ps1
-deskai --database .deskai\history.sqlite3
+```text
+RAG you > What does Paine say about hereditary succession?
+
+┌──────────────────────────────── Kiki · RAG ─────────────────────────────────┐
+│ Thomas Paine criticizes hereditary succession in Common Sense, arguing that │
+│ it opens the door to "the foolish, the wicked, and the improper"… He also   │
+│ dismisses the claim that it prevents civil wars, pointing to England's own  │
+│ history. [source:c9e633dd29d77ce8]                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                   Verified sources
+│ c9e633dd29d77ce8 │ common_sense.txt │ lines 520-532 │
+│ c9e633dd29d77ce8 │ common_sense.txt │ lines 555-569 │
 ```
 
-On this workstation, the installed convenience launcher starts the same history
-assistant from any PowerShell window:
+> **Status:** an actively developed personal prototype. It works well on the
+> included history library and is honest about where it does not. See
+> [How well it works](#how-well-it-works) and the
+> [development notes](docs/DEVELOPMENT_NOTES.md).
+
+## Contents
+
+- [What Kiki can do](#what-kiki-can-do)
+- [How a question becomes an answer](#how-a-question-becomes-an-answer)
+- [Install](#install)
+- [Usage](#usage)
+- [Building your own library](#building-your-own-library)
+- [Configuration](#configuration)
+- [How well it works](#how-well-it-works)
+- [Privacy and safety by design](#privacy-and-safety-by-design)
+- [Project layout](#project-layout)
+- [Development](#development)
+- [Roadmap](#roadmap)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
+## What Kiki can do
+
+- **Talk.** Plain conversation, writing help, and code: explaining, writing,
+  reviewing, and debugging. She writes code but never runs it.
+- **Answer from your documents.** Point her at a folder of text, Markdown, or
+  PDF files. Answers cite the document and line or page they came from.
+- **Know when to stop.** Questions the documents cannot answer get "Evidence is
+  insufficient" instead of a guess.
+- **Check the weather.** Live conditions from Open-Meteo, with a follow-up
+  question when a place name is ambiguous ("Springfield… which one?").
+- **Remember only what you ask her to.** `/remember` saves a note to a plain
+  Markdown file you can read and edit. Secrets, card numbers, and contact
+  details are refused.
+- **Have a personality you control.** Warmth, wit, opinions, and verbosity are
+  adjustable, and her persona lives in an editable text file that never
+  overrides the rules about evidence and safety.
+
+Two modes keep these apart. **CHAT** is ordinary conversation with no document
+access. **RAG** (retrieval-augmented generation) answers only from your indexed
+documents. Each mode keeps its own conversation history.
+
+## How a question becomes an answer
+
+When you ask a document question, Kiki does not just hand it to the language
+model. It goes through six steps, each of which can be inspected with `/debug`:
+
+```text
+ your question
+      │
+      ▼
+ 1. Search two ways ─────── keywords (stemmed: "borrowing" finds "borrow")
+      │                     + meaning (local embeddings)
+      ▼
+ 2. Merge into one ranked list of ~20 candidate passages
+      │
+      ▼
+ 3. Grade each passage 0–3: "does this actually answer the question?"
+      │                     (graded by the local model; one digit only)
+      ▼
+ 4. Keep the best 5 ──────── any document you named gets a seat;
+      │                      each side of a comparison gets a seat
+      ▼
+ 5. Write the answer from those 5 passages, citing each one
+      │
+      ▼
+ 6. Check the citations ─── invented or missing? one retry, then
+                             "Evidence is insufficient"
+```
+
+A few details make this work better on a small model:
+
+- Library boilerplate such as Project Gutenberg license pages is ignored.
+- Passages are short (about 1,400 characters), so the model reads whole
+  passages instead of truncated halves.
+- Each file's title and author are recorded, so "the Beard history" or "Paine"
+  means something.
+- If the grading step fails, Kiki falls back to the merged search order rather
+  than failing the question.
+
+## Install
+
+### Requirements
+
+- Windows 10/11 (developed there; other platforms are untested)
+- Python 3.12
+- [Ollama](https://ollama.com) running locally
+- About 3.5 GB of disk for the two default models; a GPU with 6–8 GB is
+  comfortable
+
+### Steps
+
+```powershell
+git clone https://github.com/kiyst/kiki.ai.git
+cd kiki.ai
+
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev,ollama]"
+
+ollama pull qwen3:4b-instruct
+ollama pull qwen3-embedding:0.6b
+```
+
+Check that everything is reachable:
+
+```powershell
+kiki doctor
+```
+
+## Usage
+
+### Start a conversation
 
 ```powershell
 kiki run
 ```
 
-The prompt clearly shows the active mode. Start in `CHAT` for normal
-conversation, then type `/rag` to ask the indexed books questions. `/chat`
-switches back without mixing the two conversation histories. Useful commands:
+You start in **CHAT**. Type `/rag` to ask your documents and `/chat` to switch
+back. To use a specific document library:
 
-| Command | Purpose |
+```powershell
+kiki --database .deskai\history.sqlite3 run
+```
+
+### Commands inside Kiki
+
+| Command | What it does |
 | --- | --- |
-| `/chat [message]` | Ordinary conversation; document search is unavailable. |
-| `/rag [question]` | Ground answers in indexed evidence and show verified sources. |
-| `/retry` | Regenerate the previous response. |
-| `/copy` | Copy the previous response to the system clipboard. |
-| `/sources` | Show the previous RAG response's sources again. |
-| `/history` | Show the ten most recent prompts in this conversation. |
-| `/save [PATH]` | Export the session as a Markdown transcript. |
-| `/new` | Start a fresh conversation in the active mode. |
-| `/weather Boston, MA` | Fetch current conditions and a short forecast. |
-| `/status` | Show the active mode, database, and models. |
-| `/doctor` | Check Ollama models, SQLite integrity, and weather circuit state. |
-| `/debug` | Show validated tool calls and retrieval mode. |
-| `/personality` | Show persistent warmth, wit, opinions, and verbosity controls. |
-| `/personality preset lively` | Apply the lively, balanced, or quiet preset. |
-| `/persona` | Show the hot-reloaded `kiki-persona.md` file and its path. |
-| `/remember TEXT` | Save an explicit non-sensitive memory in `kiki-memory.md`. |
-| `/forget TEXT` | Remove matching saved memories. |
-| `/memory` | Inspect all durable memories. |
-| `/model [auto\|fast\|smart\|max]` | Inspect or choose a task-aware model profile. |
-| `/diagnostics [copy\|save]` | Produce a privacy-filtered support report. |
-| `/clear` | Clear history for the active mode only. |
-| `/help` | Show all interactive commands. |
+| `/chat [message]` | Ordinary conversation |
+| `/rag [question]` | Answer from your indexed documents |
+| `/sources` | Show the last answer's sources again |
+| `/retry` | Ask again for a fresh answer |
+| `/copy` | Copy the last answer to the clipboard |
+| `/history` | Your last ten prompts in this mode |
+| `/save [PATH]` | Save the conversation as Markdown (no path opens a folder browser) |
+| `/new` or `/clear` | Start a fresh conversation in this mode |
+| `/weather Boston, MA` | Current weather and a short forecast |
+| `/database [PATH\|browse]` | Show or switch the document library |
+| `/remember TEXT` | Save a note Kiki will keep in mind |
+| `/memory` | List saved notes, numbered |
+| `/forget NUMBER` | Delete a note by number (or by matching text) |
+| `/personality` | Adjust warmth, wit, opinions, and verbosity |
+| `/persona [show\|reset]` | View or reset the editable persona file |
+| `/model [auto\|fast\|smart\|max]` | Choose a model profile |
+| `/status` | Mode, library, models, and settings at a glance |
+| `/doctor` | Health check for Ollama, the library, and weather |
+| `/debug` | Show search steps and tool calls under each answer |
+| `/diagnostics [copy\|save]` | A privacy-filtered report for bug hunting |
+| `/capabilities` | What Kiki can and cannot do right now |
+| `/help` | All of the above |
+| `/quit` | Leave |
 
-The input area accepts multiline clipboard paste without executing each pasted
-line. `Enter` sends, `Alt+Enter` or `F2` inserts a newline, and `Ctrl+A`,
-`Ctrl+C`, `Ctrl+V`, and `Ctrl+Z` provide select-all, copy, paste, and undo.
-Mouse selection remains owned by the terminal, so click-drag and the terminal's
-normal copy shortcut work across the transcript. `Ctrl+C` still cancels the
-prompt when no editor text is selected, and `Ctrl+D` exits.
-Prompt history is saved locally beside the selected database, so the up arrow
-recalls prompts across restarts. Press `Tab` to complete slash commands.
+### Keyboard
 
-## Current commands
+`Enter` sends. `Alt+Enter` or `F2` adds a new line, so pasted multi-line text is
+never sent one line at a time. `Tab` completes commands, `↑` recalls earlier
+prompts (even after a restart), and `Ctrl+D` exits. Mouse selection belongs to
+your terminal, so copying text works the way you expect.
 
-```powershell
-python -m deskai.cli index .\sample_corpus
-python -m deskai.cli embed
-python -m deskai.cli search "retry policy"
-python -m deskai.cli semantic-search "Which problems should never get another try?"
-python -m deskai.cli hybrid-search "Which problems should never get another try?"
-python -m deskai.cli tool search_files '{"query":"retry policy","limit":3}'
-python -m deskai.cli chat "Explain mercantilism in plain language."
-python -m deskai.cli rag "What does Paine say about hereditary monarchy?" --debug
-python -m deskai.cli weather "Boston, Massachusetts"
-python -m deskai.cli --database .deskai\history.sqlite3 doctor
-python -m deskai.cli --database .deskai\history.sqlite3 eval-rag
-python -m deskai.cli --database .deskai\history.sqlite3 eval-retrieval
-python -m deskai.cli --database .deskai\history.sqlite3 eval-chat
-python -m deskai.cli --database .deskai\history.sqlite3 eval-behavior
-```
+### One-off commands
 
-By default, runtime data is written to `.deskai/index.sqlite3`. Only roots added
-with `index` are searchable. UTF-8 text results cite line spans; PDF results cite
-pages. Encrypted, malformed, and image-only PDFs are reported without aborting
-the rest of an indexing run. OCR is intentionally not included.
-
-Embeddings are stored alongside paragraph-aware chunks in SQLite. RAG mode uses
-reciprocal-rank fusion when vectors exist and falls back to lexical search when
-they do not or when Ollama's embedding endpoint fails; pass `--lexical-only` on a one-shot `rag` command to force exact-term
-search. Explicit comparison questions search each side independently before
-fusion. Evidence and conversation history are bounded to fit the local model's
-4,096-token context. Verified source records are returned separately from model
-prose, and `--json` keeps every command scriptable.
-Semantic candidates below the configured similarity floor are discarded. RAG
-answers without a valid retrieved source ID get one bounded citation repair
-request and are then replaced with an insufficient-evidence notice instead of
-being displayed as grounded prose.
-
-Text is split into paragraph-aware chunks of at most 1,400 characters, about
-what the evidence budget shows the model per result. Project Gutenberg license
-front and back matter is excluded while original line numbers are preserved.
-Lexical search stems terms (`borrowing` matches `borrow`), and Qwen3 embedding
-queries carry the model's expected retrieval instruction. Each indexed file
-records a title (Gutenberg `Title`/`Author` header or Markdown `#` heading);
-when a question names a document by title word or author surname ("the
-Declaration", "Paine", "the Beard history"), that document receives at least
-one evidence slot. Long excerpts are cut to the window that best matches the
-question rather than their opening characters. Opening an older index upgrades
-its search table and titles in place; run `index` and `embed` again to apply
-the newer chunking.
-
-RAG reranks the top 20 hybrid candidates by asking the local model to grade
-each passage 0–3 against the question (answers it, partly answers it, same
-topic, or unrelated/index/table of contents). Grades are constrained to a
-single digit by a JSON schema, so retrieved text can influence only its own
-grade. Comparison questions grade each side separately so both are
-represented. If grading fails, retrieval falls back to the hybrid order and
-`/debug` shows `hybrid (reranker unavailable)`. Reranking adds ~6–7 s per
-search; pass `--no-rerank` (before the subcommand) to skip it, for example
-`deskai --no-rerank run`.
-
-Weather uses Open-Meteo through a fixed, validated provider. It has a short
-cache, exponential-backoff retries for timeouts, 408, 429, and selected 5xx
-responses, `Retry-After` support, a circuit breaker, stale-cache fallback,
-location disambiguation, and never lets the model choose
-an arbitrary URL. Obvious natural-language weather questions are routed
-directly through the provider so the model cannot skip the tool, discard state
-details, or relabel live results as simulated data. When a place is ambiguous,
-Kiki remembers the displayed choices and accepts a number, ordinal, state name,
-full label, or `cancel` on the next turn.
-
-Tool calls use strict schemas that reject missing, extra, and wrongly typed
-fields. Malformed model envelopes and unexpected handler failures are contained
-as categorized errors with short diagnostic references. Ollama generation is
-retried locally and can try comma-separated fallback models from the
-`KIKI_FALLBACK_MODEL` environment variable. SQLite uses a busy timeout, writes
-a recoverable backup and corpus-root manifest after indexing, checks integrity
-through `/doctor`, and preserves corrupt databases before rebuilding an index.
-
-Kiki classifies obvious chat, code, RAG, weather, and memory requests before
-generation. This classification informs model selection but does not grant
-permissions or silently switch chat into RAG. The `AUTO` model profile uses
-`FAST` for ordinary conversation and `SMART` for coding and RAG. Configure the
-profile identifiers with `KIKI_MODEL_FAST`, `KIKI_MODEL_SMART`, and
-`KIKI_MODEL_MAX`; unset profiles safely reuse the normal `--model` value.
-
-The editable `kiki-persona.md` file is reloaded on every response. Application
-rules governing evidence, tool execution, and safety are kept separately and
-override persona text. Durable memory is opt-in through `/remember` or explicit
-"remember that..." language. Kiki blocks common secrets, financial details,
-identity numbers, and contact details; users can inspect or delete the Markdown
-file directly. Existing tools publish risk metadata and are currently read-only.
-See [`docs/ENGINEERING_LOG.md`](docs/ENGINEERING_LOG.md) for architectural
-decisions, known limitations, and proposals awaiting human review.
-
-## Development setup
+Every feature also works without opening the chat, and `--json` makes the
+output scriptable:
 
 ```powershell
-py -3.12 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev,ollama]"
-pytest
+kiki chat "Explain mercantilism in plain language."
+kiki rag "What does Paine say about hereditary monarchy?" --debug
+kiki hybrid-search "Which problems should never get another try?"
+kiki weather "Boston, Massachusetts"
+kiki --json rag "Why is the judiciary the least dangerous branch?"
 ```
 
-## Local model receipt
+## Building your own library
 
-Verified October 28, 2026 on a GTX 1080 with NVIDIA driver 582.28:
+Point Kiki at a folder, then create the meaning-based search vectors:
 
-| Component | Identifier | Local ID | Measured status |
+```powershell
+kiki --database .deskai\notes.sqlite3 index C:\path\to\your\notes
+kiki --database .deskai\notes.sqlite3 embed
+kiki --database .deskai\notes.sqlite3 run
+```
+
+- Text and Markdown cite line numbers; PDFs cite pages.
+- Encrypted, broken, or image-only PDFs are reported and skipped. There is no
+  OCR yet.
+- Re-running `index` only processes files that changed and removes deleted ones.
+- Only folders you index are searchable. Kiki never browses your disk on her own.
+
+**The history library used in testing** is five public-domain works from
+Project Gutenberg (the Declaration of Independence, the Constitution, *Common
+Sense*, *The Federalist Papers*, and Beard's 1921 *History of the United
+States*). The texts are not included in this repository; download them from the
+links in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) into
+`test-data/history/`, then index that folder.
+
+## Configuration
+
+| Setting | Where | Purpose |
+| --- | --- | --- |
+| `--database PATH` | command line | Which document library to use (default `.deskai/index.sqlite3`) |
+| `--no-rerank` | command line, before the command | Skip the grading step: about 7 s faster, less precise |
+| `--model NAME` | command line | Main generation model (default `qwen3:4b-instruct`) |
+| `KIKI_MODEL_FAST` / `_SMART` / `_MAX` | environment | Models for each profile; `AUTO` uses FAST for chat and SMART for code and documents |
+| `KIKI_FALLBACK_MODEL` | environment | Comma-separated backups if the main model fails |
+| `kiki-persona.md` | next to the library | Kiki's editable persona, reloaded on every reply |
+| `kiki-memory.md` | next to the library | Your saved notes, plain Markdown |
+
+## How well it works
+
+Measured on October 28, 2026, on a GTX 1080 with the default models. The test
+sets are small, so read these as direction rather than precision.
+
+**Finding the right passage** (`kiki eval-retrieval`, 14 held-out questions
+written before tuning):
+
+| | Keyword search | Hybrid search | Hybrid + grading |
 | --- | --- | --- | --- |
-| Ollama | 0.40.12 | — | Loopback service running |
-| Generation | `qwen3:4b-instruct` | `0edcdef34593` | Non-thinking build; 100% GPU, 4096 context |
-| Embeddings | `qwen3-embedding:0.6b` | `ac6da0dfba84` | 1024 dimensions, 100% GPU |
+| Answering passage ranked first | 1 | 4 | **8** |
+| All needed passages in the top five | 5 | 6 | **11** |
 
-The generation default deliberately uses Qwen's instruct build so raw Ollama
-chat does not expose a thinking trace. The first cold embedding request took
-about 31 seconds. A subsequent one-chunk
-embedding operation took 3.5 seconds. Live grounded tool-calling took 19–21
-seconds in two warm trials. These are small local measurements, not benchmarks.
+**Answering questions** (`kiki eval-rag --with-model`, 18 questions):
 
-Ordinary chat explicitly supports writing, explaining, reviewing, and debugging
-code. It distinguishes generating code from executing it instead of inventing a
-programming limitation. `eval-chat` runs ten paraphrased medium/hard algorithm
-cases and scores false refusals, expected approach signals, Python syntax, and
-the presence of code separately. Use `--case CASE_ID` for a targeted rerun. It
-does not execute generated code on the host without a dedicated sandbox.
+- 15 of 15 answerable questions answered with valid citations
+- 3 of 3 unanswerable questions correctly declined
+- About **15 seconds** per document answer (about 9 with `--no-rerank`)
 
-`eval-behavior` runs eight benign prompts covering defensive security education,
-controversial comparison, non-graphic fiction, workplace disagreement, general
-health/legal education, ordinary code, and unrelated conversation. It flags
-generic refusals, missing answer signals, and leakage of the removed hard-coded
-food or season preferences. See [`docs/PERSONA_DESIGN.md`](docs/PERSONA_DESIGN.md)
-for the open-source comparison and Kiki's persona rules.
+**Known weak spots**, in plain terms:
 
-## Evaluation
+- **Slow.** The grading step costs about 7 seconds per question.
+- **A cited answer is not always a correct one.** Kiki checks that cited
+  passages were really retrieved, not that they say what the answer claims. In
+  testing she occasionally added outside knowledge or credited the wrong book.
+- **She does not always follow instructions.** Asked to explain SQL injection
+  *without* showing an attack string, the 4B model showed one anyway, across
+  three prompt rewrites. Anything that must hold is being moved into code
+  rather than left to the model.
+- **Some passages are never found.** In 2 of 14 held-out questions the right
+  passage was not among the top 20 candidates.
 
-`evals/history_cases.json` contains 18 fixed history questions: 11 development
-cases and a 7-case holdout that includes three deliberately unsupported
-questions. Machine-specific receipts are written to the ignored
-`evals/results/` directory. Expected-document coverage is a retrieval
-diagnostic, not proof that every answer is factually correct.
+The full picture, including suggestions and constraints, is in
+[docs/DEVELOPMENT_NOTES.md](docs/DEVELOPMENT_NOTES.md).
 
-`evals/retrieval_cases.json` scores retrieval at the passage level, separately
-from answer generation: 25 questions (11 development, 14 holdout, including 10
-paraphrased holdout questions written before reranking was tuned), each with
-evidence phrases that mark the passages actually answering it. Comparison
-questions need evidence for every side. Labels widened after reviewing results
-carry a `label_note`.
+## Privacy and safety by design
 
-```powershell
-deskai --database .deskai\history.sqlite3 eval-retrieval --methods lexical,hybrid,rerank
+- **Local by default.** Models, documents, memories, and history stay on your
+  machine. The only network call is the weather lookup, made to a fixed address
+  the model cannot change.
+- **Documents are data, not instructions.** Retrieved text is labeled
+  untrusted. The grading step can only output a single digit, so a passage
+  cannot talk its way into anything beyond its own score.
+- **Permissions live in code.** Every tool declares a risk level. Today's tools
+  are all read-only; anything that writes files, runs commands, or acts on the
+  outside world must ask you first, and the model's opinion cannot change that.
+- **Memory is opt-in and inspectable.** Nothing is remembered unless you ask,
+  and the memory file is plain text you can edit or delete.
+- **Diagnostics are filtered.** Support reports use an allowlist and never
+  include environment values or conversation content.
+
+## Project layout
+
+```text
+src/deskai/
+  terminal.py        the interactive Kiki session and slash commands
+  cli.py             one-off commands and evaluations
+  model_client.py    the answer loop, citation checks, evidence trimming
+  retrieval.py       document index, keyword search, migrations
+  semantic.py        meaning-based search and hybrid merging
+  rerank.py          the passage grading step
+  extraction.py      turning files into citable passages
+  tools.py           strictly validated tools (search, weather)
+  permissions.py     tool risk levels
+  memory.py          opt-in notes
+  personality.py     persona file and tone settings
+evals/               question sets for retrieval, answers, behavior, and code
+docs/                design notes, the engineering log, development notes
+tests/               110 automated tests, no network or models required
 ```
 
-## Verification receipt
+## Development
 
-- Python 3.12 virtual environment created locally.
-- Unit tests: 109 passing.
-- CommonMark corpus: 12 supported files indexed; cited search verified.
-- py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
-  as encrypted, image-only/OCR-required, or malformed.
-- Reindex verified to preserve unchanged documents and remove deleted or newly
-  unreadable evidence.
-- Tool loop tested with fake and live model responses for valid calls, unknown
-  calls, round-limit exhaustion, and suppression of leaked thinking text.
-- A paraphrased fixture query produced no lexical hit but correctly retrieved the
-  policy through semantic and hybrid search (cosine score approximately 0.473).
-- U.S. history corpus: 5 public-domain works plus its manifest, 2,569
-  paragraph-aware chunks, and 2,569 local embeddings.
-- RAG chat performs a deterministic baseline search before generation, then
-  allows the model to make narrower follow-up tool calls. This guarantees that
-  both supported answers and insufficient-evidence responses follow retrieval.
-- Passage-level retrieval (October 28, 2026, `eval-retrieval`, top 5):
-  holdout passages with all evidence present 6/14 hybrid → 11/14 reranked,
-  top-1 hits 4/14 → 8/14, MRR 0.36 → 0.70; development 10/11 → 11/11.
-  Reranking costs ~6.7 s per search on the GTX 1080. Two remaining holdout
-  misses are recall-limited: the evidence is not among the 20 candidates.
-- Answer-level RAG set (`eval-rag --with-model`, all 18 cases, reranking on):
-  15/15 answerable questions answered with valid inline citations (12/15 before
-  this session's retrieval work) and 3/3 unsupported questions correctly
-  abstained. End-to-end RAG answers take roughly 15 s. Valid citations do not
-  prove attribution: one answer credited the Federalist Papers with points from
-  a cited Beard passage. Answer-level accuracy remains a human-review junction.
-- Live coding regression: 10/10 medium/hard cases included the expected
-  algorithm signals with 0 false refusals; 9/10 initially passed strict Python
-  syntax because one answer included a broken draft before its corrected code.
-  After adding a corrected-code-only instruction, that hard case passed its
-  targeted rerun. The full run took 245.97 seconds locally.
-- Live behavior regression after removing fixed preferences: 8/8 benign prompts
-  answered without refusal, 0/8 leaked the former food or season preferences,
-  and all eight stayed within their word limits and avoided canned openings.
-  Overall result is 7/8 because Qwen 3 4B repeatedly violated an explicit request
-  to omit a SQL-injection payload. The failing case remains in the suite as a
-  documented small-model instruction-following limitation.
+```powershell
+pytest                                   # fast, offline
+kiki --database .deskai\history.sqlite3 eval-retrieval   # passage ranking
+kiki --database .deskai\history.sqlite3 eval-rag --with-model
+kiki --database .deskai\history.sqlite3 eval-behavior    # refusals, tone, scope
+kiki --database .deskai\history.sqlite3 eval-chat        # coding questions
+```
 
+Evaluation results are written to the ignored `evals/results/` folder.
+Decisions, bugs, and trade-offs are recorded in
+[docs/ENGINEERING_LOG.md](docs/ENGINEERING_LOG.md); the persona's design and
+the projects it learned from are in [docs/PERSONA_DESIGN.md](docs/PERSONA_DESIGN.md).
+
+This is a personal project, so there is no formal contribution process yet.
+Issues describing a problem, with the output of `/diagnostics`, are the most
+helpful thing to send.
+
+## Roadmap
+
+Roughly in priority order (details in the
+[development notes](docs/DEVELOPMENT_NOTES.md)):
+
+1. **Quote checking.** Anything in quotation marks must appear word for word
+   in a retrieved passage.
+2. **Claim checking.** Confirm each sentence is supported by the passage it
+   cites, and flag or remove the rest.
+3. **Rule checks in code.** When you say "don't include X", verify the answer
+   instead of trusting the model.
+4. **One regression gate** that runs every evaluation before a change lands.
+5. **Try a larger model** for better instruction-following, within the GPU's
+   8 GB.
+
+Not planned: voice, a job engine, or controlling your mouse and keyboard.
+
+## Acknowledgements
+
+- [Ollama](https://ollama.com) and the [Qwen](https://github.com/QwenLM) team
+  for the local models
+- [Project Gutenberg](https://www.gutenberg.org) for the public-domain texts
+- [Open-Meteo](https://open-meteo.com) for free weather data
+- Capri Desktop, Open WebUI, and Letta for ideas about separating persona,
+  memory, and rules (see [PERSONA_DESIGN.md](docs/PERSONA_DESIGN.md); no code
+  was copied)
+- This README follows the spirit of
+  [Standard Readme](https://github.com/RichardLitt/standard-readme) and
+  [Make a README](https://www.makeareadme.com)
+
+## License
+
+No license has been chosen yet, so all rights are reserved by default.
+Third-party data and models keep their own licenses, listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
