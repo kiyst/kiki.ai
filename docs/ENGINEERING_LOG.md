@@ -439,3 +439,40 @@ Decision or proposal: adapted from Zotero RAG (rhenryliu/zotero-rag a9f308d,
 Human review needed: no (re-extraction of PDFs happens only when the user
         re-indexes a folder; nothing is rebuilt automatically).
 ```
+
+## RAG pipeline milestone, stage 5: passage-level citations
+
+```text
+Date: 2026-10-29
+Stage: 5 (citations resolve to specific passages)
+Commit before change: eb9af2d (developed on branch rag-stage5-citations)
+Files changed: src/kiki/retrieval.py, model_client.py, evals.py,
+        tests/test_model_client.py
+Behavior changed: each passage has a stable ID, "p" + 11 hex characters of
+        sha256(document ID, location kind, start, end). It is derived from
+        stored fields, so existing indexes need no migration, and it changes
+        whenever the file content or extraction changes. The model sees
+        `cite: [source:<passage ID>]`, the document title/filename, and the
+        location, never the path or document ID. Only passages actually shown
+        within the evidence budget are citable. Each source record holds the
+        passage ID, document ID, path, display name, location kind/start/end,
+        and the exact evidence text supplied to the model, so later quote and
+        claim checks can compare against it. Document-level and unknown IDs
+        fail validation; `resolve_citations` maps an answer's citations to
+        records and marks unknown IDs as unresolved rather than dropping them.
+        Citations display as "lines 190-246", "page 3", or "pages 3-4".
+Tests/evaluations run: pytest 161 passed (5 new); eval-rag --with-model at the
+        new defaults (20 candidates, 8 passages).
+Result: 15/15 answerable questions answered with valid passage citations,
+        3/3 unsupported questions abstained (receipt 06). Every cited ID in
+        every answer resolved to a shown passage. Mean answer time 10.5 s
+        (9.6 s in stage 3's 8-passage run; within run-to-run variation of
+        the citation-repair retry, which is not separately counted yet).
+Known bugs: validation proves a citation points at real shown evidence, not
+        that the evidence supports the sentence; quote and claim checks
+        remain future work (handoff Phase 3).
+Decision or proposal: no schema change. Passage IDs are not stored, so a
+        re-chunked file gets new IDs; saved transcripts keep the citation
+        text, which names the file and span, so they stay readable.
+Human review needed: no.
+```
