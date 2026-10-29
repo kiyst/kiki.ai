@@ -349,6 +349,9 @@ The active backend. Validated in the trial; the implementation in
 - Runtime pinned by version and sha256 under
   `%LOCALAPPDATA%\kiki\wasi-python\<version>`; compiled module cached there,
   keyed by wasmtime version and runtime sha256, and rebuilt if either differs.
+- `max_wasm_stack` is 2 MiB (wasmtime's async-stack ceiling), run on a host
+  thread with a 16 MiB native stack. The 512 KiB default trapped
+  `@functools.cache` recursion at about 500 levels; 2 MiB allows about 3,000.
 - Wall time is a single epoch tick fired by a timer at the deadline (not many
   small ticks; Windows timer granularity makes those drift).
 - Output is captured with `stdout_custom`/`stderr_custom` callbacks that keep
@@ -437,6 +440,11 @@ Each stage ends with focused tests, a receipt where a model is involved, an
 engineering-log entry in the existing format, and a separate commit.
 
 ### Stage 0: baseline and benchmark design (no execution)
+
+Update (October 29): at the user's request the first measurements use
+standardized benchmarks (HumanEval+, MBPP+, LeetCodeDataset Medium/Hard),
+graded in the sandbox by `evals/sandbox_trial/coding_benchmark.py`. The
+original problems below remain the plan for a contamination-free holdout.
 
 - Re-run `kiki eval-chat` and save a receipt.
 - Write about 40 original language-neutral problems (10 easy, 20 medium, 10

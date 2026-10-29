@@ -13,7 +13,15 @@ import time
 
 import wasmtime as wt
 
-TICK = 0.01
+WASM_STACK = 2 * 2**20
+HOST_THREAD_STACK = 16 * 2**20
+
+
+def _reason(error: Exception) -> str:
+    """The `wasm trap: ...` cause if present, else the first line."""
+    lines = str(error).splitlines()
+    causes = [line.strip() for line in lines if line.strip().startswith("wasm trap:")]
+    return causes[-1] if causes else lines[0]
 
 
 def main() -> None:
@@ -22,6 +30,10 @@ def main() -> None:
 
     config = wt.Config()
     config.epoch_interruption = True
+    # functools.cache recursion goes through C frames; the 512 KiB default
+    # traps at ~500 levels. 2 MiB (wasmtime's async-stack ceiling) allows
+    # ~3,000. It needs a host thread with a larger native stack (below).
+    config.max_wasm_stack = WASM_STACK
     engine = wt.Engine(config)
     cache = spec["cache"]
     compiled = os.path.exists(cache)
@@ -80,21 +92,28 @@ def main() -> None:
 
     threading.Thread(target=clock, daemon=True).start()
 
-    exit_code = None
-    trap = None
+    outcome = {"exit_code": None, "trap": None}
     run_started = time.perf_counter()
-    try:
-        instance = linker.instantiate(store, module)
-        instance.exports(store)["_start"](store)
-        exit_code = 0
-    except wt.ExitTrap as error:
-        exit_code = error.code
-    except wt.Trap as error:
-        trap = str(error).splitlines()[0]
-        if "interrupt" in str(error) and not flags["output_killed"]:
-            flags["timed_out"] = True
-    except wt.WasmtimeError as error:
-        trap = str(error).splitlines()[0]
+
+    def execute() -> None:
+        try:
+            instance = linker.instantiate(store, module)
+            instance.exports(store)["_start"](store)
+            outcome["exit_code"] = 0
+        except wt.ExitTrap as error:
+            outcome["exit_code"] = error.code
+        except wt.Trap as error:
+            outcome["trap"] = _reason(error)
+            if "interrupt" in str(error) and not flags["output_killed"]:
+                flags["timed_out"] = True
+        except wt.WasmtimeError as error:
+            outcome["trap"] = _reason(error)
+
+    threading.stack_size(HOST_THREAD_STACK)
+    runner = threading.Thread(target=execute)
+    runner.start()
+    runner.join()
+    exit_code, trap = outcome["exit_code"], outcome["trap"]
     finished = time.perf_counter()
     done.set()
 

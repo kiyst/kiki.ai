@@ -1,0 +1,111 @@
+{
+  "humaneval": {
+    "problems": 164,
+    "reference_passed": 163,
+    "failures": [
+      {
+        "id": "HumanEval/32",
+        "error": "plus[119]: wrong answer"
+      }
+    ],
+    "seconds": 150
+  },
+  "mbpp": {
+    "problems": 378,
+    "reference_passed": 376,
+    "failures": [
+      {
+        "id": "Mbpp/255",
+        "error": "sandbox:  [ref(*copy.deepcopy(a)) for a in PLUS]}\n                                                                         ~~~^^^^^^^^^^^^^^^^^^^\n  File \"reference\", line 4, in combinations_colors\nMemoryError\n"
+      },
+      {
+        "id": "Mbpp/599",
+        "error": "sandbox: timed out"
+      }
+    ],
+    "seconds": 368
+  },
+  "leetcode": {
+    "problems": 180,
+    "reference_passed": 161,
+    "failures": [
+      {
+        "id": "maximum-value-sum-by-placing-three-rooks-i",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "maximum-value-sum-by-placing-three-rooks-ii",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "minimum-number-of-seconds-to-make-mountain-height-zero",
+        "error": "OverflowError('Python int too large to convert to C ssize_t')"
+      },
+      {
+        "id": "find-x-sum-of-all-k-long-subarrays-ii",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "find-the-original-typed-string-ii",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "find-the-number-of-subsequences-with-equal-gcd",
+        "error": "sandbox: timed out"
+      },
+      {
+        "id": "zero-array-transformation-iii",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "minimum-array-sum",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "minimum-time-to-break-locks-i",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "digit-operations-to-make-two-integers-equal",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "count-the-number-of-arrays-with-k-matching-adjacent-elements",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "minimum-operations-to-make-subarray-elements-equal",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "longest-special-path",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "paint-house-iv",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "frequencies-of-shortest-supersequences",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "reschedule-meetings-for-maximum-free-time-ii",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "sum-of-k-subarrays-with-length-at-least-m",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "maximize-profit-from-task-assignment",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      },
+      {
+        "id": "longest-common-prefix-of-k-strings-after-removal",
+        "error": "load: ModuleNotFoundError(\"No module named 'sortedcontainers'\")"
+      }
+    ],
+    "seconds": 248
+  }
+}

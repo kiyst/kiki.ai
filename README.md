@@ -209,7 +209,7 @@ Kiki cannot run code yet. This is what is coming, so you know what to expect:
 - **Python first, no Docker needed.** Python will run in a WebAssembly sandbox
   (`wasmtime`), a small add-on of about 25 MB with no background service. In a
   trial on a 16 GB PC with everyday apps open, each run took about a third of
-  a second and 57 MB of memory.
+  a second and 57–73 MB of memory.
 - **The code is boxed in.** It cannot see your files, use the network, start
   other programs, or write anywhere. It is stopped after 10 seconds, at
   256 MB of memory, or after 1 MB of output. All of this was tested in the
@@ -219,7 +219,13 @@ Kiki cannot run code yet. This is what is coming, so you know what to expect:
   as a diff and need your approval.
 - **Limits.** Standard library only (no `pip` packages, no internet), no
   threads or subprocesses, and `zlib`, `sqlite3`, `multiprocessing`, `ssl`,
-  and `ctypes` are unavailable. Code runs about 2× slower than normal Python.
+  and `ctypes` are unavailable. Code runs about 2× slower than normal Python,
+  memoized recursion goes about 3,000 levels deep, and some very large
+  integer sizes overflow because WebAssembly is 32-bit.
+- **Measured, not assumed.** Kiki's code is being scored on standard coding
+  benchmarks (HumanEval+, MBPP+, and recent LeetCode Medium/Hard problems),
+  graded inside this sandbox. See
+  [evals/sandbox_trial/](evals/sandbox_trial/README.md).
 - **Other languages are paused.** JavaScript/TypeScript, C/C++, Rust, Go, and
   Java need Docker, which takes 1–2 GB of memory while it runs. That is too
   much for a 16 GB machine with ordinary apps open, so Docker support is

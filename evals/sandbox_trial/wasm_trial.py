@@ -23,10 +23,9 @@ HERE = Path(__file__).parent
 RUNTIME = Path(os.environ["LOCALAPPDATA"]) / "kiki" / "wasi-python" / "3.14.9"
 PYTHON = sys.executable
 LAUNCHER = 'import runpy, sys\nsys.argv = ["main.py"]\nrunpy.run_path("/input/main.py", run_name="__main__")\n'
-JOB_MEMORY = 768 * 2**20
 
 
-def run(code: str, timeout: float = 10.0) -> dict:
+def run(code: str, timeout: float = 10.0, memory_mib: int = 256, job_mib: int = 768) -> dict:
     staging = Path(tempfile.mkdtemp(prefix="kiki-run-"))
     try:
         (staging / "main.py").write_text(code, encoding="utf-8")
@@ -36,7 +35,7 @@ def run(code: str, timeout: float = 10.0) -> dict:
             "lib": str(RUNTIME / "runtime" / "lib"),
             "cache": str(RUNTIME / "python.wasm.compiled"),
             "input": str(staging),
-            "memory_bytes": 256 * 2**20,
+            "memory_bytes": memory_mib * 2**20,
             "timeout": timeout,
             "keep_stdout": 64 * 1024,
             "keep_stderr": 16 * 1024,
@@ -44,7 +43,7 @@ def run(code: str, timeout: float = 10.0) -> dict:
         }
         spec_path = staging.with_suffix(".json")
         spec_path.write_text(json.dumps(spec), encoding="utf-8")
-        job = Job(JOB_MEMORY)
+        job = Job(job_mib * 2**20)
         started = time.perf_counter()
         process = job.start([PYTHON, "-I", str(HERE / "wasm_worker.py"), str(spec_path)])
         killed = False

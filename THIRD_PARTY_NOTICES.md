@@ -50,6 +50,17 @@ vendored by this repository.
 | `wasmtime` (Python package) | 50.0.1 | [PyPI](https://pypi.org/project/wasmtime/), installed with `pip install -e ".[sandbox]"` | Apache-2.0 WITH LLVM-exception |
 | CPython for WASI | 3.14.9 (`wasi_sdk-24`) | [brettcannon/cpython-wasi-build](https://github.com/brettcannon/cpython-wasi-build/releases/tag/v3.14.9), zip sha256 `8de7834105edef8db8a13299e2587cf8945021dd8764f2691d83bbc25129dfa2`, unpacked under `%LOCALAPPDATA%\kiki\wasi-python\` | PSF License |
 
+## Coding benchmarks
+
+Downloaded to `%LOCALAPPDATA%\kiki\benchmarks\` by the user; not vendored.
+Only per-problem pass/fail summaries are committed.
+
+| Dataset | Version | Source | License |
+| --- | --- | --- | --- |
+| HumanEval+ (EvalPlus) | v0.1.10 | [evalplus/humanevalplus_release](https://github.com/evalplus/humanevalplus_release/releases/tag/v0.1.10) | Apache-2.0 (original HumanEval: MIT) |
+| MBPP+ (EvalPlus) | v0.2.0 | [evalplus/mbppplus_release](https://github.com/evalplus/mbppplus_release/releases/tag/v0.2.0) | Apache-2.0 (original MBPP: CC BY 4.0) |
+| LeetCodeDataset, test split | Hugging Face `newfacade/LeetCodeDataset` | [huggingface.co](https://huggingface.co/datasets/newfacade/LeetCodeDataset) | Apache-2.0 (problem statements are LeetCode's) |
+
 ## Weather data
 
 Live weather uses the [Open-Meteo APIs](https://open-meteo.com/) and displays
@@ -63,6 +74,7 @@ not included in this repository.
 | Project | Commit | Files | Used in | License |
 | --- | --- | --- | --- | --- |
 | [rhenryliu/zotero-rag](https://github.com/rhenryliu/zotero-rag) | `a9f308d27d6074c3a8c0478af23787ae4251acd1` | `rag/chunking.py` (`chunk_document`, `_hard_split`) | `src/kiki/pdf_chunking.py` | MIT |
+| [evalplus/evalplus](https://github.com/evalplus/evalplus) | `26d6d00bb1fd0fa37f39c99d5290da67891d1c5e` | `evalplus/data/mbpp.py` (`mbpp_deserialize_inputs`, verbatim); grading rules and special oracles from `evalplus/eval/__init__.py` and `_special_oracle.py`, reimplemented | `evals/sandbox_trial/evalplus_mbpp.py`, `coding_benchmark.py` | Apache-2.0 |
 
 What was adapted: the page-tagged paragraph stream, character-budget packing,
 and sentence-boundary splitting of oversized paragraphs. Kiki changed overlap

@@ -649,3 +649,34 @@ Before the trial the PC had 31.8 GB committed of a 34.2 GB limit, mostly
 VS Code, browsers, and Electron apps. That, not Kiki, is the binding
 constraint on a 16 GB machine, and it is why the decision favors the backend
 that adds tens of megabytes instead of gigabytes.
+
+## Coding sandbox milestone: benchmark harness
+
+```text
+Date: 2026-10-29
+Stage: 0/3 groundwork (standardized benchmarks instead of hand-written
+        problems, at the user's request), per docs/CODING_SANDBOX_HANDOFF.md
+Commit before change: 6b55783
+Files changed: evals/sandbox_trial/coding_benchmark.py, benchmark_selftest.py,
+        evalplus_mbpp.py (adapted, Apache-2.0), README.md (new),
+        wasm_worker.py, wasm_trial.py; evals/receipts/coding-benchmarks/
+        reference-selftest.json; THIRD_PARTY_NOTICES.md; README.md
+Behavior changed: none in Kiki itself. The trial worker now uses a 2 MiB
+        wasm stack on a 16 MiB host thread and reports the trap cause.
+Tests/evaluations run: official solutions graded in the sandbox
+        (HumanEval+ 163/164, MBPP+ 376/378, LeetCode 161/180); trial limit
+        probes rerun after the stack change (all held); pytest 183 passed.
+Result: harness validated. Model runs (HumanEval+ with and without Kiki's
+        prompt, LeetCode Medium/Hard, MBPP+) were started and are not yet
+        complete; results will be logged in a separate entry.
+Known bugs: harness bugs found and fixed by the self-test: MBPP+ tuples and
+        complex numbers arrived as lists and strings (now restored with
+        EvalPlus's own code); "not None" oracle compared match objects
+        instead of booleans. Sandbox limits found: @cache recursion trapped
+        at ~500 levels (fixed to ~3,000); 32-bit size overflow on very large
+        ints; one WebAssembly float difference; no sortedcontainers.
+Decision or proposal: bundle sortedcontainers (pure Python, Apache-2.0,
+        pinned, read-only) because LeetCode's own environment provides it;
+        awaiting approval and the count of model answers that import it.
+Human review needed: the sortedcontainers proposal (checkpoint 10).
+```
