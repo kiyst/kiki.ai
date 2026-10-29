@@ -39,15 +39,36 @@ class SearchResult:
     ranker: str | None = None
 
     @property
-    def citation(self) -> str:
-        label = "p." if self.location_kind == "page" else "lines "
+    def passage_id(self) -> str:
+        """Stable ID of this passage: the same file content and span always map
+        to the same ID, and an edited or re-extracted file gets new ones."""
+        return passage_identifier(
+            self.source_id, self.location_kind, self.start_location, self.end_location
+        )
+
+    @property
+    def location_label(self) -> str:
+        if self.location_kind == "page":
+            label = "page" if self.end_location == self.start_location else "pages"
+        else:
+            label = "lines"
         location = str(self.start_location)
         if self.end_location != self.start_location:
             location += f"-{self.end_location}"
-        return f"[source:{self.source_id}] {self.path} ({label}{location})"
+        return f"{label} {location}"
+
+    @property
+    def citation(self) -> str:
+        return f"[source:{self.passage_id}] {self.path} ({self.location_label})"
 
     def to_dict(self) -> dict[str, object]:
-        return {**asdict(self), "citation": self.citation}
+        return {**asdict(self), "passage_id": self.passage_id, "citation": self.citation}
+
+
+def passage_identifier(source_id: str, location_kind: str, start: int, end: int) -> str:
+    """Derived from stored fields, so existing indexes need no migration."""
+    digest = hashlib.sha256(f"{source_id}\0{location_kind}\0{start}\0{end}".encode()).hexdigest()
+    return f"p{digest[:11]}"
 
 
 @dataclass(frozen=True)

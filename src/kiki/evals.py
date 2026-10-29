@@ -9,7 +9,7 @@ from typing import Any, Callable, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .model_client import ChatOutcome
+from .model_client import ChatOutcome, _cited_source_ids
 from .retrieval import SearchResult
 
 
@@ -102,10 +102,8 @@ def run_evaluation(
             outcome = ask_model(case.prompt)
             model_ms = (perf_counter() - started) * 1000
             model_source_names = [Path(source["path"]).name for source in outcome.sources]
-            referenced_ids = set(
-                re.findall(r"source:\s*([0-9a-f]+)", outcome.answer, flags=re.IGNORECASE)
-            )
-            allowed_ids = {str(source["source_id"]) for source in outcome.sources}
+            referenced_ids = _cited_source_ids(outcome.answer)
+            allowed_ids = {str(source.get("passage_id")) for source in outcome.sources}
             base.update(
                 {
                     "model_ms": round(model_ms, 2),

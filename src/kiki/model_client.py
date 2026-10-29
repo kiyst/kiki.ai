@@ -172,10 +172,10 @@ class ToolCallingAssistant:
         if self.pre_retrieve:
             arguments = {"query": prompt, "limit": self.passages}
             result = self.registry.call("search_files", arguments)
-            self._collect_sources(result, sources)
             visible_result, used = _bounded_search_result(
                 result, self.max_evidence_characters - evidence_characters, prompt
             )
+            self._collect_sources(result, visible_result, sources)
             evidence_characters += used
             tool_call_count += 1
             trace.append(
@@ -283,12 +283,12 @@ class ToolCallingAssistant:
                     name, arguments = "malformed_tool_call", {}
                     result = exc.payload()
                 if name == "search_files":
-                    self._collect_sources(result, sources)
                     visible_result, used = _bounded_search_result(
                         result,
                         self.max_evidence_characters - evidence_characters,
                         str(arguments.get("query", "")),
                     )
+                    self._collect_sources(result, visible_result, sources)
                     evidence_characters += used
                 else:
                     visible_result = result
@@ -312,20 +312,40 @@ class ToolCallingAssistant:
 
     @staticmethod
     def _collect_sources(
-        result: dict[str, Any], sources: dict[str, dict[str, Any]]
+        result: dict[str, Any],
+        visible_result: dict[str, Any],
+        sources: dict[str, dict[str, Any]],
     ) -> None:
-        if result["status"] != "ok":
+        """Record each passage the model was shown, keyed by its passage ID.
+
+        Only shown passages become citable, and each record keeps the exact
+        evidence text the model saw, so a citation resolves to that text.
+        """
+        if result.get("status") != "ok" or visible_result.get("status") != "ok":
             return
+        shown = {
+            item.get("passage_id"): item.get("excerpt", "")
+            for item in visible_result.get("data") or []
+            if isinstance(item, dict)
+        }
         for source in result["data"]:
-            source_id = source.get("source_id")
-            if source_id:
-                citation = source.get("citation")
-                key = str(citation or source_id)
-                sources[key] = {
-                    "source_id": source_id,
-                    "citation": citation,
-                    "path": source.get("path"),
-                }
+            if not isinstance(source, dict):
+                continue
+            passage_id = source.get("passage_id")
+            if not passage_id or passage_id not in shown:
+                continue
+            path = str(source.get("path") or "")
+            sources[str(passage_id)] = {
+                "passage_id": passage_id,
+                "source_id": source.get("source_id"),
+                "citation": source.get("citation"),
+                "path": path,
+                "document": source.get("title") or re.split(r"[\\/]", path)[-1],
+                "location_kind": source.get("location_kind"),
+                "start_location": source.get("start_location"),
+                "end_location": source.get("end_location"),
+                "evidence": shown[passage_id],
+            }
 
 
 def _message_dict(response: Any) -> dict[str, Any]:
@@ -399,7 +419,7 @@ def _verify_grounded_answer(
     """Reject RAG prose whose source IDs cannot be checked against retrieved evidence."""
     if answer.casefold().startswith("evidence is insufficient"):
         return answer
-    available = {str(source["source_id"]) for source in sources.values()}
+    available = _citable_ids(sources)
     cited = _cited_source_ids(answer)
     if not available or not cited or not cited.issubset(available):
         return (
@@ -409,15 +429,41 @@ def _verify_grounded_answer(
     return answer
 
 
+_CITATION = re.compile(r"\[source:\s*([^\]\s,;]+)[^\]]*\]")
+
+
 def _cited_source_ids(answer: str) -> set[str]:
     """IDs from `[source:ID]`, tolerating `[source: ID]` and `[source:ID, lines 3-9]`."""
-    return set(re.findall(r"\[source:\s*([^\]\s,;]+)[^\]]*\]", answer))
+    return set(_CITATION.findall(answer))
+
+
+def _citable_ids(sources: dict[str, dict[str, Any]]) -> set[str]:
+    """Passage IDs the model was actually shown; document IDs are not citable."""
+    return {str(source["passage_id"]) for source in sources.values() if source.get("passage_id")}
 
 
 def _has_valid_citation(answer: str, sources: dict[str, dict[str, Any]]) -> bool:
-    available = {str(source["source_id"]) for source in sources.values()}
+    available = _citable_ids(sources)
     cited = _cited_source_ids(answer)
     return bool(cited) and cited <= available
+
+
+def resolve_citations(answer: str, sources: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Map each cited passage ID to its passage record, in citation order.
+
+    Unknown IDs resolve to `{"passage_id": ..., "resolved": False}` so callers
+    can show or reject them; they are never silently dropped.
+    """
+    by_id = {str(source.get("passage_id")): source for source in sources}
+    resolved: list[dict[str, Any]] = []
+    for passage_id in dict.fromkeys(_CITATION.findall(answer)):
+        source = by_id.get(passage_id)
+        resolved.append(
+            {**source, "resolved": True}
+            if source
+            else {"passage_id": passage_id, "resolved": False}
+        )
+    return resolved
 
 
 def _looks_like_insufficient(answer: str) -> bool:
@@ -479,15 +525,20 @@ def _bounded_search_result(
 
 
 def _model_visible_source(item: dict[str, Any], excerpt: str) -> dict[str, Any]:
-    source_id = item.get("source_id")
-    visible: dict[str, Any] = {"cite": f"[source:{source_id}]", "source_id": source_id}
+    # The model cites passages, never whole documents; application code resolves
+    # the ID to the document path and span.
+    passage_id = item.get("passage_id")
+    visible: dict[str, Any] = {"cite": f"[source:{passage_id}]", "passage_id": passage_id}
     if item.get("path"):
         filename = re.split(r"[\\/]", str(item["path"]))[-1]
         title = item.get("title")
         visible["document"] = f"{title} ({filename})" if title else filename
     if item.get("start_location") is not None:
-        label = "page" if item.get("location_kind") == "page" else "lines"
         start, end = item["start_location"], item.get("end_location", item["start_location"])
+        if item.get("location_kind") == "page":
+            label = "page" if end == start else "pages"
+        else:
+            label = "lines"
         visible["location"] = f"{label} {start}" + (f"-{end}" if end != start else "")
     visible["excerpt"] = excerpt
     return visible
