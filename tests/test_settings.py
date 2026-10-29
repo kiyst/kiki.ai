@@ -50,7 +50,7 @@ def test_environment_and_overrides_are_layered() -> None:
         ({"candidates": 101}, "candidates must be between 1 and 100"),
         ({"passages": 0}, "passages must be between 1 and 20"),
         ({"candidates": 4, "passages": 5}, "cannot exceed candidates"),
-        ({"reranker": "bge"}, "reranker must be one of grader, none"),
+        ({"reranker": "bge"}, "reranker must be one of grader, qwen3-reranker, none"),
         ({"rerank_model": "bad model; rm -rf"}, "not a valid model name"),
         ({"rerank_batch_size": 0}, "rerank_batch_size must be between"),
         ({"context_characters": 50}, "context_characters must be between"),

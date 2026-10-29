@@ -179,7 +179,7 @@ def _parser() -> argparse.ArgumentParser:
         default="lexical,hybrid,rerank",
         help=(
             "Comma-separated subset of lexical, hybrid, rerank (configured reranker), "
-            "grader"
+            "grader, qwen3-reranker"
         ),
     )
     retrieval_eval.add_argument("--model", default=DEFAULT_MODEL)
@@ -428,7 +428,7 @@ def _run_retrieval_eval(
     if not cases:
         raise ValueError("No evaluation cases matched the selected split")
     methods = [method.strip() for method in arguments.methods.split(",") if method.strip()]
-    unknown = set(methods) - {"lexical", "hybrid", "rerank", "grader"}
+    unknown = set(methods) - {"lexical", "hybrid", "rerank", "grader", "qwen3-reranker"}
     if unknown or not methods:
         raise ValueError(f"Unknown retrieval methods: {', '.join(sorted(unknown)) or 'none'}")
     if set(methods) - {"lexical"} and not index.embedding_count(arguments.embedding_model):
@@ -441,6 +441,10 @@ def _run_retrieval_eval(
         "grader": settings.with_overrides(
             reranker="grader",
             rerank_model=settings.rerank_model if settings.reranker == "grader" else "",
+        ),
+        "qwen3-reranker": settings.with_overrides(
+            reranker="qwen3-reranker",
+            rerank_model=settings.rerank_model if settings.reranker == "qwen3-reranker" else "",
         ),
     }
     backends: dict[str, Any] = {}

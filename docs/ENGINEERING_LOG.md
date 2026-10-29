@@ -308,3 +308,47 @@ Decision or proposal: cases were drawn with random.Random(20261029) from
         after seeing retrieval results.
 Human review needed: none.
 ```
+
+## RAG pipeline milestone, stage 2: dedicated reranker behind a feature flag
+
+```text
+Date: 2026-10-29
+Stage: 2 (dedicated reranker; experimental)
+Commit before change: 215a034
+Files changed: src/kiki/rerank.py, settings.py, cli.py, tests/test_rerank.py,
+        tests/test_settings.py
+Behavior changed: none at defaults (reranker stays `grader`). New opt-in
+        `--reranker qwen3-reranker` / KIKI_RAG_RERANKER=qwen3-reranker and an
+        eval-retrieval method of the same name. Qwen3Reranker scores
+        P(yes)/(P(yes)+P(no)) from Ollama raw /api/generate log-probabilities
+        using the published Qwen3-Reranker prompt; bounded concurrency
+        (rerank_batch_size), explicit per-request timeout, LRU score cache,
+        structured KikiError for timeouts, missing model (with the
+        `ollama pull` command), malformed or non-yes/no output, and flat
+        distributions; chat-template control tokens are stripped from
+        untrusted text before building the raw prompt. Any failure falls back
+        to fused order and `ranker` records "fused".
+Tests/evaluations run: pytest 143 passed (12 new reranker tests with a fake
+        client); fidelity probe; eval-retrieval holdout hybrid vs qwen3-reranker.
+Result: the installed model is unusable. dengcao/Qwen3-Reranker-0.6B:Q8_0
+        (a repackaged mradermacher GGUF) returns a flat distribution on
+        Ollama 0.40.12 - every token logprob -11.929 = ln(1/151,936) - for
+        the reranker prompt, a plain completion, and CPU-only inference.
+        Live run: 29/29 queries fell back cleanly ("hybrid (reranker
+        unavailable)"), full@5 17/29 like hybrid; hit@1 10 vs 11 because the
+        fallback pool fuses 20 per list where plain hybrid fuses 15.
+        The model occupies 1.13 GB of VRAM when loaded.
+Known bugs: no working dedicated reranker on this machine. Ollama
+        log-probabilities themselves are sound (qwen3:4b-instruct: "Yes" at
+        -4.7e-05 for a true statement), so the adapter is not the cause.
+Decision or proposal: keep the grader as default; keep Qwen3Reranker as an
+        experimental adapter. Options needing approval: (a) a different GGUF
+        conversion of Qwen3-Reranker-0.6B; (b) llama.cpp server's rerank
+        endpoint (new runtime); (c) torch + sentence-transformers as Zotero
+        RAG uses (several GB). Zotero RAG's reranking.py was studied
+        (rhenryliu/zotero-rag a9f308d, MIT) for design only - fallback to
+        vector order and calibrated min/soft score bands; no code copied.
+Human review needed: yes - the model was downloaded before the review rule
+        was set, has been verified broken, and any working alternative needs
+        a new download or runtime.
+```

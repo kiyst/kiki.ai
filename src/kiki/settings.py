@@ -13,10 +13,14 @@ from collections.abc import Mapping
 from dataclasses import asdict, dataclass, fields, replace
 from typing import Any
 
-# Dedicated rerankers are added behind this list in later milestone stages.
-RERANKERS = ("grader", "none")
+# grader: the answer model grades passages 0-3 (default, measured baseline).
+# qwen3-reranker: dedicated Qwen3-Reranker-0.6B served by Ollama (feature flag).
+RERANKERS = ("grader", "qwen3-reranker", "none")
 
 DEFAULT_GENERATION_MODEL = "qwen3:4b-instruct"
+# Community GGUF conversion of Qwen/Qwen3-Reranker-0.6B (Apache-2.0); fidelity
+# checks are recorded in docs/ENGINEERING_LOG.md.
+DEFAULT_QWEN3_RERANKER = "dengcao/Qwen3-Reranker-0.6B:Q8_0"
 
 _MODEL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\-/]*(?::[A-Za-z0-9._\-]+)?$")
 
@@ -41,9 +45,9 @@ class RetrievalSettings:
     candidates: int = 20
     # Passages given to the answer model.
     passages: int = 5
-    # grader = the answer model grades each passage 0-3; none = fused order.
+    # grader | qwen3-reranker | none (fused order); see RERANKERS.
     reranker: str = "grader"
-    # Empty means the answer model.
+    # Empty means the answer model for grader, DEFAULT_QWEN3_RERANKER otherwise.
     rerank_model: str = ""
     # Upper bound on concurrent scoring requests (used by batch-capable rerankers).
     rerank_batch_size: int = 4
@@ -76,7 +80,9 @@ class RetrievalSettings:
     def resolved_rerank_model(self, generation_model: str = DEFAULT_GENERATION_MODEL) -> str | None:
         if self.reranker == "none":
             return None
-        return self.rerank_model or generation_model
+        if self.rerank_model:
+            return self.rerank_model
+        return generation_model if self.reranker == "grader" else DEFAULT_QWEN3_RERANKER
 
     def with_overrides(self, **overrides: Any) -> RetrievalSettings:
         values = {key: value for key, value in overrides.items() if value is not None}

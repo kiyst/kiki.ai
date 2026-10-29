@@ -1,0 +1,8 @@
+{
+  "model": "dengcao/Qwen3-Reranker-0.6B:Q8_0",
+  "gguf_origin": "mradermacher/Qwen3-Reranker-0.6B-GGUF (convert_type hf, quantized 2025-06-06)",
+  "ollama": "0.40.12",
+  "finding": "Every request returns a flat distribution: all top_logprobs equal -11.929 = ln(1/151936). Raw prompt in the published Qwen3-Reranker format, a plain completion (\"The capital of France is\" -> \",,,,,,,,\"), and CPU-only (num_gpu 0) all fail identically. No yes/no signal exists to score.",
+  "resident_vram_bytes": 1134433402,
+  "conclusion": "Unusable on this Ollama build; dedicated reranker comparison blocked pending human review (new model file or different runtime)."
+}
