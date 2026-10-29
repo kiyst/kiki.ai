@@ -31,6 +31,25 @@ def test_memories_are_numbered_and_can_be_forgotten_by_number(tmp_path) -> None:
     assert store.forget("99") == []
 
 
+def test_out_of_range_number_falls_back_to_text_match(tmp_path) -> None:
+    store = MemoryStore(tmp_path / "kiki-memory.md")
+    store.remember("Started the project in 2026")
+    store.remember("Prefers dark themes")
+
+    assert store.forget("2026") == ["Started the project in 2026"]
+    assert store.notes() == ["Prefers dark themes"]
+
+
+def test_forget_by_number_removes_only_that_position(tmp_path) -> None:
+    path = tmp_path / "kiki-memory.md"
+    # Hand-edited files can contain duplicates that remember() would refuse.
+    path.write_text("# Kiki memory\n\n- Same note\n- Other\n- Same note\n", encoding="utf-8")
+    store = MemoryStore(path)
+
+    assert store.forget("3") == ["Same note"]
+    assert store.notes() == ["Same note", "Other"]
+
+
 @pytest.mark.parametrize(
     "note",
     [

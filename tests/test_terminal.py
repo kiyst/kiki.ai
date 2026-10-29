@@ -1,5 +1,6 @@
 from deskai.terminal import (
     TerminalSession,
+    _browse_path,
     _handle_command,
     _choice_query,
     _select_weather_choice,
@@ -181,3 +182,51 @@ def test_diagnostics_omit_environment_values(tmp_path, monkeypatch) -> None:
     assert "environment" in report["note"].casefold()
     assert "private-model-name" not in str(report)
     assert report["tools"]["search_files"]["risk"] == "read_only"
+
+
+def test_browser_gives_up_on_unreadable_root(tmp_path, monkeypatch) -> None:
+    from pathlib import Path
+
+    def unreadable(self):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(Path, "iterdir", unreadable)
+    root = Path(tmp_path.anchor)
+    prompts = []
+
+    selected = _browse_path(
+        Console(record=True),
+        root,
+        purpose="database",
+        default_filename=None,
+        input_fn=lambda prompt: prompts.append(prompt) or "cancel",
+    )
+
+    assert selected is None
+    assert prompts == []
+
+
+def test_browser_selects_database_and_saves_here(tmp_path) -> None:
+    (tmp_path / "books").mkdir()
+    database = tmp_path / "books" / "history.sqlite3"
+    database.write_bytes(b"")
+    answers = iter(["1", "1"])
+
+    selected = _browse_path(
+        Console(record=True),
+        tmp_path,
+        purpose="database",
+        default_filename=None,
+        input_fn=lambda prompt: next(answers),
+    )
+    assert selected == database.resolve()
+
+    answers = iter(["here notes"])
+    saved = _browse_path(
+        Console(record=True),
+        tmp_path,
+        purpose="save",
+        default_filename="kiki.md",
+        input_fn=lambda prompt: next(answers),
+    )
+    assert saved == tmp_path.resolve() / "notes.md"

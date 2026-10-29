@@ -56,13 +56,17 @@ class MemoryStore:
         if not query:
             raise ValueError("Say what should be forgotten")
         current = self.notes()
-        if query.isdigit():
-            number = int(query)
-            removed = [current[number - 1]] if 1 <= number <= len(current) else []
+        # A valid list position deletes exactly that entry; any other text,
+        # including out-of-range numbers such as "2026", is a substring match.
+        if query.isdigit() and 1 <= int(query) <= len(current):
+            positions = {int(query) - 1}
         else:
-            removed = [note for note in current if query in note.casefold()]
+            positions = {
+                index for index, note in enumerate(current) if query in note.casefold()
+            }
+        removed = [current[index] for index in sorted(positions)]
         if removed:
-            self._write([note for note in current if note not in removed])
+            self._write([note for index, note in enumerate(current) if index not in positions])
         return removed
 
     def numbered(self) -> list[tuple[int, str]]:

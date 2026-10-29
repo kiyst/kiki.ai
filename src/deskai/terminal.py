@@ -829,6 +829,9 @@ def _browse_path(
                 )
         except OSError as exc:
             console.print(f"[red]Cannot read that folder:[/red] {exc}")
+            if current.parent == current:
+                # An unreadable root has nowhere left to climb.
+                return None
             current = current.parent
             continue
 
