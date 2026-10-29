@@ -249,6 +249,7 @@ shows the active values.
 | `--rerank-batch-size N` | `KIKI_RAG_RERANK_BATCH` | 4 | Cap on parallel reranker requests |
 | `--rerank-timeout S` | `KIKI_RAG_RERANK_TIMEOUT` | 90 | Seconds per reranker request before falling back to search order |
 | `--context-characters N` | `KIKI_RAG_CONTEXT_CHARACTERS` | 7000 | Evidence characters shown to the answer model |
+| `--recovery` | `KIKI_RAG_RECOVERY` | off | One rewritten-query retry when reranked evidence looks weak (experimental) |
 
 ## How well it works
 

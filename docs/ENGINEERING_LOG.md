@@ -476,3 +476,40 @@ Decision or proposal: no schema change. Passage IDs are not stored, so a
         text, which names the file and span, so they stay readable.
 Human review needed: no.
 ```
+
+## RAG pipeline milestone, stage 6: bounded retrieval recovery
+
+```text
+Date: 2026-10-29
+Stage: 6 (one deterministic recovery pass owned by the retriever)
+Commit before change: 6b77ce2 (developed on branch rag-stage6-recovery)
+Files changed: src/kiki/semantic.py, settings.py, cli.py, terminal.py,
+        retrieval_evals.py, tests/test_recovery.py (new), tests/test_settings.py
+Behavior changed: none by default. With --recovery / KIKI_RAG_RECOVERY=on,
+        if the best reranked score is below the reranker's strong threshold
+        (grader 2, Qwen3 0.5), the retriever runs one retry with no model
+        call: a search restricted to documents named in the question, a
+        keyword rewrite keeping names and quoted phrases, and up to two parts
+        of an "X and Y" question. New candidates are taken round-robin across
+        rewrites (so a late sub-question is not starved), capped at half the
+        first-pass budget (minimum 4), scored against the original question,
+        and merged on the same score scale. Comparisons skip it (already
+        decomposed). Any failure falls back to fused order. Receipts record
+        each recovery (trigger score, queries, new candidates, improved).
+Tests/evaluations run: pytest 168 passed (7 new, including a corpus where only
+        the sub-question finds the answer and a test that exposed the
+        starvation bug fixed by round-robin); eval-retrieval at defaults with
+        recovery off and on, holdout 29 and development 11.
+Result: recovery triggered on 0 of 40 questions. Holdout full@8 26/29,
+        hit@1 19, MRR 0.757 both ways; development 11/11. Latency unchanged.
+        The three remaining misses (beard_trusts, articles_weaknesses,
+        blind_senate_tyranny) never look weak: the grader gives a wrong
+        passage a 2 or 3, so the trigger cannot see them.
+Known bugs: the trigger depends on calibrated reranker scores, which the
+        coarse 0-3 grader does not provide on this corpus.
+Decision or proposal: keep recovery off by default. Lowering the trigger
+        (e.g. "no passage graded 3") was not tried because it could only be
+        tuned on the holdout set. A calibrated dedicated reranker is the
+        natural trigger; revisit once one runs on this machine.
+Human review needed: no.
+```
