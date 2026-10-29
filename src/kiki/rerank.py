@@ -7,7 +7,10 @@ reranker reorders the fused candidate pool:
 * `ModelReranker` ("grader") asks the answer model to grade each candidate on a
   fixed 0-3 rubric. Output is constrained by a JSON schema to a single digit, so
   retrieved text cannot steer anything except that passage's own grade.
-* `Qwen3Reranker` ("qwen3-reranker", behind a feature flag) scores each pair
+* `LlamaCppReranker` ("llama-cpp") sends the pool to a local llama.cpp server
+  running a dedicated reranking model (Qwen3-Reranker-0.6B by default) and
+  uses its calibrated relevance in [0, 1].
+* `Qwen3Reranker` ("qwen3-reranker", experimental) scores each pair
   with the dedicated Qwen3-Reranker-0.6B model as P(yes) / (P(yes) + P(no)) of
   its first answer token, read from Ollama log-probabilities on a raw prompt in
   the model's published format. It needs no Python dependency beyond httpx.
@@ -329,6 +332,114 @@ def _yes_probability(body: dict[str, Any]) -> float:
     return math.exp(yes - top) / (math.exp(yes - top) + math.exp(no - top))
 
 
+
+class LlamaCppReranker:
+    """Dedicated reranker served by llama.cpp (`llama-server --reranking`).
+
+    Uses the server's /v1/rerank endpoint, which applies the model's own
+    reranking template and returns calibrated relevance in [0, 1] for
+    Qwen3-Reranker. Requests go only to a loopback address (enforced by
+    RetrievalSettings), in bounded chunks with an explicit timeout.
+    """
+
+    name = "llama-cpp"
+    strong_score = 0.5
+    DOCUMENTS_PER_REQUEST = 10
+
+    def __init__(
+        self,
+        url: str = "http://127.0.0.1:8081",
+        model: str = "ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF",
+        *,
+        batch_size: int = 2,
+        timeout: float = 30.0,
+        passage_characters: int = 1_400,
+        cache_size: int = 4_096,
+        post: Any = None,
+    ) -> None:
+        if not 1 <= batch_size <= 16:
+            raise ValueError("Rerank batch size must be between 1 and 16")
+        self.url = url.rstrip("/")
+        self.model = model
+        self.batch_size = batch_size
+        self.timeout = timeout
+        self.passage_characters = passage_characters
+        self._cache = _ScoreCache(cache_size)
+        self._post = post or httpx.post
+
+    def rerank(self, query: str, results: list[SearchResult]) -> list[SearchResult]:
+        scores = [self._cache.get(_cache_key(self.model, query, result)) for result in results]
+        pending = [index for index, score in enumerate(scores) if score is None]
+        groups = [
+            pending[start : start + self.DOCUMENTS_PER_REQUEST]
+            for start in range(0, len(pending), self.DOCUMENTS_PER_REQUEST)
+        ]
+        if groups:
+            with ThreadPoolExecutor(max_workers=min(self.batch_size, len(groups))) as pool:
+                batches = list(
+                    pool.map(lambda group: self._score(query, [results[i] for i in group]), groups)
+                )
+            for group, batch in zip(groups, batches, strict=True):
+                for index, score in zip(group, batch, strict=True):
+                    scores[index] = score
+                    self._cache.put(_cache_key(self.model, query, results[index]), score)
+        return _order(results, [float(score or 0.0) for score in scores], f"{self.name}:{self.model}")
+
+    def document(self, result: SearchResult) -> str:
+        title = _CONTROL.sub(" ", result.title or Path(result.path).name)
+        return f"({title}) " + _CONTROL.sub(" ", result.excerpt[: self.passage_characters])
+
+    def _score(self, query: str, results: list[SearchResult]) -> list[float]:
+        payload = {"query": _CONTROL.sub(" ", query), "documents": [self.document(r) for r in results]}
+        try:
+            response = self._post(f"{self.url}/v1/rerank", json=payload, timeout=self.timeout)
+        except httpx.TimeoutException as exc:
+            raise KikiError(
+                f"The reranker timed out after {self.timeout:g} s",
+                code=ErrorCode.TIMEOUT,
+                retryable=True,
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise KikiError(
+                f"No reranking server answered at {self.url}. Start one with: "
+                "llama-server -m <reranker.gguf> --reranking --host 127.0.0.1 --port 8081",
+                code=ErrorCode.SERVICE_UNAVAILABLE,
+                retryable=True,
+            ) from exc
+        if response.status_code >= 400:
+            raise KikiError(
+                f"The reranking server returned HTTP {response.status_code}; "
+                "it must be started with --reranking",
+                code=ErrorCode.SERVICE_UNAVAILABLE,
+                retryable=False,
+            )
+        return _relevance_scores(response, len(results))
+
+
+def _relevance_scores(response: Any, expected: int) -> list[float]:
+    try:
+        items = response.json()["results"]
+        scores: dict[int, float] = {}
+        for item in items:
+            index, score = int(item["index"]), float(item["relevance_score"])
+            if not math.isfinite(score) or index in scores or not 0 <= index < expected:
+                raise ValueError("invalid result")
+            scores[index] = score
+    except (KeyError, TypeError, ValueError) as exc:
+        raise KikiError(
+            "The reranking server returned an unreadable response",
+            code=ErrorCode.MODEL_RESPONSE,
+            retryable=True,
+        ) from exc
+    if len(scores) != expected:
+        raise KikiError(
+            f"The reranking server scored {len(scores)} of {expected} passages",
+            code=ErrorCode.MODEL_RESPONSE,
+            retryable=True,
+        )
+    return [scores[index] for index in range(expected)]
+
+
 def build_reranker(
     settings: Any, generation_model: str, chat_client: ChatClient | None = None
 ) -> Reranker | None:
@@ -343,6 +454,14 @@ def build_reranker(
             chat_client = OllamaClient(timeout=settings.rerank_timeout)
         return ModelReranker(
             chat_client, model, passage_characters=TEXT_CHUNK_CHARACTERS
+        )
+    if settings.reranker == "llama-cpp":
+        return LlamaCppReranker(
+            settings.rerank_url,
+            model,
+            batch_size=settings.rerank_batch_size,
+            timeout=settings.rerank_timeout,
+            passage_characters=TEXT_CHUNK_CHARACTERS,
         )
     if settings.reranker == "qwen3-reranker":
         return Qwen3Reranker(

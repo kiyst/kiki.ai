@@ -513,3 +513,73 @@ Decision or proposal: keep recovery off by default. Lowering the trigger
         natural trigger; revisit once one runs on this machine.
 Human review needed: no.
 ```
+
+## RAG pipeline milestone, stage 2 follow-up: llama.cpp reranker
+
+```text
+Date: 2026-10-29
+Stage: 2 follow-up (dedicated reranker via an approved alternative runtime)
+Commit before change: 6e761d0
+Approval: option (a) "a different GGUF of Qwen3-Reranker-0.6B", falling back
+        to option (b) "llama.cpp server", both approved by the user.
+Files changed: src/kiki/rerank.py (LlamaCppReranker), settings.py
+        (llama-cpp reranker, rerank_url restricted to loopback), cli.py
+        (--rerank-url, llama-cpp eval method), terminal.py (/doctor checks
+        the reranking server), tests/test_rerank.py, tests/test_settings.py,
+        evals/receipts/rag-milestone/08-*
+Behavior changed: none by default (grader stays). Opt-in
+        `--reranker llama-cpp` posts candidates in chunks of 10 to
+        http://127.0.0.1:8081/v1/rerank (bounded concurrency, explicit
+        timeout, control tokens stripped, every index validated). Unreachable
+        server, HTTP errors, timeouts, and malformed or partial results raise
+        structured errors and fall back to fused order. Non-loopback or https
+        URLs are rejected so queries stay on this machine.
+Downloads: ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF (repo sha a02f48bb,
+        file sha256 22c9979c..., 639 MB, Apache-2.0) via Ollama; Ollama
+        reports it "does not support generate" (pooling/rank model), so (a)
+        failed. llama.cpp b11979 (commit bf48103ad, MIT) Windows CPU and
+        Vulkan builds, sha256 matched GitHub release digests, installed under
+        %LOCALAPPDATA%\kiki\llama.cpp\ (outside the repo). llama-server
+        loads the same GGUF blob from Ollama's store; no further model
+        download. Not a Python dependency.
+Tests/evaluations run: pytest 182 passed (14 new); probe (capital of China:
+        Beijing 0.9997, Paris 0.0002, gravity 5e-6); eval-retrieval holdout
+        and development.
+Result (holdout 29, 8 passages):
+        | Reranker            | Candidates | Full | Hit@1 | MRR   |
+        | grader (default)    | 20         | 26   | 19    | 0.757 |
+        | llama-cpp           | 20         | 25   | 17    | 0.694 |
+        | llama-cpp           | 32         | 25   | 17    | 0.695 |
+        | llama-cpp           | 50         | 25   | 17    | 0.691 |
+        | llama-cpp+recovery  | 20         | 25   | 17    | 0.694 |
+        Development 11: both 11/11 full; hit@1 llama-cpp 8 vs grader 7.
+        Blind 15: tie, 14/15 full and 11 hit@1.
+        Latency: CPU (Ryzen 5 3600) 36.8 s reranking per question vs the
+        grader's 6.6 s; Vulkan GPU 3.7-8.8 s per 20 passages in isolated
+        timing. Later GPU timings in receipts 08-c32/c50/recovery/development
+        are NOT valid - see incident below. Accuracy is unaffected because
+        scoring is deterministic. Memory: CPU server peak 1.36 GB RAM; Vulkan
+        server pushed whole-GPU use to 7.7-7.8 GB of 8 GB beside Ollama.
+Known bugs: recovery never triggered with llama-cpp either; its first-pass
+        scores were already >= 0.5 in the remaining misses.
+Decision or proposal: the dedicated reranker does not meet the handoff bar
+        (beat or meaningfully match 26/29 at lower cost): -1 full, -2 hit@1,
+        and slower or memory-risky on this machine. Keep the grader as default;
+        keep llama-cpp as an experimental opt-in. Remaining dedicated-reranker
+        options would be the CUDA build (faster, ~0.7 GB VRAM, same memory
+        risk) or a different model; neither is proposed now.
+Incident: the PC ran out of virtual memory around 03:50 and was restarted
+        at 03:55. Windows Resource-Exhaustion-Detector named a llama-server
+        process (11.9 GB committed and growing), Fusion 360 (8.3 GB), and
+        another llama-server (2 GB). Cause: when switching from the CPU to the
+        Vulkan server, the evaluation's Python processes were stopped but not
+        the shell loop that launched them, so its remaining runs continued
+        against the new server while a second evaluation chain started - two
+        chains plus Ollama plus the Vulkan server on a 16 GB RAM / 8 GB VRAM
+        machine already under pressure. No data was lost.
+        Rules adopted: one heavy job at a time; stop the whole background
+        task (not just child processes) and confirm nothing remains before
+        starting another; do not run a GPU reranker beside Ollama on this
+        card; close large applications during long evaluations.
+Human review needed: no further action proposed.
+```

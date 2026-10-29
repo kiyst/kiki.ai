@@ -27,6 +27,7 @@ def test_defaults_reproduce_the_measured_pipeline() -> None:
         "rerank_timeout": 90.0,
         "context_characters": 7_000,
         "recovery": False,
+        "rerank_url": "http://127.0.0.1:8081",
     }
     reranker = build_reranker(settings, "qwen3:4b-instruct", chat_client=object())
     assert isinstance(reranker, ModelReranker)
@@ -51,11 +52,14 @@ def test_environment_and_overrides_are_layered() -> None:
         ({"candidates": 101}, "candidates must be between 1 and 100"),
         ({"passages": 0}, "passages must be between 1 and 20"),
         ({"candidates": 4, "passages": 5}, "cannot exceed candidates"),
-        ({"reranker": "bge"}, "reranker must be one of grader, qwen3-reranker, none"),
+        ({"reranker": "bge"}, "reranker must be one of grader, llama-cpp, qwen3-reranker, none"),
         ({"rerank_model": "bad model; rm -rf"}, "not a valid model name"),
         ({"rerank_batch_size": 0}, "rerank_batch_size must be between"),
         ({"context_characters": 50}, "context_characters must be between"),
         ({"candidates": True}, "candidates must be a number"),
+        ({"rerank_url": "http://192.168.1.5:8081"}, "rerank_url must be an http:// address on this machine"),
+        ({"rerank_url": "https://localhost:8081"}, "rerank_url must be an http:// address on this machine"),
+        ({"rerank_url": "http://example.com"}, "rerank_url must be an http:// address on this machine"),
     ],
 )
 def test_invalid_settings_fail_with_the_setting_named(values: dict[str, Any], message: str) -> None:

@@ -276,7 +276,7 @@ class TerminalSession:
                 "embedding_model": "installed" if self.embedding_model in installed else "missing",
             }
             rerank_model = self.settings.resolved_rerank_model(self.model)
-            if rerank_model:
+            if rerank_model and self.settings.reranker != "llama-cpp":
                 ollama["rerank_model"] = (
                     f"{rerank_model} (installed)"
                     if rerank_model in installed
@@ -303,11 +303,14 @@ class TerminalSession:
                 "cached_locations": len(self.weather._cache),
             }
         )
-        return {
+        report = {
             "ollama": ollama,
             "index": self.index.health(),
             "weather": weather_status,
         }
+        if self.settings.reranker == "llama-cpp":
+            report["reranker"] = _rerank_server_health(self.settings.rerank_url)
+        return report
 
     def clear_mode(self) -> None:
         self.histories[self.mode].clear()
@@ -1081,3 +1084,23 @@ def _select_weather_choice(
 def _choice_query(choice: dict[str, Any]) -> str:
     parts = [part.strip() for part in str(choice.get("label", "")).split(",")]
     return ", ".join(parts[:2])
+
+
+def _rerank_server_health(url: str) -> dict[str, Any]:
+    """Health of the local llama.cpp reranking server named in the settings."""
+    try:
+        health = httpx.get(f"{url.rstrip('/')}/health", timeout=2)
+        health.raise_for_status()
+        models = httpx.get(f"{url.rstrip('/')}/v1/models", timeout=2).json().get("data", [])
+    except Exception as exc:  # noqa: BLE001 - any failure means "not ready"
+        return {
+            "status": "unavailable",
+            "url": url,
+            "error": type(exc).__name__,
+            "fix": "llama-server -m <reranker.gguf> --reranking --host 127.0.0.1 --port 8081",
+        }
+    return {
+        "status": "ok",
+        "url": url,
+        "model": Path(str(models[0].get("id", ""))).name if models else "unknown",
+    }

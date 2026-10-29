@@ -10,17 +10,25 @@ from __future__ import annotations
 import os
 import re
 from collections.abc import Mapping
+from urllib.parse import urlsplit
 from dataclasses import asdict, dataclass, fields, replace
 from typing import Any
 
 # grader: the answer model grades passages 0-3 (default, measured baseline).
-# qwen3-reranker: dedicated Qwen3-Reranker-0.6B served by Ollama (feature flag).
-RERANKERS = ("grader", "qwen3-reranker", "none")
+# llama-cpp: a dedicated reranking model served by a local llama.cpp server.
+# qwen3-reranker: Qwen3-Reranker-0.6B through Ollama generation (experimental;
+#   the available GGUF builds do not work with Ollama 0.40.12).
+RERANKERS = ("grader", "llama-cpp", "qwen3-reranker", "none")
 
 DEFAULT_GENERATION_MODEL = "qwen3:4b-instruct"
 # Community GGUF conversion of Qwen/Qwen3-Reranker-0.6B (Apache-2.0); fidelity
 # checks are recorded in docs/ENGINEERING_LOG.md.
 DEFAULT_QWEN3_RERANKER = "dengcao/Qwen3-Reranker-0.6B:Q8_0"
+# Informational name of the model llama-server is expected to load; the server
+# decides what it actually serves and the reranker records the reported name.
+DEFAULT_LLAMA_CPP_RERANKER = "ggml-org/Qwen3-Reranker-0.6B-Q8_0-GGUF"
+DEFAULT_RERANK_URL = "http://127.0.0.1:8081"
+_LOOPBACK_HOSTS = {"127.0.0.1", "localhost", "::1"}
 
 _MODEL_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\-/]*(?::[A-Za-z0-9._\-]+)?$")
 
@@ -33,6 +41,7 @@ _ENVIRONMENT = {
     "rerank_timeout": "KIKI_RAG_RERANK_TIMEOUT",
     "context_characters": "KIKI_RAG_CONTEXT_CHARACTERS",
     "recovery": "KIKI_RAG_RECOVERY",
+    "rerank_url": "KIKI_RAG_RERANK_URL",
 }
 
 
@@ -58,6 +67,8 @@ class RetrievalSettings:
     context_characters: int = 7_000
     # One bounded rewritten-query retry when the best reranked passage is weak.
     recovery: bool = False
+    # llama.cpp reranking server; must be on this machine so queries stay local.
+    rerank_url: str = DEFAULT_RERANK_URL
 
     def __post_init__(self) -> None:
         _check_range("candidates", self.candidates, 1, 100)
@@ -75,6 +86,12 @@ class RetrievalSettings:
         _check_range("rerank_batch_size", self.rerank_batch_size, 1, 16)
         _check_range("rerank_timeout", self.rerank_timeout, 1, 600)
         _check_range("context_characters", self.context_characters, 1_000, 24_000)
+        parts = urlsplit(self.rerank_url)
+        if parts.scheme != "http" or parts.hostname not in _LOOPBACK_HOSTS:
+            raise SettingsError(
+                f"rerank_url must be an http:// address on this machine "
+                f"(127.0.0.1, localhost, or ::1); got {self.rerank_url!r}"
+            )
 
     @property
     def rerank_enabled(self) -> bool:
@@ -85,7 +102,10 @@ class RetrievalSettings:
             return None
         if self.rerank_model:
             return self.rerank_model
-        return generation_model if self.reranker == "grader" else DEFAULT_QWEN3_RERANKER
+        return {
+            "grader": generation_model,
+            "llama-cpp": DEFAULT_LLAMA_CPP_RERANKER,
+        }.get(self.reranker, DEFAULT_QWEN3_RERANKER)
 
     def with_overrides(self, **overrides: Any) -> RetrievalSettings:
         values = {key: value for key, value in overrides.items() if value is not None}
