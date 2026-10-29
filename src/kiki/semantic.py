@@ -155,7 +155,11 @@ class SemanticIndex:
 
 class HybridRetriever:
     """Reciprocal-rank fusion over lexical and semantic candidates, optionally
-    followed by reranking of a configurable candidate pool."""
+    followed by reranking and one bounded recovery search.
+
+    The retriever owns retrieval retries (bounded, deterministic, deduplicated),
+    so evidence never depends on the answer model choosing to search again.
+    """
 
     def __init__(
         self,
@@ -164,6 +168,7 @@ class HybridRetriever:
         reranker: Reranker | None = None,
         *,
         candidates: int = 20,
+        recovery: bool = False,
     ) -> None:
         if not 1 <= candidates <= 100:
             raise ValueError("Candidates must be between 1 and 100")
@@ -171,6 +176,8 @@ class HybridRetriever:
         self.semantic = semantic
         self.reranker = reranker
         self.candidates = candidates
+        self.recovery = recovery
+        self.last_recovery: dict[str, Any] | None = None
         self.last_fallback_reason: str | None = None
         self.last_rerank_error: str | None = None
         self.last_rerank_ms = 0.0
@@ -189,6 +196,7 @@ class HybridRetriever:
         self.last_fallback_reason = None
         self.last_rerank_error = None
         self.last_rerank_ms = 0.0
+        self.last_recovery = None
         variants = _query_variants(query)
         if self.reranker is None:
             ranked = self._fuse(variants, min(20, max(limit * 3, 10)))
@@ -201,6 +209,9 @@ class HybridRetriever:
                     ranked = self._rerank_comparison(variants[1:], pool, budget)
                 else:
                     ranked = self.reranker.rerank(query, pool)
+                    if self.recovery:
+                        # Comparisons already search each side separately.
+                        ranked = self._recover(query, ranked, budget)
             except Exception as exc:
                 # Answers stay available with fused ordering if reranking fails.
                 self.last_rerank_error = str(exc)
@@ -267,6 +278,52 @@ class HybridRetriever:
             take(result)
         return merged
 
+    def _recover(
+        self, query: str, ranked: list[SearchResult], budget: int
+    ) -> list[SearchResult]:
+        """One bounded retry when the best reranked passage looks weak.
+
+        Rewrites are deterministic (no model call): a search restricted to the
+        documents the question names, a keyword form that keeps names and quoted
+        phrases, and up to two parts of a broad "X and Y" question. Only new
+        candidates are scored, against the original question, so the merged list
+        stays on one reranker scale.
+        """
+        assert self.reranker is not None
+        best = ranked[0].score if ranked else 0.0
+        if ranked and best >= self.reranker.strong_score:
+            return ranked
+        rewrites = recovery_queries(query)
+        named = self.lexical.named_sources(query)
+        searches: list[tuple[str, tuple[str, ...] | None]] = [(text, None) for text in rewrites]
+        if named:
+            searches.insert(0, (rewrites[0] if rewrites else query, tuple(named)))
+        seen = {(r.source_id, r.start_location, r.end_location) for r in ranked}
+        per_search = [self._fuse([text], 20, sources) for text, sources in searches]
+        # Scoring budget for the retry: half the first pass, at least four passages.
+        # Take candidates round-robin so every rewrite's best results get a turn.
+        allowance = max(4, budget // 2)
+        fresh: list[SearchResult] = []
+        for rank in range(20):
+            for results in per_search:
+                if rank < len(results) and len(fresh) < allowance:
+                    key = (results[rank].source_id, results[rank].start_location, results[rank].end_location)
+                    if key not in seen:
+                        seen.add(key)
+                        fresh.append(results[rank])
+        self.last_recovery = {
+            "best_score": best,
+            "queries": [text for text, _ in searches],
+            "new_candidates": len(fresh),
+            "improved": False,
+        }
+        if not fresh:
+            return ranked
+        rescored = self.reranker.rerank(query, fresh)
+        self.last_recovery["improved"] = rescored[0].score > best
+        merged = sorted(enumerate([*ranked, *rescored]), key=lambda item: (-item[1].score, item[0]))
+        return [result for _, result in merged]
+
     def _fuse(
         self,
         variants: list[str],
@@ -312,6 +369,44 @@ def _query_variants(query: str) -> list[str]:
         sides = re.split(r"\s+\b(?:with|versus|vs\.?)\b\s+", comparison, maxsplit=1, flags=re.IGNORECASE)
         variants.extend(side.strip(" .?!") for side in sides if len(side.split()) >= 2)
     return list(dict.fromkeys(variant for variant in variants if variant))
+
+
+_QUESTION_WORDS = {
+    "a", "about", "according", "an", "and", "are", "as", "at", "be", "by", "can",
+    "could", "describe", "did", "do", "does", "explain", "for", "from", "give", "has",
+    "have", "how", "in", "is", "it", "its", "me", "of", "on", "or", "say", "says",
+    "should", "tell", "that", "the", "their", "there", "these", "they", "this", "to",
+    "was", "were", "what", "when", "where", "which", "who", "whom", "why", "with",
+    "would", "you", "your", "them", "him", "her", "his", "we", "us", "our", "i", "my",
+}
+
+
+def recovery_queries(query: str, limit: int = 3) -> list[str]:
+    """Deterministic rewrites for one recovery search, the original excluded.
+
+    1. Keyword form: question words dropped; quoted phrases and names kept intact.
+    2. Parts: a broad "X and Y" (or "X; Y") question split into at most two parts
+       that each keep at least two content words.
+    """
+    quoted = re.findall(r"[\"“]([^\"”]{2,80})[\"”]", query)
+    remainder = re.sub(r"[\"“][^\"”]{2,80}[\"”]", " ", query)
+    words = re.findall(r"[A-Za-z][A-Za-z'’-]*|\d+", remainder)
+    kept = [word for word in words if word.casefold() not in _QUESTION_WORDS]
+    keyword = " ".join([*(f'"{phrase}"' for phrase in quoted), *kept]).strip()
+    rewrites: list[str] = []
+    if keyword and keyword.casefold() != query.strip(" ?.!").casefold():
+        rewrites.append(keyword)
+    parts = re.split(r"\s*;\s*|\s+\band\b\s+", remainder.strip(" ?.!"), flags=re.IGNORECASE)
+    if len(parts) > 1:
+        for part in parts[:2]:
+            content = [
+                word
+                for word in re.findall(r"[A-Za-z][A-Za-z'’-]*", part)
+                if word.casefold() not in _QUESTION_WORDS
+            ]
+            if len(content) >= 2:
+                rewrites.append(" ".join(content))
+    return list(dict.fromkeys(rewrites))[:limit]
 
 
 def _cosine(left: list[float], right: array[float]) -> float:

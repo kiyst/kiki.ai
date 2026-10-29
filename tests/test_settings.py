@@ -26,6 +26,7 @@ def test_defaults_reproduce_the_measured_pipeline() -> None:
         "rerank_batch_size": 4,
         "rerank_timeout": 90.0,
         "context_characters": 7_000,
+        "recovery": False,
     }
     reranker = build_reranker(settings, "qwen3:4b-instruct", chat_client=object())
     assert isinstance(reranker, ModelReranker)

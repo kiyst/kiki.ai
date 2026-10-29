@@ -81,6 +81,12 @@ def _parser() -> argparse.ArgumentParser:
     retrieval.add_argument(
         "--context-characters", type=int, help="Evidence characters shown to the answer model"
     )
+    retrieval.add_argument(
+        "--recovery",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="One bounded rewritten-query retry when reranked evidence is weak",
+    )
     commands = parser.add_subparsers(dest="command")
 
     shell = commands.add_parser("shell", help="Open the interactive chat/RAG terminal")
@@ -275,6 +281,7 @@ def _retrieval_settings(arguments: argparse.Namespace) -> RetrievalSettings:
         rerank_batch_size=arguments.rerank_batch_size,
         rerank_timeout=arguments.rerank_timeout,
         context_characters=arguments.context_characters,
+        recovery=arguments.recovery,
     )
     if arguments.no_rerank:
         settings = settings.with_overrides(reranker="none")
@@ -292,6 +299,7 @@ def _hybrid(
         semantic,
         build_reranker(settings, generation_model),
         candidates=settings.candidates,
+        recovery=settings.recovery,
     )
 
 

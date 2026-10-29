@@ -32,6 +32,7 @@ _ENVIRONMENT = {
     "rerank_batch_size": "KIKI_RAG_RERANK_BATCH",
     "rerank_timeout": "KIKI_RAG_RERANK_TIMEOUT",
     "context_characters": "KIKI_RAG_CONTEXT_CHARACTERS",
+    "recovery": "KIKI_RAG_RECOVERY",
 }
 
 
@@ -55,6 +56,8 @@ class RetrievalSettings:
     rerank_timeout: float = 90.0
     # Characters of evidence shown to the answer model across all passages.
     context_characters: int = 7_000
+    # One bounded rewritten-query retry when the best reranked passage is weak.
+    recovery: bool = False
 
     def __post_init__(self) -> None:
         _check_range("candidates", self.candidates, 1, 100)
@@ -123,4 +126,11 @@ def _parse(name: str, raw: str, kind: Any) -> Any:
             return float(raw)
     except ValueError as exc:
         raise SettingsError(f"{variable} must be a number; got {raw!r}") from exc
+    if kind == "bool":
+        lowered = raw.casefold()
+        if lowered in {"1", "true", "yes", "on"}:
+            return True
+        if lowered in {"0", "false", "no", "off"}:
+            return False
+        raise SettingsError(f"{variable} must be on or off; got {raw!r}")
     return raw

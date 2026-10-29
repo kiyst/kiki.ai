@@ -116,6 +116,7 @@ def run_retrieval_evaluation(
                     "ms": round(elapsed, 1),
                     "rerank_ms": round(float(getattr(backend, "last_rerank_ms", 0.0)), 1),
                     "retrieval_mode": getattr(backend, "mode", "lexical"),
+                    "recovery": getattr(backend, "last_recovery", None),
                     **score_case(case, results, limit=limit),
                 }
             )
@@ -141,6 +142,7 @@ def _summarize(rows: list[dict[str, Any]], methods: list[str]) -> dict[str, Any]
                 "mrr": round(mean(row["reciprocal_rank"] for row in selected), 3),
                 "mean_ms": round(mean(row["ms"] for row in selected), 1),
                 "mean_rerank_ms": round(mean(row["rerank_ms"] for row in selected), 1),
+                "recoveries": sum(bool(row.get("recovery")) for row in selected),
                 "fallbacks": sum(
                     "unavailable" in row["retrieval_mode"] or "fallback" in row["retrieval_mode"]
                     for row in selected

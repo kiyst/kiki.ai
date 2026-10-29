@@ -116,6 +116,7 @@ class TerminalSession:
                 semantic,
                 build_reranker(self.settings, self.model),
                 candidates=self.settings.candidates,
+                recovery=self.settings.recovery,
             )
             return backend, backend.mode
         return self.index, "lexical"
