@@ -127,6 +127,7 @@ class OllamaClient:
 
 class ToolCallingAssistant:
     MAX_EVIDENCE_CHARACTERS = 7_000
+
     def __init__(
         self,
         client: ChatClient,
@@ -136,6 +137,9 @@ class ToolCallingAssistant:
         max_tool_calls: int = 6,
         pre_retrieve: bool = False,
         system_prompt: str = SYSTEM_PROMPT,
+        *,
+        passages: int = 5,
+        max_evidence_characters: int = MAX_EVIDENCE_CHARACTERS,
     ) -> None:
         self.client = client
         self.registry = registry
@@ -144,6 +148,8 @@ class ToolCallingAssistant:
         self.max_tool_calls = max_tool_calls
         self.pre_retrieve = pre_retrieve
         self.system_prompt = system_prompt
+        self.passages = passages
+        self.max_evidence_characters = max_evidence_characters
 
     def ask(
         self, prompt: str, history: list[dict[str, str]] | None = None
@@ -164,11 +170,11 @@ class ToolCallingAssistant:
         requested_citations = False
 
         if self.pre_retrieve:
-            arguments = {"query": prompt, "limit": 5}
+            arguments = {"query": prompt, "limit": self.passages}
             result = self.registry.call("search_files", arguments)
             self._collect_sources(result, sources)
             visible_result, used = _bounded_search_result(
-                result, self.MAX_EVIDENCE_CHARACTERS - evidence_characters, prompt
+                result, self.max_evidence_characters - evidence_characters, prompt
             )
             evidence_characters += used
             tool_call_count += 1
@@ -280,7 +286,7 @@ class ToolCallingAssistant:
                     self._collect_sources(result, sources)
                     visible_result, used = _bounded_search_result(
                         result,
-                        self.MAX_EVIDENCE_CHARACTERS - evidence_characters,
+                        self.max_evidence_characters - evidence_characters,
                         str(arguments.get("query", "")),
                     )
                     evidence_characters += used

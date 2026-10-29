@@ -4,6 +4,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 from rich.console import Console
@@ -21,11 +22,17 @@ from .model_client import (
 )
 from .providers.weather import OpenMeteoWeatherProvider
 from .personality import PersonalitySettings, personality_prompt
-from .rerank import ModelReranker
+from .rerank import build_reranker
 from .retrieval import TextIndex
-from .retrieval_evals import load_retrieval_cases, run_retrieval_evaluation
+from .retrieval_evals import (
+    GpuMemorySampler,
+    evaluation_environment,
+    load_retrieval_cases,
+    run_retrieval_evaluation,
+)
 from .resilience import KikiError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
+from .settings import RERANKERS, RetrievalSettings
 from .terminal import (
     TerminalSession,
     render_mapping,
@@ -60,7 +67,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--no-rerank",
         action="store_true",
-        help="Skip model-graded reranking of RAG candidates (faster, less precise)",
+        help="Skip reranking of RAG candidates (same as --reranker none)",
+    )
+    retrieval = parser.add_argument_group(
+        "retrieval settings", "Override KIKI_RAG_* environment settings for this run"
+    )
+    retrieval.add_argument("--reranker", choices=RERANKERS)
+    retrieval.add_argument("--rerank-model", help="Model used by the selected reranker")
+    retrieval.add_argument("--candidates", type=int, help="First-stage pool size (default 20)")
+    retrieval.add_argument("--passages", type=int, help="Passages given to the answer model (default 5)")
+    retrieval.add_argument("--rerank-batch-size", type=int, help="Concurrent reranker requests")
+    retrieval.add_argument("--rerank-timeout", type=float, help="Seconds per reranker request")
+    retrieval.add_argument(
+        "--context-characters", type=int, help="Evidence characters shown to the answer model"
     )
     commands = parser.add_subparsers(dest="command")
 
@@ -149,14 +168,19 @@ def _parser() -> argparse.ArgumentParser:
     retrieval_eval.add_argument(
         "--cases", type=Path, default=Path("evals/retrieval_cases.json")
     )
-    retrieval_eval.add_argument("--limit", type=int, default=5)
+    retrieval_eval.add_argument(
+        "--limit", type=int, default=None, help="Top-k scored (default: configured passages)"
+    )
     retrieval_eval.add_argument(
         "--split", choices=("all", "development", "holdout"), default="all"
     )
     retrieval_eval.add_argument(
         "--methods",
         default="lexical,hybrid,rerank",
-        help="Comma-separated subset of lexical, hybrid, rerank",
+        help=(
+            "Comma-separated subset of lexical, hybrid, rerank (configured reranker), "
+            "grader"
+        ),
     )
     retrieval_eval.add_argument("--model", default=DEFAULT_MODEL)
     retrieval_eval.add_argument("--embedding-model", default=DEFAULT_EMBEDDING_MODEL)
@@ -205,6 +229,10 @@ def main() -> None:
     if arguments.command in (None, "shell", "run"):
         if arguments.json:
             parser.error("--json is not available for the interactive shell")
+        try:
+            settings = _retrieval_settings(arguments)
+        except ValueError as exc:
+            parser.error(str(exc))
         run_shell(
             arguments.database,
             model=getattr(arguments, "model", DEFAULT_MODEL),
@@ -212,7 +240,7 @@ def main() -> None:
                 arguments, "embedding_model", DEFAULT_EMBEDDING_MODEL
             ),
             console=console,
-            rerank=not arguments.no_rerank,
+            settings=settings,
         )
         return
 
@@ -238,7 +266,37 @@ def main() -> None:
         _render(console, kind, output, arguments)
 
 
+def _retrieval_settings(arguments: argparse.Namespace) -> RetrievalSettings:
+    settings = RetrievalSettings.from_environment().with_overrides(
+        reranker=arguments.reranker,
+        rerank_model=arguments.rerank_model,
+        candidates=arguments.candidates,
+        passages=arguments.passages,
+        rerank_batch_size=arguments.rerank_batch_size,
+        rerank_timeout=arguments.rerank_timeout,
+        context_characters=arguments.context_characters,
+    )
+    if arguments.no_rerank:
+        settings = settings.with_overrides(reranker="none")
+    return settings
+
+
+def _hybrid(
+    index: TextIndex,
+    semantic: SemanticIndex,
+    settings: RetrievalSettings,
+    generation_model: str,
+) -> HybridRetriever:
+    return HybridRetriever(
+        index,
+        semantic,
+        build_reranker(settings, generation_model),
+        candidates=settings.candidates,
+    )
+
+
 def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
+    settings = _retrieval_settings(arguments)
     index = TextIndex(arguments.database)
     if arguments.command == "doctor":
         return TerminalSession(arguments.database).doctor(), "mapping"
@@ -254,11 +312,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
         backend = (
             semantic
             if arguments.command == "semantic-search"
-            else HybridRetriever(
-                index,
-                semantic,
-                None if arguments.no_rerank else ModelReranker(OllamaClient(), DEFAULT_MODEL),
-            )
+            else _hybrid(index, semantic, settings, DEFAULT_MODEL)
         )
         return backend.search(arguments.query, arguments.limit), "search"
     if arguments.command == "weather":
@@ -280,7 +334,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             arguments.database,
             model=arguments.model,
             embedding_model=arguments.embedding_model,
-            rerank=not arguments.no_rerank,
+            settings=settings,
         )
         session.mode = arguments.command
         if arguments.command == "rag" and arguments.lexical_only:
@@ -295,9 +349,9 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             "_outcome": outcome,
         }, "outcome"
     if arguments.command == "eval-rag":
-        return _run_eval(arguments, index), "evaluation"
+        return _run_eval(arguments, index, settings), "evaluation"
     if arguments.command == "eval-retrieval":
-        return _run_retrieval_eval(arguments, index), "retrieval_evaluation"
+        return _run_retrieval_eval(arguments, index, settings), "retrieval_evaluation"
     if arguments.command == "eval-chat":
         cases = load_coding_cases(arguments.cases)
         if arguments.case_ids:
@@ -365,37 +419,70 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
     raise ValueError(f"Unknown command: {arguments.command}")
 
 
-def _run_retrieval_eval(arguments: argparse.Namespace, index: TextIndex) -> dict[str, Any]:
+def _run_retrieval_eval(
+    arguments: argparse.Namespace, index: TextIndex, settings: RetrievalSettings
+) -> dict[str, Any]:
     cases = load_retrieval_cases(arguments.cases)
     if arguments.split != "all":
         cases = [case for case in cases if case.split == arguments.split]
     if not cases:
         raise ValueError("No evaluation cases matched the selected split")
     methods = [method.strip() for method in arguments.methods.split(",") if method.strip()]
-    unknown = set(methods) - {"lexical", "hybrid", "rerank"}
+    unknown = set(methods) - {"lexical", "hybrid", "rerank", "grader"}
     if unknown or not methods:
         raise ValueError(f"Unknown retrieval methods: {', '.join(sorted(unknown)) or 'none'}")
-    if {"hybrid", "rerank"} & set(methods) and not index.embedding_count(arguments.embedding_model):
+    if set(methods) - {"lexical"} and not index.embedding_count(arguments.embedding_model):
         raise ValueError("This database has no embeddings for the selected model")
+    limit = arguments.limit or settings.passages
     semantic = SemanticIndex(index, OllamaEmbeddingClient(), arguments.embedding_model)
-    available = {
-        "lexical": index,
-        "hybrid": HybridRetriever(index, semantic),
-        "rerank": HybridRetriever(
-            index, semantic, ModelReranker(OllamaClient(), arguments.model)
+    method_settings = {
+        "hybrid": settings.with_overrides(reranker="none"),
+        "rerank": settings,
+        "grader": settings.with_overrides(
+            reranker="grader",
+            rerank_model=settings.rerank_model if settings.reranker == "grader" else "",
         ),
     }
-    receipt = run_retrieval_evaluation(
-        cases, {method: available[method] for method in methods}, limit=arguments.limit
-    )
+    backends: dict[str, Any] = {}
+    for method in methods:
+        if method == "lexical":
+            backends[method] = index
+        else:
+            backends[method] = _hybrid(index, semantic, method_settings[method], arguments.model)
+    with GpuMemorySampler() as gpu:
+        started = perf_counter()
+        receipt = run_retrieval_evaluation(cases, backends, limit=limit)
+        wall_seconds = perf_counter() - started
+    receipt["resources"] = {"wall_seconds": round(wall_seconds, 1), "gpu_memory": gpu.report()}
     receipt["configuration"] = {
         "database": str(arguments.database.resolve()),
         "cases": str(arguments.cases.resolve()),
         "split": arguments.split,
-        "limit": arguments.limit,
+        "limit": limit,
         "embedding_model": arguments.embedding_model,
-        "rerank_model": arguments.model if "rerank" in methods else None,
+        "generation_model": arguments.model,
+        "methods": {
+            method: (
+                {"retriever": "lexical"}
+                if method == "lexical"
+                else method_settings[method].describe(arguments.model)
+            )
+            for method in methods
+        },
     }
+    receipt["environment"] = evaluation_environment(
+        arguments.database,
+        arguments.cases,
+        models=[
+            arguments.embedding_model,
+            arguments.model,
+            *(
+                method_settings[method].resolved_rerank_model(arguments.model) or ""
+                for method in methods
+                if method != "lexical"
+            ),
+        ],
+    )
     if arguments.output:
         arguments.output.parent.mkdir(parents=True, exist_ok=True)
         arguments.output.write_text(
@@ -404,7 +491,9 @@ def _run_retrieval_eval(arguments: argparse.Namespace, index: TextIndex) -> dict
     return receipt
 
 
-def _run_eval(arguments: argparse.Namespace, index: TextIndex) -> dict[str, Any]:
+def _run_eval(
+    arguments: argparse.Namespace, index: TextIndex, settings: RetrievalSettings
+) -> dict[str, Any]:
     cases = load_cases(arguments.cases)
     if arguments.split != "all":
         cases = [case for case in cases if case.split == arguments.split]
@@ -414,8 +503,7 @@ def _run_eval(arguments: argparse.Namespace, index: TextIndex) -> dict[str, Any]
         raise ValueError("This database has no embeddings for the selected model")
 
     semantic = SemanticIndex(index, OllamaEmbeddingClient(), arguments.embedding_model)
-    reranker = None if arguments.no_rerank else ModelReranker(OllamaClient(), arguments.model)
-    hybrid = HybridRetriever(index, semantic, reranker)
+    hybrid = _hybrid(index, semantic, settings, arguments.model)
     ask_model = None
     if arguments.with_model:
         assistant = ToolCallingAssistant(
@@ -424,6 +512,8 @@ def _run_eval(arguments: argparse.Namespace, index: TextIndex) -> dict[str, Any]
             model=arguments.model,
             pre_retrieve=True,
             system_prompt=RAG_SYSTEM_PROMPT,
+            passages=settings.passages,
+            max_evidence_characters=settings.context_characters,
         )
         ask_model = assistant.ask
     receipt = run_evaluation(
@@ -436,7 +526,17 @@ def _run_eval(arguments: argparse.Namespace, index: TextIndex) -> dict[str, Any]
         "limit": arguments.limit,
         "embedding_model": arguments.embedding_model,
         "generation_model": arguments.model if arguments.with_model else None,
+        "retrieval": settings.describe(arguments.model),
     }
+    receipt["environment"] = evaluation_environment(
+        arguments.database,
+        arguments.cases,
+        models=[
+            arguments.embedding_model,
+            arguments.model,
+            settings.resolved_rerank_model(arguments.model) or "",
+        ],
+    )
     if arguments.output:
         arguments.output.parent.mkdir(parents=True, exist_ok=True)
         arguments.output.write_text(

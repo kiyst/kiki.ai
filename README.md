@@ -234,6 +234,22 @@ links in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) into
 | `kiki-persona.md` | next to the library | Kiki's editable persona, reloaded on every reply |
 | `kiki-memory.md` | next to the library | Your saved notes, plain Markdown |
 
+Document search has its own settings. Each one can be set as an environment
+variable or as a command-line flag placed before the command
+(`kiki --candidates 32 rag "..."`). The flag wins. The defaults are the setup
+measured in the [engineering log](docs/ENGINEERING_LOG.md), and `/diagnostics`
+shows the active values.
+
+| Flag | Environment | Default | Purpose |
+| --- | --- | --- | --- |
+| `--candidates N` | `KIKI_RAG_CANDIDATES` | 20 | Passages gathered before reranking (1–100) |
+| `--passages N` | `KIKI_RAG_PASSAGES` | 5 | Passages given to the answer model (1–20) |
+| `--reranker NAME` | `KIKI_RAG_RERANKER` | `grader` | `grader` (main model scores each passage 0–3) or `none` |
+| `--rerank-model NAME` | `KIKI_RAG_RERANK_MODEL` | main model | Model used by the reranker |
+| `--rerank-batch-size N` | `KIKI_RAG_RERANK_BATCH` | 4 | Cap on parallel reranker requests |
+| `--rerank-timeout S` | `KIKI_RAG_RERANK_TIMEOUT` | 90 | Seconds per reranker request before falling back to search order |
+| `--context-characters N` | `KIKI_RAG_CONTEXT_CHARACTERS` | 7000 | Evidence characters shown to the answer model |
+
 ## How well it works
 
 Measured on October 28, 2026, on a GTX 1080 with the default models. The test

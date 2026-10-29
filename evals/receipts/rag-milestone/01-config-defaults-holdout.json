@@ -1,0 +1,1025 @@
+{
+  "summary": {
+    "lexical/holdout": {
+      "cases": 14,
+      "hit_at_1": 1,
+      "any_at_k": 6,
+      "full_at_k": 5,
+      "mrr": 0.196,
+      "mean_ms": 85.5,
+      "mean_rerank_ms": 0.0,
+      "fallbacks": 0
+    },
+    "lexical/all": {
+      "cases": 14,
+      "hit_at_1": 1,
+      "any_at_k": 6,
+      "full_at_k": 5,
+      "mrr": 0.196,
+      "mean_ms": 85.5,
+      "mean_rerank_ms": 0.0,
+      "fallbacks": 0
+    },
+    "hybrid/holdout": {
+      "cases": 14,
+      "hit_at_1": 4,
+      "any_at_k": 7,
+      "full_at_k": 6,
+      "mrr": 0.36,
+      "mean_ms": 1376.9,
+      "mean_rerank_ms": 0.0,
+      "fallbacks": 0
+    },
+    "hybrid/all": {
+      "cases": 14,
+      "hit_at_1": 4,
+      "any_at_k": 7,
+      "full_at_k": 6,
+      "mrr": 0.36,
+      "mean_ms": 1376.9,
+      "mean_rerank_ms": 0.0,
+      "fallbacks": 0
+    },
+    "rerank/holdout": {
+      "cases": 14,
+      "hit_at_1": 8,
+      "any_at_k": 12,
+      "full_at_k": 11,
+      "mrr": 0.696,
+      "mean_ms": 7358.1,
+      "mean_rerank_ms": 6631.1,
+      "fallbacks": 0
+    },
+    "rerank/all": {
+      "cases": 14,
+      "hit_at_1": 8,
+      "any_at_k": 12,
+      "full_at_k": 11,
+      "mrr": 0.696,
+      "mean_ms": 7358.1,
+      "mean_rerank_ms": 6631.1,
+      "fallbacks": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "beard_trusts",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 83.2,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "history_of_the_united_states.txt:14386",
+        "history_of_the_united_states.txt:17604",
+        "history_of_the_united_states.txt:13867",
+        "history_of_the_united_states.txt:19841",
+        "history_of_the_united_states.txt:16149"
+      ]
+    },
+    {
+      "id": "beard_trusts",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 4261.9,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "history_of_the_united_states.txt:14386",
+        "history_of_the_united_states.txt:17604",
+        "history_of_the_united_states.txt:13867",
+        "history_of_the_united_states.txt:16149",
+        "history_of_the_united_states.txt:17632"
+      ]
+    },
+    {
+      "id": "beard_trusts",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 12590.6,
+      "rerank_ms": 12039.6,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "history_of_the_united_states.txt:17604",
+        "history_of_the_united_states.txt:13867",
+        "history_of_the_united_states.txt:17632",
+        "history_of_the_united_states.txt:348",
+        "history_of_the_united_states.txt:13849"
+      ]
+    },
+    {
+      "id": "compare_preamble_grievances",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 165.5,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": false,
+      "group_recall_at_k": 0.5,
+      "first_evidence_rank": 3,
+      "reciprocal_rank": 0.3333333333333333,
+      "top": [
+        "declaration_of_independence.txt:30",
+        "united_states_constitution.txt:525",
+        "declaration_of_independence.txt:169",
+        "declaration_of_independence.txt:51",
+        "declaration_of_independence.txt:91"
+      ]
+    },
+    {
+      "id": "compare_preamble_grievances",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 2362.6,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "declaration_of_independence.txt:91",
+        "history_of_the_united_states.txt:3774",
+        "declaration_of_independence.txt:238",
+        "federalist_papers.txt:234",
+        "united_states_constitution.txt:525"
+      ]
+    },
+    {
+      "id": "compare_preamble_grievances",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 9122.9,
+      "rerank_ms": 7411.0,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": false,
+      "group_recall_at_k": 0.5,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "united_states_constitution.txt:58",
+        "declaration_of_independence.txt:91",
+        "history_of_the_united_states.txt:3774",
+        "history_of_the_united_states.txt:18975",
+        "history_of_the_united_states.txt:3440"
+      ]
+    },
+    {
+      "id": "compare_paine_madison",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 116.7,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "history_of_the_united_states.txt:3893",
+        "common_sense.txt:29",
+        "federalist_papers.txt:8472",
+        "history_of_the_united_states.txt:6267",
+        "federalist_papers.txt:8254"
+      ]
+    },
+    {
+      "id": "compare_paine_madison",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 2422.5,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": false,
+      "group_recall_at_k": 0.5,
+      "first_evidence_rank": 2,
+      "reciprocal_rank": 0.5,
+      "top": [
+        "history_of_the_united_states.txt:3893",
+        "federalist_papers.txt:1983",
+        "common_sense.txt:29",
+        "federalist_papers.txt:1991",
+        "history_of_the_united_states.txt:6267"
+      ]
+    },
+    {
+      "id": "compare_paine_madison",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 9380.1,
+      "rerank_ms": 7625.3,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "common_sense.txt:555",
+        "federalist_papers.txt:1983",
+        "common_sense.txt:534",
+        "federalist_papers.txt:1991",
+        "common_sense.txt:262"
+      ]
+    },
+    {
+      "id": "articles_weaknesses",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 59.4,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "federalist_papers.txt:29",
+        "federalist_papers.txt:3777",
+        "federalist_papers.txt:51",
+        "federalist_papers.txt:3719",
+        "federalist_papers.txt:7840"
+      ]
+    },
+    {
+      "id": "articles_weaknesses",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 599.4,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "federalist_papers.txt:29",
+        "federalist_papers.txt:51",
+        "federalist_papers.txt:3555",
+        "federalist_papers.txt:7840",
+        "federalist_papers.txt:4384"
+      ]
+    },
+    {
+      "id": "articles_weaknesses",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6814.1,
+      "rerank_ms": 6269.9,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "history_of_the_united_states.txt:5086",
+        "federalist_papers.txt:3149",
+        "federalist_papers.txt:8350",
+        "federalist_papers.txt:51",
+        "federalist_papers.txt:7840"
+      ]
+    },
+    {
+      "id": "new_president_age",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 237.0,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 3,
+      "reciprocal_rank": 0.3333333333333333,
+      "top": [
+        "united_states_constitution.txt:192",
+        "united_states_constitution.txt:385",
+        "united_states_constitution.txt:370",
+        "united_states_constitution.txt:127",
+        "united_states_constitution.txt:542"
+      ]
+    },
+    {
+      "id": "new_president_age",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 1432.8,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "united_states_constitution.txt:370",
+        "united_states_constitution.txt:192",
+        "history_of_the_united_states.txt:21476",
+        "united_states_constitution.txt:385",
+        "history_of_the_united_states.txt:21462"
+      ]
+    },
+    {
+      "id": "new_president_age",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6957.1,
+      "rerank_ms": 6233.6,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "united_states_constitution.txt:370",
+        "history_of_the_united_states.txt:21476",
+        "history_of_the_united_states.txt:21462",
+        "federalist_papers.txt:11658",
+        "united_states_constitution.txt:58"
+      ]
+    },
+    {
+      "id": "new_soldiers_housed",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 55.9,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 4,
+      "reciprocal_rank": 0.25,
+      "top": [
+        "history_of_the_united_states.txt:770",
+        "history_of_the_united_states.txt:3455",
+        "history_of_the_united_states.txt:785",
+        "history_of_the_united_states.txt:3188",
+        "history_of_the_united_states.txt:3340"
+      ]
+    },
+    {
+      "id": "new_soldiers_housed",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 1438.2,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "history_of_the_united_states.txt:3188",
+        "history_of_the_united_states.txt:3455",
+        "history_of_the_united_states.txt:770",
+        "history_of_the_united_states.txt:3462",
+        "history_of_the_united_states.txt:785"
+      ]
+    },
+    {
+      "id": "new_soldiers_housed",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6841.1,
+      "rerank_ms": 6316.9,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 2,
+      "reciprocal_rank": 0.5,
+      "top": [
+        "history_of_the_united_states.txt:3462",
+        "history_of_the_united_states.txt:3188",
+        "history_of_the_united_states.txt:3455",
+        "history_of_the_united_states.txt:4454",
+        "history_of_the_united_states.txt:770"
+      ]
+    },
+    {
+      "id": "new_treason",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 118.7,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "united_states_constitution.txt:242",
+        "united_states_constitution.txt:542",
+        "united_states_constitution.txt:525",
+        "united_states_constitution.txt:58",
+        "united_states_constitution.txt:513"
+      ]
+    },
+    {
+      "id": "new_treason",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 1116.5,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "united_states_constitution.txt:542",
+        "united_states_constitution.txt:513",
+        "united_states_constitution.txt:242",
+        "federalist_papers.txt:19351",
+        "federalist_papers.txt:8976"
+      ]
+    },
+    {
+      "id": "new_treason",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6295.1,
+      "rerank_ms": 5765.2,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "united_states_constitution.txt:468",
+        "federalist_papers.txt:19351",
+        "united_states_constitution.txt:542",
+        "united_states_constitution.txt:513",
+        "federalist_papers.txt:12348"
+      ]
+    },
+    {
+      "id": "new_island_continent",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 117.7,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "history_of_the_united_states.txt:15145",
+        "history_of_the_united_states.txt:3893",
+        "history_of_the_united_states.txt:7146",
+        "history_of_the_united_states.txt:9296",
+        "common_sense.txt:1050"
+      ]
+    },
+    {
+      "id": "new_island_continent",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 1089.2,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 5,
+      "reciprocal_rank": 0.2,
+      "top": [
+        "history_of_the_united_states.txt:3893",
+        "history_of_the_united_states.txt:3911",
+        "common_sense.txt:1323",
+        "history_of_the_united_states.txt:15145",
+        "common_sense.txt:983"
+      ]
+    },
+    {
+      "id": "new_island_continent",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6781.3,
+      "rerank_ms": 6257.1,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 2,
+      "reciprocal_rank": 0.5,
+      "top": [
+        "history_of_the_united_states.txt:3911",
+        "common_sense.txt:983",
+        "common_sense.txt:999",
+        "common_sense.txt:1521",
+        "history_of_the_united_states.txt:3893"
+      ]
+    },
+    {
+      "id": "new_branches_check",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 40.3,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "federalist_papers.txt:11509",
+        "history_of_the_united_states.txt:5540",
+        "history_of_the_united_states.txt:5377",
+        "federalist_papers.txt:10879",
+        "common_sense.txt:1503"
+      ]
+    },
+    {
+      "id": "new_branches_check",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 1146.6,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "federalist_papers.txt:11509",
+        "federalist_papers.txt:17452",
+        "history_of_the_united_states.txt:5540",
+        "federalist_papers.txt:10962",
+        "history_of_the_united_states.txt:5377"
+      ]
+    },
+    {
+      "id": "new_branches_check",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6117.5,
+      "rerank_ms": 5487.4,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 2,
+      "reciprocal_rank": 0.5,
+      "top": [
+        "federalist_papers.txt:13675",
+        "federalist_papers.txt:11509",
+        "history_of_the_united_states.txt:5540",
+        "federalist_papers.txt:10962",
+        "history_of_the_united_states.txt:5554"
+      ]
+    },
+    {
+      "id": "new_revenue_bills",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 45.4,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "history_of_the_united_states.txt:19923",
+        "history_of_the_united_states.txt:4911",
+        "federalist_papers.txt:5062",
+        "history_of_the_united_states.txt:15661",
+        "history_of_the_united_states.txt:5596"
+      ]
+    },
+    {
+      "id": "new_revenue_bills",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 1067.6,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 3,
+      "reciprocal_rank": 0.3333333333333333,
+      "top": [
+        "history_of_the_united_states.txt:19923",
+        "federalist_papers.txt:7082",
+        "history_of_the_united_states.txt:21286",
+        "history_of_the_united_states.txt:4911",
+        "united_states_constitution.txt:215"
+      ]
+    },
+    {
+      "id": "new_revenue_bills",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6173.3,
+      "rerank_ms": 5634.0,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "history_of_the_united_states.txt:21286",
+        "united_states_constitution.txt:215",
+        "united_states_constitution.txt:192",
+        "history_of_the_united_states.txt:21308",
+        "history_of_the_united_states.txt:21381"
+      ]
+    },
+    {
+      "id": "new_detention",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 102.8,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "united_states_constitution.txt:451",
+        "united_states_constitution.txt:468",
+        "united_states_constitution.txt:492",
+        "united_states_constitution.txt:442",
+        "united_states_constitution.txt:525"
+      ]
+    },
+    {
+      "id": "new_detention",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 582.5,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "united_states_constitution.txt:468",
+        "united_states_constitution.txt:492",
+        "united_states_constitution.txt:451",
+        "history_of_the_united_states.txt:21715",
+        "federalist_papers.txt:5224"
+      ]
+    },
+    {
+      "id": "new_detention",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6335.0,
+      "rerank_ms": 5802.2,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "federalist_papers.txt:19331",
+        "united_states_constitution.txt:492",
+        "history_of_the_united_states.txt:21715",
+        "united_states_constitution.txt:286",
+        "history_of_the_united_states.txt:21381"
+      ]
+    },
+    {
+      "id": "new_cotton_slavery",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 21.6,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 2,
+      "reciprocal_rank": 0.5,
+      "top": [
+        "history_of_the_united_states.txt:13690",
+        "history_of_the_united_states.txt:11067",
+        "history_of_the_united_states.txt:11219",
+        "history_of_the_united_states.txt:13414",
+        "history_of_the_united_states.txt:10680"
+      ]
+    },
+    {
+      "id": "new_cotton_slavery",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 570.1,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "history_of_the_united_states.txt:11067",
+        "history_of_the_united_states.txt:13690",
+        "history_of_the_united_states.txt:13414",
+        "history_of_the_united_states.txt:12133",
+        "history_of_the_united_states.txt:13513"
+      ]
+    },
+    {
+      "id": "new_cotton_slavery",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6605.7,
+      "rerank_ms": 6061.8,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "history_of_the_united_states.txt:11067",
+        "history_of_the_united_states.txt:13383",
+        "history_of_the_united_states.txt:13498",
+        "history_of_the_united_states.txt:13690",
+        "history_of_the_united_states.txt:13414"
+      ]
+    },
+    {
+      "id": "new_officials_swarm",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 17.7,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "declaration_of_independence.txt:30",
+        "declaration_of_independence.txt:169",
+        "declaration_of_independence.txt:100",
+        "declaration_of_independence.txt:51",
+        "declaration_of_independence.txt:91"
+      ]
+    },
+    {
+      "id": "new_officials_swarm",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 612.0,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "declaration_of_independence.txt:200",
+        "declaration_of_independence.txt:238",
+        "declaration_of_independence.txt:120",
+        "declaration_of_independence.txt:30",
+        "federalist_papers.txt:16255"
+      ]
+    },
+    {
+      "id": "new_officials_swarm",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6470.9,
+      "rerank_ms": 5929.7,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": true,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 1,
+      "reciprocal_rank": 1.0,
+      "top": [
+        "declaration_of_independence.txt:143",
+        "declaration_of_independence.txt:120",
+        "declaration_of_independence.txt:91",
+        "declaration_of_independence.txt:169",
+        "common_sense.txt:520"
+      ]
+    },
+    {
+      "id": "new_time_to_part",
+      "split": "holdout",
+      "method": "lexical",
+      "ms": 14.7,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "lexical",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 3,
+      "reciprocal_rank": 0.3333333333333333,
+      "top": [
+        "history_of_the_united_states.txt:6267",
+        "history_of_the_united_states.txt:7268",
+        "common_sense.txt:869",
+        "history_of_the_united_states.txt:1823",
+        "history_of_the_united_states.txt:6933"
+      ]
+    },
+    {
+      "id": "new_time_to_part",
+      "split": "holdout",
+      "method": "hybrid",
+      "ms": 574.9,
+      "rerank_ms": 0.0,
+      "retrieval_mode": "hybrid",
+      "hit_at_1": false,
+      "any_at_k": false,
+      "full_at_k": false,
+      "group_recall_at_k": 0.0,
+      "first_evidence_rank": null,
+      "reciprocal_rank": 0.0,
+      "top": [
+        "history_of_the_united_states.txt:3911",
+        "history_of_the_united_states.txt:4250",
+        "history_of_the_united_states.txt:6267",
+        "common_sense.txt:1304",
+        "history_of_the_united_states.txt:7268"
+      ]
+    },
+    {
+      "id": "new_time_to_part",
+      "split": "holdout",
+      "method": "rerank",
+      "ms": 6528.4,
+      "rerank_ms": 6002.0,
+      "retrieval_mode": "hybrid + rerank (grader)",
+      "hit_at_1": false,
+      "any_at_k": true,
+      "full_at_k": true,
+      "group_recall_at_k": 1.0,
+      "first_evidence_rank": 4,
+      "reciprocal_rank": 0.25,
+      "top": [
+        "history_of_the_united_states.txt:3911",
+        "history_of_the_united_states.txt:3893",
+        "history_of_the_united_states.txt:4250",
+        "common_sense.txt:869",
+        "common_sense.txt:726"
+      ]
+    }
+  ],
+  "resources": {
+    "wall_seconds": 123.5,
+    "gpu_memory": {
+      "measured": true,
+      "idle_mib": 2485,
+      "peak_mib": 6914,
+      "method": "nvidia-smi memory.used, whole device, 1 s polling"
+    }
+  },
+  "configuration": {
+    "database": "C:\\Users\\Throw\\Documents\\ChatGPT\\Kiki\\.kiki\\history.sqlite3",
+    "cases": "C:\\Users\\Throw\\Documents\\ChatGPT\\Kiki\\evals\\retrieval_cases.json",
+    "split": "holdout",
+    "limit": 5,
+    "embedding_model": "qwen3-embedding:0.6b",
+    "generation_model": "qwen3:4b-instruct",
+    "methods": {
+      "lexical": {
+        "retriever": "lexical"
+      },
+      "hybrid": {
+        "candidates": 20,
+        "passages": 5,
+        "reranker": "none",
+        "rerank_model": null,
+        "rerank_batch_size": 4,
+        "rerank_timeout": 90.0,
+        "context_characters": 7000
+      },
+      "rerank": {
+        "candidates": 20,
+        "passages": 5,
+        "reranker": "grader",
+        "rerank_model": "qwen3:4b-instruct",
+        "rerank_batch_size": 4,
+        "rerank_timeout": 90.0,
+        "context_characters": 7000
+      }
+    }
+  },
+  "environment": {
+    "git": {
+      "commit": "0eb836965b97877c99969089d85ba1ec0bcbe789",
+      "dirty_files": [
+        " M README.md",
+        " M src/kiki/cli.py",
+        " M src/kiki/diagnostics.py",
+        " M src/kiki/model_client.py",
+        " M src/kiki/rerank.py",
+        " M src/kiki/retrieval.py",
+        " M src/kiki/retrieval_evals.py",
+        " M src/kiki/semantic.py",
+        " M src/kiki/terminal.py",
+        " M tests/test_rerank.py",
+        "?? src/kiki/settings.py",
+        "?? tests/test_settings.py"
+      ]
+    },
+    "database": {
+      "corpus_identity": "2161829777560d6b",
+      "files": 6,
+      "chunks": 2569,
+      "embeddings": {
+        "qwen3-embedding:0.6b": 2569
+      },
+      "extraction_version": "paragraph-v3"
+    },
+    "cases_sha256": "98bb23d37a3248bf",
+    "ollama": {
+      "version": "0.40.12",
+      "digests": {
+        "qwen3-embedding:0.6b": "ac6da0dfba84",
+        "qwen3:4b-instruct": "0edcdef34593"
+      }
+    },
+    "gpu": "NVIDIA GeForce GTX 1080, 8192"
+  }
+}

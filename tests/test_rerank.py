@@ -99,7 +99,8 @@ def test_hybrid_rerank_promotes_answer_and_keeps_named_document_slot(tmp_path: P
 
     assert "divided powers" in results[0].excerpt
     assert Path(results[1].path).name == "founding_charter.md"
-    assert retriever.mode == "hybrid + rerank"
+    assert retriever.mode == "hybrid + rerank (grader)"
+    assert all(result.ranker == "grader:qwen3:4b-instruct" for result in results[:1])
 
 
 def test_hybrid_falls_back_to_fused_order_when_reranker_fails(tmp_path: Path) -> None:

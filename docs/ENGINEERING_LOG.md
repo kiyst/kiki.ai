@@ -247,3 +247,38 @@ Corpus identity `2161829777560d6b` (6 files, 2,569 passages, all embedded);
 Ollama 0.40.12; model digests `qwen3:4b-instruct` 0edcdef34593,
 `qwen3-embedding:0.6b` ac6da0dfba84. Full metadata:
 `evals/receipts/rag-milestone/00-baseline-environment.json`.
+
+## RAG pipeline milestone, stage 1: configurable retrieval settings
+
+```text
+Date: 2026-10-29
+Stage: 1 (retrieval settings and reranker interface)
+Commit before change: 0eb8369
+Files changed: src/kiki/settings.py (new), rerank.py, semantic.py, retrieval.py,
+        model_client.py, cli.py, terminal.py, diagnostics.py, retrieval_evals.py,
+        tests/test_settings.py (new), tests/test_rerank.py, README.md
+Behavior changed: none at defaults. New: candidate count, final passages,
+        reranker (grader|none), rerank model, batch cap, timeout, and answer
+        context budget are configurable via KIKI_RAG_* or CLI flags, validated
+        with errors that name the setting, and shown in /diagnostics, /status,
+        and /doctor (rerank model installed/missing). Rerankers share a
+        `Reranker` protocol; results record `ranker` (which stage produced the
+        score). Retrieval mode now names the reranker: "hybrid + rerank (grader)".
+        Retrieval receipts add any-evidence@k, per-case rerank latency, fallback
+        count, wall time, whole-GPU idle/peak memory, git commit and dirty files,
+        corpus identity, case-file hash, and Ollama model digests.
+Tests/evaluations run: pytest 131 passed (19 new); eval-retrieval holdout at
+        defaults (evals/receipts/rag-milestone/01-config-defaults-holdout.json)
+Result: holdout full@5 lexical 5/14, hybrid 6/14, rerank 11/14; hit@1 1/4/8;
+        MRR 0.196/0.360/0.696 - identical to baseline, and every case's top-5
+        list is identical for every method. Rerank 6.6 s per query of 7.4 s.
+        GPU memory: 2,485 MiB idle, 6,914 MiB peak of 8,192 (whole device).
+Known bugs: rerank_batch_size is accepted and reported but the grader scores
+        sequentially; it takes effect with a batch-capable reranker. GPU memory
+        is whole-device, so other applications inflate it.
+Decision or proposal: lexical/semantic internal limits raised from 20 to 100
+        for candidate experiments; BM25 window formula unchanged for k <= 20.
+        The search_files tool limit stays capped at 20.
+Human review needed: before stage 2 (see report: model download already done,
+        and a dedicated reranker adds ~0.7 GB GPU memory with ~1.3 GB headroom).
+```

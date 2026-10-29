@@ -29,10 +29,11 @@ from .memory import MemoryStore, SensitiveMemoryError
 from .models import PROFILES, ModelRouter, ModelSelection
 from .providers.weather import GEOCODING_URL, OpenMeteoWeatherProvider
 from .personality import PRESETS, PersonaFile, PersonalitySettings, personality_prompt
-from .rerank import ModelReranker
+from .rerank import build_reranker
 from .retrieval import SearchResult, TextIndex
 from .resilience import KikiError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
+from .settings import RetrievalSettings
 from .self_knowledge import COMMAND_HELP, capabilities_text, self_knowledge_prompt
 from .tools import ToolRegistry
 
@@ -73,10 +74,12 @@ class TerminalSession:
         model: str = "qwen3:4b-instruct",
         embedding_model: str = "qwen3-embedding:0.6b",
         rerank: bool = True,
+        settings: RetrievalSettings | None = None,
     ) -> None:
         self.database = database
         self.model = model
-        self.rerank = rerank
+        settings = settings or RetrievalSettings.from_environment()
+        self.settings = settings if rerank else settings.with_overrides(reranker="none")
         self.model_profile = "auto"
         self.model_router = ModelRouter(model)
         self.last_model_selection = ModelSelection("fast", model, "session default")
@@ -108,8 +111,12 @@ class TerminalSession:
             semantic = SemanticIndex(
                 self.index, OllamaEmbeddingClient(), self.embedding_model
             )
-            reranker = ModelReranker(OllamaClient(), self.model) if self.rerank else None
-            backend = HybridRetriever(self.index, semantic, reranker)
+            backend = HybridRetriever(
+                self.index,
+                semantic,
+                build_reranker(self.settings, self.model),
+                candidates=self.settings.candidates,
+            )
             return backend, backend.mode
         return self.index, "lexical"
 
@@ -179,6 +186,8 @@ class TerminalSession:
                 model=self.last_model_selection.model,
                 pre_retrieve=weather_location is None,
                 system_prompt=self._system_prompt(RAG_SYSTEM_PROMPT),
+                passages=self.settings.passages,
+                max_evidence_characters=self.settings.context_characters,
             )
         else:
             retrieval_mode = "none"
@@ -247,6 +256,7 @@ class TerminalSession:
             embedding_model=self.embedding_model,
             index_health=self.index.health(),
             tool_catalog=registry.catalog(),
+            retrieval=self.settings.describe(self.model),
         )
 
     def doctor(self) -> dict[str, Any]:
@@ -264,6 +274,13 @@ class TerminalSession:
                 "generation_model": "installed" if self.model in installed else "missing",
                 "embedding_model": "installed" if self.embedding_model in installed else "missing",
             }
+            rerank_model = self.settings.resolved_rerank_model(self.model)
+            if rerank_model:
+                ollama["rerank_model"] = (
+                    f"{rerank_model} (installed)"
+                    if rerank_model in installed
+                    else f"{rerank_model} (missing: ollama pull {rerank_model})"
+                )
         except Exception as exc:
             ollama = {"status": "unavailable", "error": str(exc)}
         try:
@@ -373,10 +390,15 @@ def run_shell(
     embedding_model: str = "qwen3-embedding:0.6b",
     console: Console | None = None,
     rerank: bool = True,
+    settings: RetrievalSettings | None = None,
 ) -> None:
     console = console or Console()
     session = TerminalSession(
-        database, model=model, embedding_model=embedding_model, rerank=rerank
+        database,
+        model=model,
+        embedding_model=embedding_model,
+        rerank=rerank,
+        settings=settings,
     )
     _render_banner(console, session)
     editor = create_chat_input(
@@ -443,7 +465,7 @@ def render_sources(console: Console, sources: list[dict[str, Any]]) -> None:
     table.add_column("Location", no_wrap=True)
     for source in sources:
         table.add_row(
-            str(source["source_id"]),
+            str(source.get("passage_id") or source["source_id"]),
             Path(str(source["path"])).name,
             _citation_location(str(source.get("citation") or "")),
         )
@@ -732,7 +754,10 @@ def _handle_command(
                 "last_model": session.last_model_selection.model,
                 "model_reason": session.last_model_selection.reason,
                 "embedding_model": session.embedding_model,
-                "rerank": "on" if session.rerank else "off",
+                "reranker": session.settings.reranker,
+                "candidates / passages": (
+                    f"{session.settings.candidates} / {session.settings.passages}"
+                ),
                 "memories": len(session.memory.notes()),
                 "persona_file": session.persona.path,
                 "debug": session.debug,

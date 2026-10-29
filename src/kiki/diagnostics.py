@@ -17,6 +17,7 @@ def build_diagnostics(
     embedding_model: str,
     index_health: dict[str, Any],
     tool_catalog: dict[str, dict[str, Any]],
+    retrieval: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     try:
         package_version = version("kiki-local")
@@ -33,6 +34,7 @@ def build_diagnostics(
         "embedding_model": embedding_model,
         "database": str(database.resolve()),
         "index": index_health,
+        "retrieval": retrieval or {},
         "tools": tool_catalog,
         "note": "Environment variable values and conversation content are intentionally omitted.",
     }
@@ -53,6 +55,9 @@ def diagnostics_markdown(report: dict[str, Any]) -> str:
     ):
         lines.append(f"- **{key.replace('_', ' ').title()}:** {report[key]}")
     lines.extend(["", "## Index", "", "```text", str(report["index"]), "```"])
+    if report.get("retrieval"):
+        lines.extend(["", "## Retrieval settings", ""])
+        lines.extend(f"- `{key}`: {value}" for key, value in report["retrieval"].items())
     lines.extend(["", "## Tool policies", ""])
     for name, details in report["tools"].items():
         lines.append(

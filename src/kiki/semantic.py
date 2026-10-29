@@ -5,12 +5,12 @@ import re
 from array import array
 from collections.abc import Collection
 from dataclasses import replace
-from time import sleep
+from time import perf_counter, sleep
 from typing import Any, Protocol
 
 from .resilience import KikiError, ErrorCode
 
-from .rerank import ModelReranker
+from .rerank import Reranker
 from .retrieval import SearchResult, TextIndex
 
 
@@ -108,8 +108,8 @@ class SemanticIndex:
     ) -> list[SearchResult]:
         if not query.strip():
             raise ValueError("Query must not be empty")
-        if not 1 <= limit <= 20:
-            raise ValueError("Limit must be between 1 and 20")
+        if not 1 <= limit <= 100:
+            raise ValueError("Limit must be between 1 and 100")
         rows = self.index.embedding_rows(self.model)
         if source_ids is not None:
             rows = [row for row in rows if row["source_id"] in source_ids]
@@ -155,19 +155,25 @@ class SemanticIndex:
 
 class HybridRetriever:
     """Reciprocal-rank fusion over lexical and semantic candidates, optionally
-    followed by model-graded reranking."""
+    followed by reranking of a configurable candidate pool."""
 
     def __init__(
         self,
         lexical: TextIndex,
         semantic: SemanticIndex,
-        reranker: ModelReranker | None = None,
+        reranker: Reranker | None = None,
+        *,
+        candidates: int = 20,
     ) -> None:
+        if not 1 <= candidates <= 100:
+            raise ValueError("Candidates must be between 1 and 100")
         self.lexical = lexical
         self.semantic = semantic
         self.reranker = reranker
+        self.candidates = candidates
         self.last_fallback_reason: str | None = None
         self.last_rerank_error: str | None = None
+        self.last_rerank_ms = 0.0
 
     @property
     def mode(self) -> str:
@@ -177,26 +183,29 @@ class HybridRetriever:
             return "hybrid"
         if self.last_rerank_error:
             return "hybrid (reranker unavailable)"
-        return "hybrid + rerank"
+        return f"hybrid + rerank ({self.reranker.name})"
 
     def search(self, query: str, limit: int = 5) -> list[SearchResult]:
         self.last_fallback_reason = None
         self.last_rerank_error = None
+        self.last_rerank_ms = 0.0
         variants = _query_variants(query)
         if self.reranker is None:
             ranked = self._fuse(variants, min(20, max(limit * 3, 10)))
         else:
-            budget = max(limit, self.reranker.candidates)
-            pool = self._fuse(variants, 20)[:budget]
+            budget = max(limit, self.candidates)
+            pool = self._fuse(variants, max(20, budget))[:budget]
+            started = perf_counter()
             try:
                 if len(variants) > 1:
-                    ranked = self._rerank_comparison(variants[1:], pool, budget, limit)
+                    ranked = self._rerank_comparison(variants[1:], pool, budget)
                 else:
                     ranked = self.reranker.rerank(query, pool)
             except Exception as exc:
-                # Answers stay available with fused ordering if grading fails.
+                # Answers stay available with fused ordering if reranking fails.
                 self.last_rerank_error = str(exc)
                 ranked = pool
+            self.last_rerank_ms = (perf_counter() - started) * 1000
         top = ranked[:limit]
         # A document named in the question ("the Declaration") gets at least one
         # slot; otherwise long works that discuss it can crowd out the source itself.
@@ -210,7 +219,7 @@ class HybridRetriever:
             return top
         additions: list[SearchResult] = []
         for source_id in missing:
-            # Prefer the best-ranked candidate already graded for this document.
+            # Prefer the best-ranked candidate already scored for this document.
             best = [result for result in ranked if result.source_id == source_id]
             if not best:
                 best = self._fuse(variants, 20, (source_id,))
@@ -219,18 +228,19 @@ class HybridRetriever:
         return top[: limit - len(additions)] + additions
 
     def _rerank_comparison(
-        self, sides: list[str], pool: list[SearchResult], budget: int, limit: int
+        self, sides: list[str], pool: list[SearchResult], budget: int
     ) -> list[SearchResult]:
-        """Grade each side of "Compare X with Y" separately and share the slots.
+        """Rerank each side of "Compare X with Y" separately and share the slots.
 
-        Grading every passage against the whole comparison lets whichever side
+        Scoring every passage against the whole comparison lets whichever side
         has more matching text take every slot. Each side instead gets its own
-        candidates (within the same grading budget) graded against that side.
+        candidates (within the same scoring budget) scored against that side.
         """
         assert self.reranker is not None
         per_side = max(1, budget // len(sides))
         rankings = [
-            self.reranker.rerank(side, self._fuse([side], 20)[:per_side]) for side in sides
+            self.reranker.rerank(side, self._fuse([side], max(20, per_side))[:per_side])
+            for side in sides
         ]
         merged: list[SearchResult] = []
         seen: set[tuple[str, int, int]] = set()
@@ -241,8 +251,8 @@ class HybridRetriever:
                 seen.add(key)
                 merged.append(result)
 
-        # Each side's best passage is guaranteed a slot; the rest compete by grade,
-        # with earlier side positions winning ties.
+        # Each side's best passage is guaranteed a slot; the rest compete by score
+        # (all from the same reranker), with earlier side positions winning ties.
         for ranking in rankings:
             if ranking:
                 take(ranking[0])
@@ -267,7 +277,11 @@ class HybridRetriever:
         scores: dict[tuple[str, str, int, int], float] = {}
         result_lists: list[list[SearchResult]] = []
         for variant in variants:
-            result_lists.append(self.lexical.search(variant, candidate_limit, source_ids))
+            try:
+                result_lists.append(self.lexical.search(variant, candidate_limit, source_ids))
+            except ValueError:
+                # A rewrite with no searchable terms contributes nothing.
+                pass
             if self.last_fallback_reason is None:
                 try:
                     result_lists.append(
@@ -287,7 +301,7 @@ class HybridRetriever:
                 by_key[key] = result
                 scores[key] = scores.get(key, 0.0) + 1.0 / (60 + rank)
         ranked = sorted(scores, key=scores.get, reverse=True)
-        return [replace(by_key[key], score=scores[key]) for key in ranked]
+        return [replace(by_key[key], score=scores[key], ranker="fused") for key in ranked]
 
 
 def _query_variants(query: str) -> list[str]:

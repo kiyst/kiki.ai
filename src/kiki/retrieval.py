@@ -34,6 +34,9 @@ class SearchResult:
     excerpt: str
     score: float
     title: str | None = None
+    # Which stage produced `score` (e.g. "fused", "grader:qwen3:4b-instruct");
+    # scores from different stages are on different scales.
+    ranker: str | None = None
 
     @property
     def citation(self) -> str:
@@ -367,13 +370,15 @@ class TextIndex:
         query = query.strip()
         if not query:
             raise ValueError("Query must not be empty")
-        if not 1 <= limit <= 20:
-            raise ValueError("Limit must be between 1 and 20")
+        if not 1 <= limit <= 100:
+            raise ValueError("Limit must be between 1 and 100")
         tokens = _query_tokens(query)
         if not tokens:
             raise ValueError("Query has no searchable terms")
         fts_query = " OR ".join(f'"{token}"' for token in tokens)
-        candidate_limit = min(100, max(limit * 10, 20))
+        # Unchanged for limit <= 20 (the historical setting); larger pools for
+        # candidate experiments get a proportionally larger BM25 window.
+        candidate_limit = min(max(100, limit * 2), max(limit * 10, 20))
         with self._session() as connection:
             if source_ids is None:
                 rows = self._fts_rows(connection, fts_query, candidate_limit)
