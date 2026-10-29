@@ -72,3 +72,56 @@ def test_hybrid_search_falls_back_to_lexical_when_embeddings_fail(tmp_path: Path
     assert results[0].path.endswith("policy.md")
     assert hybrid.last_fallback_reason == "embedding service offline"
 
+
+
+def test_named_document_is_represented_even_when_crowded_out(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    # Many commentary paragraphs mention the charter more than the charter itself.
+    commentary = "\n\n".join(
+        f"Essay {number}: the charter purposes of the charter were debated. " + "Detail. " * 300
+        for number in range(30)
+    )
+    (corpus / "commentary_essays.md").write_text(commentary, encoding="utf-8")
+    (corpus / "founding_charter.md").write_text(
+        "We establish justice and secure liberty.", encoding="utf-8"
+    )
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(corpus)
+    semantic = SemanticIndex(index, FakeEmbedder(), model="fake")
+    semantic.embed_pending()
+    retriever = HybridRetriever(index, semantic)
+
+    results = retriever.search("What purposes does the founding charter state?", limit=3)
+    unnamed = retriever.search("What purposes were debated?", limit=3)
+
+    assert [Path(result.path).name for result in results].count("founding_charter.md") == 1
+    assert len(results) == 3
+    assert all(Path(result.path).name == "commentary_essays.md" for result in unnamed)
+
+
+def test_qwen3_queries_get_instruction_prefix_but_documents_do_not(tmp_path: Path) -> None:
+    from deskai.semantic import query_instruction
+
+    class RecordingEmbedder(FakeEmbedder):
+        def __init__(self) -> None:
+            self.seen: list[str] = []
+
+        def embed(self, texts: list[str], model: str) -> list[list[float]]:
+            self.seen.extend(texts)
+            return super().embed(texts, model)
+
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "pets.md").write_text("A feline companion.", encoding="utf-8")
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(corpus)
+    embedder = RecordingEmbedder()
+    semantic = SemanticIndex(index, embedder, model="qwen3-embedding:0.6b")
+
+    semantic.embed_pending()
+    semantic.search("cat")
+
+    assert embedder.seen[0] == "A feline companion."
+    assert embedder.seen[1].startswith("Instruct: ") and embedder.seen[1].endswith("\nQuery:cat")
+    assert query_instruction("nomic-embed-text") == ""

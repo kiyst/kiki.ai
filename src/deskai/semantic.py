@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import re
 from array import array
+from collections.abc import Collection
 from dataclasses import replace
 from time import sleep
 from typing import Any, Protocol
@@ -53,6 +54,21 @@ class OllamaEmbeddingClient:
         ) from last_error
 
 
+# Qwen3-Embedding is trained with instruction-prefixed queries and bare
+# documents; omitting the prefix measurably lowers retrieval quality.
+_QUERY_INSTRUCTIONS = {
+    "qwen3-embedding": (
+        "Instruct: Given a question, retrieve passages from the indexed documents "
+        "that answer it\nQuery:"
+    ),
+}
+
+
+def query_instruction(model: str) -> str:
+    family = model.split(":", 1)[0].casefold()
+    return _QUERY_INSTRUCTIONS.get(family, "")
+
+
 class SemanticIndex:
     def __init__(
         self,
@@ -65,6 +81,7 @@ class SemanticIndex:
         self.client = client
         self.model = model
         self.minimum_score = minimum_score
+        self._query_vectors: dict[tuple[str, str], list[float]] = {}
 
     def embed_pending(self, batch_size: int = 16) -> dict[str, int]:
         if not 1 <= batch_size <= 64:
@@ -85,15 +102,19 @@ class SemanticIndex:
             batches += 1
         return {"embedded": embedded, "batches": batches, "total": self.index.embedding_count(self.model)}
 
-    def search(self, query: str, limit: int = 5) -> list[SearchResult]:
+    def search(
+        self, query: str, limit: int = 5, source_ids: Collection[str] | None = None
+    ) -> list[SearchResult]:
         if not query.strip():
             raise ValueError("Query must not be empty")
         if not 1 <= limit <= 20:
             raise ValueError("Limit must be between 1 and 20")
         rows = self.index.embedding_rows(self.model)
+        if source_ids is not None:
+            rows = [row for row in rows if row["source_id"] in source_ids]
         if not rows:
             return []
-        query_vector = self.client.embed([query], self.model)[0]
+        query_vector = self._query_vector(query)
         scored: list[SearchResult] = []
         for row in rows:
             vector = array("f")
@@ -114,9 +135,21 @@ class SemanticIndex:
                     end_location=int(row["end_location"]),
                     excerpt=row["content"],
                     score=score,
+                    title=row["title"],
                 )
             )
         return sorted(scored, key=lambda result: result.score, reverse=True)[:limit]
+
+    def _query_vector(self, query: str) -> list[float]:
+        # Named-document coverage re-searches the same query; embed it once.
+        key = (self.model, query)
+        if key not in self._query_vectors:
+            if len(self._query_vectors) >= 32:
+                self._query_vectors.clear()
+            self._query_vectors[key] = self.client.embed(
+                [query_instruction(self.model) + query], self.model
+            )[0]
+        return self._query_vectors[key]
 
 
 class HybridRetriever:
@@ -130,14 +163,41 @@ class HybridRetriever:
     def search(self, query: str, limit: int = 5) -> list[SearchResult]:
         self.last_fallback_reason = None
         candidate_limit = min(20, max(limit * 3, 10))
+        variants = _query_variants(query)
+        fused = self._fuse(variants, candidate_limit)[:limit]
+        # A document named in the question ("the Declaration") gets at least one
+        # slot; otherwise long works that discuss it can crowd out the source itself.
+        present = {result.source_id for result in fused}
+        missing = [
+            source_id
+            for source_id in self.lexical.named_sources(query)
+            if source_id not in present
+        ][:limit]
+        if not missing:
+            return fused
+        additions: list[SearchResult] = []
+        for source_id in missing:
+            best = self._fuse(variants, candidate_limit, (source_id,))
+            if best:
+                additions.append(best[0])
+        return fused[: limit - len(additions)] + additions
+
+    def _fuse(
+        self,
+        variants: list[str],
+        candidate_limit: int,
+        source_ids: Collection[str] | None = None,
+    ) -> list[SearchResult]:
         by_key: dict[tuple[str, str, int, int], SearchResult] = {}
         scores: dict[tuple[str, str, int, int], float] = {}
         result_lists: list[list[SearchResult]] = []
-        for variant in _query_variants(query):
-            result_lists.append(self.lexical.search(variant, candidate_limit))
+        for variant in variants:
+            result_lists.append(self.lexical.search(variant, candidate_limit, source_ids))
             if self.last_fallback_reason is None:
                 try:
-                    result_lists.append(self.semantic.search(variant, candidate_limit))
+                    result_lists.append(
+                        self.semantic.search(variant, candidate_limit, source_ids)
+                    )
                 except Exception as exc:
                     # RAG remains available through SQLite FTS when Ollama embeddings fail.
                     self.last_fallback_reason = str(exc)
@@ -151,7 +211,7 @@ class HybridRetriever:
                 )
                 by_key[key] = result
                 scores[key] = scores.get(key, 0.0) + 1.0 / (60 + rank)
-        ranked = sorted(scores, key=scores.get, reverse=True)[:limit]
+        ranked = sorted(scores, key=scores.get, reverse=True)
         return [replace(by_key[key], score=scores[key]) for key in ranked]
 
 

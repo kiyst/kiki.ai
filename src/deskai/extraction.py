@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
@@ -10,7 +11,10 @@ TEXT_EXTENSIONS = {
     ".jsx", ".json", ".toml", ".yaml", ".yml",
 }
 SUPPORTED_EXTENSIONS = TEXT_EXTENSIONS | {".pdf"}
-EXTRACTION_VERSION = "paragraph-v1"
+EXTRACTION_VERSION = "paragraph-v3"
+# Roughly what the RAG evidence budget shows the model per result, so retrieved
+# chunks are seen whole and embeddings stay focused on one passage.
+TEXT_CHUNK_CHARACTERS = 1_400
 
 
 @dataclass(frozen=True)
@@ -36,9 +40,9 @@ def _extract_text(path: Path) -> Iterable[ExtractedChunk]:
         text = path.read_text(encoding="utf-8")
     except UnicodeError as exc:
         raise ExtractionError("file is not valid UTF-8 text") from exc
-    lines = text.splitlines()
-    blocks = list(_paragraph_blocks(lines))
-    max_characters = 2_800
+    lines = _without_gutenberg_boilerplate(text.splitlines())
+    blocks = list(_paragraph_blocks(lines, min(2_400, TEXT_CHUNK_CHARACTERS)))
+    max_characters = TEXT_CHUNK_CHARACTERS
     current: list[tuple[int, int, str]] = []
     current_size = 0
     for block in blocks:
@@ -54,6 +58,59 @@ def _extract_text(path: Path) -> Iterable[ExtractedChunk]:
         current_size += len(block[2]) + (2 if len(current) > 1 else 0)
     if current:
         yield _text_chunk(current)
+
+
+def document_title(path: Path) -> str | None:
+    """Human title for citations: Gutenberg Title/Author, else a Markdown H1."""
+    if path.suffix.lower() not in TEXT_EXTENSIONS:
+        return None
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            head = handle.read(4_000).splitlines()
+    except OSError:
+        return None
+    title = _header_field(head, "Title")
+    if title:
+        authors = _header_field(head, "Author", separator=" and ")
+        return f"{title} by {authors}" if authors else title
+    if path.suffix.lower() in {".md", ".markdown"}:
+        for line in head:
+            if line.startswith("# "):
+                return line[2:].strip() or None
+    return None
+
+
+def _header_field(lines: list[str], name: str, separator: str = " ") -> str | None:
+    for index, line in enumerate(lines):
+        if line.startswith(f"{name}:"):
+            values = [line[len(name) + 1 :].strip()]
+            # Gutenberg lists additional authors on indented continuation lines.
+            for follower in lines[index + 1 :]:
+                if not follower.startswith((" ", "\t")) or not follower.strip():
+                    break
+                values.append(follower.strip())
+            return separator.join(value for value in values if value) or None
+    return None
+
+
+_GUTENBERG_START = re.compile(r"^\*{3}\s*START OF (?:THE|THIS) PROJECT GUTENBERG EBOOK", re.I)
+_GUTENBERG_END = re.compile(r"^\*{3}\s*END OF (?:THE|THIS) PROJECT GUTENBERG EBOOK", re.I)
+
+
+def _without_gutenberg_boilerplate(lines: list[str]) -> list[str]:
+    """Blank Project Gutenberg license front/back matter, keeping line numbers.
+
+    The license text is identical across books, so indexing it dilutes the
+    embeddings of opening chunks and lets boilerplate outrank real evidence.
+    """
+    start = next((i for i, line in enumerate(lines) if _GUTENBERG_START.match(line)), None)
+    if start is None:
+        return lines
+    end = next(
+        (i for i in range(start + 1, len(lines)) if _GUTENBERG_END.match(lines[i])),
+        len(lines),
+    )
+    return [line if start < i < end else "" for i, line in enumerate(lines)]
 
 
 def _paragraph_blocks(lines: list[str], max_characters: int = 2_400) -> Iterable[tuple[int, int, str]]:

@@ -51,7 +51,9 @@ answers only on returned excerpts, cite the supplied source IDs and locations,
 and state when the evidence is insufficient. Never invent paths or citations.
 For comparison questions, synthesize independently supported points from each
 source; the sources do not need to contain a prewritten comparison. Put an exact
-`[source:ID]` citation after every supported paragraph. If relevant support is
+`[source:ID]` citation after every supported paragraph by copying the excerpt's
+`cite` value. Excerpts marked `[…]` or `[excerpt truncated]` are focused windows
+of longer passages; judge support from the text shown. If relevant support is
 absent, begin the answer with `Evidence is insufficient.`
 Use get_weather for current conditions or forecasts, never model memory.
 """
@@ -159,13 +161,14 @@ class ToolCallingAssistant:
         tool_call_count = 0
         evidence_characters = 0
         reconsidered_abstention = False
+        requested_citations = False
 
         if self.pre_retrieve:
             arguments = {"query": prompt, "limit": 5}
             result = self.registry.call("search_files", arguments)
             self._collect_sources(result, sources)
             visible_result, used = _bounded_search_result(
-                result, self.MAX_EVIDENCE_CHARACTERS - evidence_characters
+                result, self.MAX_EVIDENCE_CHARACTERS - evidence_characters, prompt
             )
             evidence_characters += used
             tool_call_count += 1
@@ -233,6 +236,29 @@ class ToolCallingAssistant:
                         }
                     )
                     continue
+                if (
+                    self.pre_retrieve
+                    and sources
+                    and not requested_citations
+                    and round_number < self.max_rounds
+                    and not _looks_like_insufficient(answer)
+                    and not _has_valid_citation(answer, sources)
+                ):
+                    # Small models often answer correctly but forget or mangle the
+                    # citation format; one bounded repair beats discarding the answer.
+                    requested_citations = True
+                    messages.append(
+                        {
+                            "role": "user",
+                            "content": (
+                                "Citation check: rewrite the answer so every supported paragraph "
+                                "ends with the exact `cite` value of an excerpt that supports it, "
+                                "for example [source:ID]. Use only IDs from the retrieved "
+                                "excerpts. Remove any claim no excerpt supports."
+                            ),
+                        }
+                    )
+                    continue
                 if self.pre_retrieve:
                     answer = _verify_grounded_answer(answer, sources)
                 return ChatOutcome(
@@ -253,7 +279,9 @@ class ToolCallingAssistant:
                 if name == "search_files":
                     self._collect_sources(result, sources)
                     visible_result, used = _bounded_search_result(
-                        result, self.MAX_EVIDENCE_CHARACTERS - evidence_characters
+                        result,
+                        self.MAX_EVIDENCE_CHARACTERS - evidence_characters,
+                        str(arguments.get("query", "")),
                     )
                     evidence_characters += used
                 else:
@@ -366,13 +394,24 @@ def _verify_grounded_answer(
     if answer.casefold().startswith("evidence is insufficient"):
         return answer
     available = {str(source["source_id"]) for source in sources.values()}
-    cited = set(re.findall(r"\[source:([^\]]+)\]", answer))
+    cited = _cited_source_ids(answer)
     if not available or not cited or not cited.issubset(available):
         return (
             "Evidence is insufficient to verify the generated response. "
             "I retrieved the sources listed below, but the model did not produce valid citations."
         )
     return answer
+
+
+def _cited_source_ids(answer: str) -> set[str]:
+    """IDs from `[source:ID]`, tolerating `[source: ID]` and `[source:ID, lines 3-9]`."""
+    return set(re.findall(r"\[source:\s*([^\]\s,;]+)[^\]]*\]", answer))
+
+
+def _has_valid_citation(answer: str, sources: dict[str, dict[str, Any]]) -> bool:
+    available = {str(source["source_id"]) for source in sources.values()}
+    cited = _cited_source_ids(answer)
+    return bool(cited) and cited <= available
 
 
 def _looks_like_insufficient(answer: str) -> bool:
@@ -406,9 +445,13 @@ def _bounded_history(history: list[dict[str, str]], budget: int = 4_000) -> list
 
 
 def _bounded_search_result(
-    result: dict[str, Any], budget: int
+    result: dict[str, Any], budget: int, query: str = ""
 ) -> tuple[dict[str, Any], int]:
-    """Bound evidence text sent to a 4K-context model while retaining citations."""
+    """Bound evidence text sent to a 4K-context model while retaining citations.
+
+    Long excerpts are cut to the window that best matches the query rather than
+    their opening characters, and only the fields the model needs are kept.
+    """
     if result.get("status") != "ok" or not isinstance(result.get("data"), list):
         return result, 0
     bounded: list[dict[str, Any]] = []
@@ -417,15 +460,71 @@ def _bounded_search_result(
     if not items or budget <= 0:
         return {**result, "data": []}, 0
     per_source = max(300, budget // len(items))
+    terms = _focus_terms(query)
     for item in items:
         if not isinstance(item, dict) or used >= budget:
             continue
         excerpt = str(item.get("excerpt", ""))
         allowance = min(per_source, budget - used)
-        clipped = excerpt[:allowance]
-        if len(clipped) < len(excerpt):
-            clipped = clipped.rstrip() + "\n[excerpt truncated]"
-        bounded.append({**item, "excerpt": clipped})
+        clipped = _focused_excerpt(excerpt, terms, allowance)
+        bounded.append(_model_visible_source(item, clipped))
         used += len(clipped)
     return {**result, "data": bounded}, used
+
+
+def _model_visible_source(item: dict[str, Any], excerpt: str) -> dict[str, Any]:
+    source_id = item.get("source_id")
+    visible: dict[str, Any] = {"cite": f"[source:{source_id}]", "source_id": source_id}
+    if item.get("path"):
+        filename = re.split(r"[\\/]", str(item["path"]))[-1]
+        title = item.get("title")
+        visible["document"] = f"{title} ({filename})" if title else filename
+    if item.get("start_location") is not None:
+        label = "page" if item.get("location_kind") == "page" else "lines"
+        start, end = item["start_location"], item.get("end_location", item["start_location"])
+        visible["location"] = f"{label} {start}" + (f"-{end}" if end != start else "")
+    visible["excerpt"] = excerpt
+    return visible
+
+
+def _focus_terms(query: str) -> list[str]:
+    # Five-character prefixes act as a cheap stemmer: "borrowing" -> "borro".
+    tokens = re.findall(r"\w+", query.casefold())
+    stop = {"what", "which", "does", "how", "why", "the", "and", "are", "with", "from", "that", "this"}
+    return list(dict.fromkeys(token[:5] for token in tokens if len(token) > 2 and token not in stop))
+
+
+def _focused_excerpt(excerpt: str, terms: list[str], allowance: int) -> str:
+    if len(excerpt) <= allowance:
+        return excerpt
+    start = _best_window_start(excerpt, terms, allowance)
+    end = start + allowance
+    clipped = excerpt[start:end].strip()
+    if start > 0:
+        clipped = "[…] " + clipped
+    if end < len(excerpt):
+        clipped += "\n[excerpt truncated]"
+    return clipped
+
+
+def _best_window_start(excerpt: str, terms: list[str], allowance: int) -> int:
+    if not terms:
+        return 0
+    lowered = excerpt.casefold()
+    last = len(excerpt) - allowance
+    # Prefer windows that open at a line break; fall back to word boundaries.
+    candidates = {0, last}
+    candidates.update(match.end() for match in re.finditer(r"\n", excerpt) if match.end() <= last)
+    for offset in range(150, last, 150):
+        space = excerpt.find(" ", offset)
+        if 0 <= space < last:
+            candidates.add(space + 1)
+    best_start, best_score = 0, (-1, -1)
+    for start in sorted(candidates):
+        window = lowered[start : start + allowance]
+        distinct = sum(term in window for term in terms)
+        occurrences = sum(window.count(term) for term in terms)
+        if (distinct, occurrences) > best_score:
+            best_start, best_score = start, (distinct, occurrences)
+    return best_start
 

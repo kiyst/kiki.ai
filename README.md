@@ -90,8 +90,22 @@ fusion. Evidence and conversation history are bounded to fit the local model's
 4,096-token context. Verified source records are returned separately from model
 prose, and `--json` keeps every command scriptable.
 Semantic candidates below the configured similarity floor are discarded. RAG
-answers without a valid retrieved source ID are replaced with an
-insufficient-evidence notice instead of being displayed as grounded prose.
+answers without a valid retrieved source ID get one bounded citation repair
+request and are then replaced with an insufficient-evidence notice instead of
+being displayed as grounded prose.
+
+Text is split into paragraph-aware chunks of at most 1,400 characters, about
+what the evidence budget shows the model per result. Project Gutenberg license
+front and back matter is excluded while original line numbers are preserved.
+Lexical search stems terms (`borrowing` matches `borrow`), and Qwen3 embedding
+queries carry the model's expected retrieval instruction. Each indexed file
+records a title (Gutenberg `Title`/`Author` header or Markdown `#` heading);
+when a question names a document by title word or author surname ("the
+Declaration", "Paine", "the Beard history"), that document receives at least
+one evidence slot. Long excerpts are cut to the window that best matches the
+question rather than their opening characters. Opening an older index upgrades
+its search table and titles in place; run `index` and `embed` again to apply
+the newer chunking.
 
 Weather uses Open-Meteo through a fixed, validated provider. It has a short
 cache, exponential-backoff retries for timeouts, 408, 429, and selected 5xx
@@ -177,7 +191,7 @@ diagnostic, not proof that every answer is factually correct.
 ## Verification receipt
 
 - Python 3.12 virtual environment created locally.
-- Unit tests: 77 passing.
+- Unit tests: 98 passing.
 - CommonMark corpus: 12 supported files indexed; cited search verified.
 - py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
   as encrypted, image-only/OCR-required, or malformed.
@@ -187,16 +201,20 @@ diagnostic, not proof that every answer is factually correct.
   calls, round-limit exhaustion, and suppression of leaked thinking text.
 - A paraphrased fixture query produced no lexical hit but correctly retrieved the
   policy through semantic and hybrid search (cosine score approximately 0.473).
-- U.S. history corpus: 5 public-domain works plus its manifest, 1,540
-  paragraph-aware chunks, and 1,540 local embeddings.
+- U.S. history corpus: 5 public-domain works plus its manifest, 2,569
+  paragraph-aware chunks, and 2,569 local embeddings.
 - RAG chat performs a deterministic baseline search before generation, then
   allows the model to make narrower follow-up tool calls. This guarantees that
   both supported answers and insufficient-evidence responses follow retrieval.
-- Current full retrieval set: lexical expected-document coverage 13/15 and
-  hybrid coverage 14/15. Current holdout model run used search in 7/7 cases,
-  correctly abstained on 3/3 unsupported questions, and emitted valid inline
-  citations in 2/7 cases. The small Qwen model still over-abstains on one
-  comparison case, so answer-level quality remains a human-review junction.
+- Current full set (October 28, 2026, all 18 cases): hybrid expected-document
+  coverage 15/15 (previously 14/15; all expected documents present in 15/15,
+  previously 13/15), mean hybrid search 0.77 s (previously 1.63 s). With Qwen,
+  14/15 answerable questions were answered with valid inline citations
+  (previously 12/15) and 3/3 unsupported questions were correctly abstained.
+  The remaining miss asks for the Constitution's "preamble" and "purposes",
+  words the preamble itself never uses; the 0.6B embedding model does not
+  bridge that paraphrase, so the model correctly reports insufficient evidence.
+  Answer-level accuracy remains a human-review junction.
 - Live coding regression: 10/10 medium/hard cases included the expected
   algorithm signals with 0 false refusals; 9/10 initially passed strict Python
   syntax because one answer included a broken draft before its corrected code.

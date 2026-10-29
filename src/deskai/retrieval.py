@@ -10,6 +10,7 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from time import sleep
+from collections.abc import Collection
 from typing import Iterator
 
 from .extraction import (
@@ -17,6 +18,7 @@ from .extraction import (
     SUPPORTED_EXTENSIONS,
     ExtractedChunk,
     ExtractionError,
+    document_title,
     extract_chunks,
 )
 from .resilience import DeskAIError, ErrorCode
@@ -31,6 +33,7 @@ class SearchResult:
     end_location: int
     excerpt: str
     score: float
+    title: str | None = None
 
     @property
     def citation(self) -> str:
@@ -53,7 +56,7 @@ class ChunkForEmbedding:
 class TextIndex:
     """Authoritative manifest plus SQLite FTS retrieval for selected roots."""
 
-    SCHEMA_VERSION = 3
+    SCHEMA_VERSION = 4
     MAX_FILE_BYTES = 25 * 1024 * 1024
 
     def __init__(self, database: Path) -> None:
@@ -170,7 +173,7 @@ class TextIndex:
             existing = connection.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='files'"
             ).fetchone()
-            if existing and current not in (2, self.SCHEMA_VERSION):
+            if existing and current not in (2, 3, self.SCHEMA_VERSION):
                 raise RuntimeError(
                     f"Index schema {current} is incompatible with {self.SCHEMA_VERSION}; delete and reindex"
                 )
@@ -183,7 +186,8 @@ class TextIndex:
                     path TEXT UNIQUE NOT NULL,
                     content_hash TEXT NOT NULL,
                     size INTEGER NOT NULL,
-                    modified_ns INTEGER NOT NULL
+                    modified_ns INTEGER NOT NULL,
+                    title TEXT
                 );
                 CREATE TABLE IF NOT EXISTS chunks (
                     id INTEGER PRIMARY KEY,
@@ -199,7 +203,8 @@ class TextIndex:
                     source_id UNINDEXED,
                     location_kind UNINDEXED,
                     start_location UNINDEXED,
-                    end_location UNINDEXED
+                    end_location UNINDEXED,
+                    tokenize = 'porter unicode61'
                 );
                 CREATE TABLE IF NOT EXISTS chunk_embeddings (
                     chunk_id INTEGER PRIMARY KEY REFERENCES chunks(id) ON DELETE CASCADE,
@@ -209,7 +214,45 @@ class TextIndex:
                 );
                 """
             )
+            if existing and current < 4:
+                self._rebuild_stemmed_fts(connection)
+            columns = {row["name"] for row in connection.execute("PRAGMA table_info(files)")}
+            if "title" not in columns:
+                # Titles let citations and queries refer to "the Beard history"
+                # instead of a filename; backfill from files still on disk.
+                connection.execute("ALTER TABLE files ADD COLUMN title TEXT")
+                for row in connection.execute("SELECT source_id, path FROM files").fetchall():
+                    connection.execute(
+                        "UPDATE files SET title = ? WHERE source_id = ?",
+                        (document_title(Path(row["path"])), row["source_id"]),
+                    )
             connection.execute(f"PRAGMA user_version = {self.SCHEMA_VERSION}")
+
+    @staticmethod
+    def _rebuild_stemmed_fts(connection: sqlite3.Connection) -> None:
+        """Schema 4 stems terms so "borrowing" matches "borrow"; rebuild in place."""
+        connection.execute("DROP TABLE IF EXISTS chunks_fts")
+        connection.execute(
+            """
+            CREATE VIRTUAL TABLE chunks_fts USING fts5(
+                content,
+                path UNINDEXED,
+                source_id UNINDEXED,
+                location_kind UNINDEXED,
+                start_location UNINDEXED,
+                end_location UNINDEXED,
+                tokenize = 'porter unicode61'
+            )
+            """
+        )
+        connection.execute(
+            """
+            INSERT INTO chunks_fts(content, path, source_id, location_kind, start_location, end_location)
+            SELECT c.content, f.path, c.source_id, c.location_kind, c.start_location, c.end_location
+            FROM chunks AS c JOIN files AS f ON f.source_id = c.source_id
+            ORDER BY c.id
+            """
+        )
 
     def index_root(self, root: Path) -> dict[str, object]:
         root = root.resolve(strict=True)
@@ -272,8 +315,17 @@ class TextIndex:
             self._delete_source(connection, existing["source_id"])
         stat = path.stat()
         connection.execute(
-            "INSERT INTO files VALUES (?, ?, ?, ?, ?, ?)",
-            (source_id, str(root), str(path), digest, stat.st_size, stat.st_mtime_ns),
+            "INSERT INTO files(source_id, root, path, content_hash, size, modified_ns, title) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                source_id,
+                str(root),
+                str(path),
+                digest,
+                stat.st_size,
+                stat.st_mtime_ns,
+                document_title(path),
+            ),
         )
         for chunk in chunks:
             self._insert_chunk(connection, path, source_id, chunk)
@@ -309,7 +361,9 @@ class TextIndex:
         if existing:
             self._delete_source(connection, existing["source_id"])
 
-    def search(self, query: str, limit: int = 5) -> list[SearchResult]:
+    def search(
+        self, query: str, limit: int = 5, source_ids: Collection[str] | None = None
+    ) -> list[SearchResult]:
         query = query.strip()
         if not query:
             raise ValueError("Query must not be empty")
@@ -321,14 +375,18 @@ class TextIndex:
         fts_query = " OR ".join(f'"{token}"' for token in tokens)
         candidate_limit = min(100, max(limit * 10, 20))
         with self._session() as connection:
-            rows = connection.execute(
-                """
-                SELECT source_id, path, location_kind, start_location, end_location,
-                       content, bm25(chunks_fts) AS rank
-                FROM chunks_fts WHERE chunks_fts MATCH ? ORDER BY rank LIMIT ?
-                """,
-                (fts_query, candidate_limit),
-            ).fetchall()
+            if source_ids is None:
+                rows = self._fts_rows(connection, fts_query, candidate_limit)
+                # Large documents can fill the whole BM25 candidate pool; make sure a
+                # document the user names by title still contributes candidates.
+                named = self._named_sources(connection, query)
+                seen = {(row["source_id"], row["start_location"]) for row in rows}
+                for row in self._fts_rows(connection, fts_query, limit, named):
+                    if (row["source_id"], row["start_location"]) not in seen:
+                        rows.append(row)
+            else:
+                rows = self._fts_rows(connection, fts_query, candidate_limit, source_ids)
+            titles = dict(connection.execute("SELECT source_id, title FROM files").fetchall())
         rows = sorted(rows, key=lambda row: _lexical_rank(row, tokens), reverse=True)[:limit]
         return [
             SearchResult(
@@ -339,10 +397,47 @@ class TextIndex:
                 end_location=int(row["end_location"]),
                 excerpt=row["content"],
                 score=float(-row["rank"]) + 100.0 * _filename_hits(row["path"], tokens),
+                title=titles.get(row["source_id"]),
             )
             for row in rows
             if Path(row["path"]).is_file()
         ]
+
+    @staticmethod
+    def _fts_rows(
+        connection: sqlite3.Connection,
+        fts_query: str,
+        limit: int,
+        source_ids: Collection[str] | None = None,
+    ) -> list[sqlite3.Row]:
+        restriction = ""
+        parameters: list[object] = [fts_query]
+        if source_ids is not None:
+            if not source_ids:
+                return []
+            restriction = f" AND source_id IN ({', '.join('?' for _ in source_ids)})"
+            parameters.extend(source_ids)
+        parameters.append(limit)
+        return connection.execute(
+            f"""
+            SELECT source_id, path, location_kind, start_location, end_location,
+                   content, bm25(chunks_fts) AS rank
+            FROM chunks_fts WHERE chunks_fts MATCH ?{restriction} ORDER BY rank LIMIT ?
+            """,
+            parameters,
+        ).fetchall()
+
+    def named_sources(self, query: str) -> list[str]:
+        """Source IDs of indexed documents that the query refers to by title."""
+        with self._session() as connection:
+            return self._named_sources(connection, query)
+
+    @staticmethod
+    def _named_sources(connection: sqlite3.Connection, query: str) -> list[str]:
+        files = connection.execute("SELECT source_id, path, title FROM files").fetchall()
+        return _named_sources(
+            query, [(row["source_id"], row["path"], row["title"]) for row in files]
+        )
 
     def chunks_needing_embeddings(self, model: str, limit: int) -> list[ChunkForEmbedding]:
         with self._session() as connection:
@@ -379,7 +474,7 @@ class TextIndex:
         with self._session() as connection:
             return connection.execute(
                 """
-                SELECT e.dimensions, e.vector, f.source_id, f.path,
+                SELECT e.dimensions, e.vector, f.source_id, f.path, f.title,
                        c.location_kind, c.start_location, c.end_location, c.content
                 FROM chunk_embeddings AS e
                 JOIN chunks AS c ON c.id = e.chunk_id
@@ -415,6 +510,67 @@ def _query_tokens(query: str) -> list[str]:
 def _filename_hits(path: str, tokens: list[str]) -> int:
     filename = Path(path).stem.casefold().replace("_", " ").replace("-", " ")
     return sum(token in filename for token in tokens)
+
+
+def _title_words(path: str) -> list[str]:
+    stem = Path(path).stem.casefold()
+    return [word for word in re.split(r"[\W_]+", stem) if word]
+
+
+def _author_surnames(title: str | None) -> list[str]:
+    if not title or " by " not in title:
+        return []
+    authors = title.rsplit(" by ", 1)[1]
+    return [
+        words[-1]
+        for author in authors.split(" and ")
+        if (words := re.findall(r"\w+", author.casefold()))
+    ]
+
+
+def _named_sources(
+    query: str, files: list[tuple[str, str] | tuple[str, str, str | None]]
+) -> list[str]:
+    """Match a query to documents it names, e.g. "the Declaration" or "Paine".
+
+    A document counts as named when the query contains its whole filename
+    phrase ("common sense"), a long filename word no other file shares
+    ("constitution"), or an author surname that no other document's author or
+    title uses ("Beard"). Shared or short words such as "states" or "common"
+    alone are too ambiguous to imply a specific document.
+    """
+    query_words = re.findall(r"\w+", query.casefold())
+    query_text = " ".join(query_words)
+    entries = [(item[0], item[1], item[2] if len(item) > 2 else None) for item in files]
+    names = {source_id: _title_words(path) for source_id, path, _ in entries}
+    surnames = {source_id: _author_surnames(title) for source_id, _, title in entries}
+    title_words = {
+        word
+        for _, _, title in entries
+        if title
+        for word in re.findall(r"\w+", title.rsplit(" by ", 1)[0].casefold())
+    }
+    counts: dict[str, int] = {}
+    for words in [*names.values(), *surnames.values()]:
+        for word in set(words):
+            counts[word] = counts.get(word, 0) + 1
+    named: list[str] = []
+    for source_id, words in names.items():
+        meaningful = [word for word in words if word not in _STOP_WORDS]
+        if not meaningful:
+            continue
+        phrase = " ".join(words)
+        distinctive = [word for word in meaningful if len(word) >= 8 and counts[word] == 1]
+        authors = [
+            word
+            for word in surnames[source_id]
+            if len(word) >= 4 and counts[word] == 1 and word not in title_words
+        ]
+        if (len(words) > 1 and f" {phrase} " in f" {query_text} ") or any(
+            word in query_words for word in [*distinctive, *authors]
+        ):
+            named.append(source_id)
+    return named
 
 
 def _lexical_rank(row: sqlite3.Row, tokens: list[str]) -> tuple[int, float]:

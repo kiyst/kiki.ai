@@ -89,3 +89,66 @@ def test_corrupt_index_is_quarantined_and_recreated(tmp_path: Path) -> None:
     assert database.is_file()
     assert index.database != database or list(tmp_path.glob("index.sqlite3.corrupt-*"))
 
+
+
+def test_search_stems_terms_and_migrates_unstemmed_index(tmp_path: Path) -> None:
+    import sqlite3
+
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "charter.txt").write_text("Congress may borrow Money on credit.", encoding="utf-8")
+    database = tmp_path / "index.sqlite3"
+    TextIndex(database).index_root(corpus)
+
+    # Recreate the schema-3 layout: identical rows, but no stemming tokenizer.
+    connection = sqlite3.connect(database)
+    connection.executescript(
+        """
+        DROP TABLE chunks_fts;
+        CREATE VIRTUAL TABLE chunks_fts USING fts5(
+            content, path UNINDEXED, source_id UNINDEXED, location_kind UNINDEXED,
+            start_location UNINDEXED, end_location UNINDEXED
+        );
+        INSERT INTO chunks_fts(content, path, source_id, location_kind, start_location, end_location)
+        SELECT c.content, f.path, c.source_id, c.location_kind, c.start_location, c.end_location
+        FROM chunks AS c JOIN files AS f USING (source_id);
+        PRAGMA user_version = 3;
+        """
+    )
+    unstemmed = connection.execute(
+        "SELECT count(*) FROM chunks_fts WHERE chunks_fts MATCH 'borrowing'"
+    ).fetchone()[0]
+    connection.close()
+    assert unstemmed == 0
+
+    results = TextIndex(database).search("Who handles borrowing?")
+
+    assert [Path(result.path).name for result in results] == ["charter.txt"]
+
+
+def test_titles_are_backfilled_and_author_surnames_name_documents(tmp_path: Path) -> None:
+    import sqlite3
+
+    from deskai.retrieval import _named_sources
+
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "history.txt").write_text(
+        "Title: History of the United States\n\nAuthor: Charles A. Beard\n\n"
+        "*** START OF THE PROJECT GUTENBERG EBOOK HISTORY ***\n\nThe colonies resisted taxes.\n",
+        encoding="utf-8",
+    )
+    database = tmp_path / "index.sqlite3"
+    TextIndex(database).index_root(corpus)
+    connection = sqlite3.connect(database)
+    connection.execute("ALTER TABLE files DROP COLUMN title")
+    connection.commit()
+    connection.close()
+
+    index = TextIndex(database)
+    result = index.search("colonies taxes")[0]
+
+    assert result.title == "History of the United States by Charles A. Beard"
+    assert index.named_sources("What does the Beard history say?") == [result.source_id]
+    files = [("a", "us_constitution.txt", "The United States Constitution by United States")]
+    assert _named_sources("Where do the states get power?", files) == []

@@ -42,6 +42,41 @@ def test_search_evidence_is_bounded_without_dropping_citations() -> None:
     assert all("truncated" in item["excerpt"] for item in bounded["data"])
 
 
+
+def test_long_excerpt_is_focused_on_query_terms_not_its_opening() -> None:
+    filler = "Unrelated front matter about printing and editions. " * 40
+    excerpt = filler + "\nThe Congress shall have Power To borrow Money on the credit of the United States.\n" + filler
+    result = {
+        "status": "ok",
+        "error": None,
+        "data": [
+            {
+                "source_id": "abc",
+                "path": "C:\\corpus\\constitution.txt",
+                "location_kind": "line",
+                "start_location": 190,
+                "end_location": 246,
+                "score": 3.2,
+                "citation": "[source:abc] C:\\corpus\\constitution.txt (lines 190-246)",
+                "excerpt": excerpt,
+            }
+        ],
+    }
+
+    bounded, used = _bounded_search_result(result, 600, "What borrowing powers does Congress have?")
+
+    item = bounded["data"][0]
+    assert "borrow Money" in item["excerpt"]
+    assert item["excerpt"].startswith("[…] ")
+    assert used <= 650
+    assert item == {
+        "cite": "[source:abc]",
+        "source_id": "abc",
+        "document": "constitution.txt",
+        "location": "lines 190-246",
+        "excerpt": item["excerpt"],
+    }
+
 def test_model_selected_tool_result_is_propagated(tmp_path: Path) -> None:
     corpus = tmp_path / "corpus"
     corpus.mkdir()
@@ -127,8 +162,16 @@ def test_pre_retrieval_does_not_depend_on_model_tool_choice(tmp_path: Path) -> N
     )
     index = TextIndex(tmp_path / "index.sqlite3")
     index.index_root(corpus)
+    source_id = index.search("validation", 1)[0].source_id
     fake = FakeClient(
-        [{"message": {"role": "assistant", "content": "Validation failures are final."}}]
+        [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": f"Validation failures are final. [source:{source_id}]",
+                }
+            }
+        ]
     )
 
     outcome = ToolCallingAssistant(
@@ -174,7 +217,10 @@ def test_rag_answer_without_valid_citation_is_rejected(tmp_path: Path) -> None:
     index = TextIndex(tmp_path / "index.sqlite3")
     index.index_root(corpus)
     fake = FakeClient(
-        [{"message": {"role": "assistant", "content": "It happened in 1776."}}]
+        [
+            {"message": {"role": "assistant", "content": "It happened in 1776."}},
+            {"message": {"role": "assistant", "content": "It happened in 1776 [source:made-up]."}},
+        ]
     )
 
     outcome = ToolCallingAssistant(
@@ -182,6 +228,51 @@ def test_rag_answer_without_valid_citation_is_rejected(tmp_path: Path) -> None:
     ).ask("When did the event happen?")
 
     assert outcome.answer.startswith("Evidence is insufficient to verify")
+    assert len(fake.requests) == 2
+    assert fake.requests[1]["messages"][-1]["content"].startswith("Citation check")
+
+
+def test_rag_repairs_missing_citations_once(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "evidence.md").write_text("The event occurred in 1776.", encoding="utf-8")
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(corpus)
+    source_id = index.search("event", 1)[0].source_id
+    fake = FakeClient(
+        [
+            {"message": {"role": "assistant", "content": "It happened in 1776."}},
+            {"message": {"role": "assistant", "content": f"It happened in 1776. [source:{source_id}]"}},
+        ]
+    )
+
+    outcome = ToolCallingAssistant(
+        fake, ToolRegistry(index), pre_retrieve=True
+    ).ask("When did the event happen?")
+
+    assert outcome.answer == f"It happened in 1776. [source:{source_id}]"
+
+
+@pytest.mark.parametrize(
+    "citation",
+    ["[source:{id}]", "[source: {id}]", "[source:{id}, lines 1-1]", "[source:{id} lines 1]"],
+)
+def test_grounding_accepts_common_citation_variants(tmp_path: Path, citation: str) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "evidence.md").write_text("The event occurred in 1776.", encoding="utf-8")
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(corpus)
+    source_id = index.search("event", 1)[0].source_id
+    answer = "It happened in 1776. " + citation.format(id=source_id)
+    fake = FakeClient([{"message": {"role": "assistant", "content": answer}}])
+
+    outcome = ToolCallingAssistant(
+        fake, ToolRegistry(index), pre_retrieve=True
+    ).ask("When did the event happen?")
+
+    assert outcome.answer == answer
+    assert len(fake.requests) == 1
 
 
 def test_rag_reconsiders_model_abstention_when_retrieval_found_evidence(tmp_path: Path) -> None:

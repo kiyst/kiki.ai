@@ -102,3 +102,45 @@ refusals, zero persona leaks, eight content-signal passes, and one scope
 violation. This remains open. Recommended solutions are a stronger instruction-
 following model or a separate response verifier with bounded regeneration; do
 not hide it by weakening the case.
+
+## 2026-10-28 — RAG retrieval and grounding chunk
+
+Baseline (`eval-rag --split all --with-model`): hybrid coverage 14/15, all
+expected documents present in 13/15, answerable questions answered with valid
+citations 12/15, unsupported abstentions 3/3.
+
+### Bugs and solutions
+
+| Bug | Impact | Solution | Status |
+| --- | --- | --- | --- |
+| Project Gutenberg license header/footer indexed as evidence | The Constitution's preamble chunk was ~70% license text, so its embedding described eBook licensing | Lines outside the Gutenberg START/END markers are blanked before chunking, preserving line numbers | Fixed; regression test added |
+| Excerpts truncated to their first ~1,400 characters | Retrieved passages hid the answer (Article I §8 "borrow Money" began at character 2,046); the model abstained, saying the content was truncated | Chunks are now at most 1,400 characters, and longer excerpts are cut to the window that best matches the question | Fixed; regression test added |
+| No stemming in SQLite FTS | "borrowing" did not match "borrow" | Schema 4 uses the `porter unicode61` tokenizer; older indexes are rebuilt in place from stored chunks | Fixed; migration test added |
+| Long works crowded out short named documents | "Compare the Constitution's stated purposes…" retrieved no Constitution chunk | Documents named by distinctive title word or author surname are guaranteed one result slot | Fixed; regression test added |
+| Qwen3-Embedding queries sent without an instruction | Lower semantic recall (13/15 → 14/15 at rank 5 when added) | Queries for `qwen3-embedding*` models carry the documented retrieval instruction; documents do not | Fixed |
+| Grounding verifier rejected `[source: ID]` and `[source:ID, lines 3-9]` | Correct, cited answers were replaced by an insufficient-evidence notice | Citation IDs are parsed leniently; uncited answers get one bounded citation repair request | Fixed; tests added |
+| Model-visible evidence carried absolute paths twice per result | Wasted context, and the model pasted full Windows paths into answers | Evidence now carries `cite`, `document` (title and filename), `location`, and `excerpt` only | Fixed |
+| The model did not know which file was "the Beard history" | Abstained on a supported Beard question | Files record a title from the Gutenberg Title/Author header or Markdown H1, shown with each excerpt | Fixed; tests added |
+
+### Result
+
+Hybrid coverage 15/15 with all expected documents present in 15/15; mean
+hybrid search 0.77 s (was 1.63 s); answerable questions answered with valid
+citations 14/15; unsupported abstentions 3/3.
+
+### Known limits
+
+- `constitution_preamble` still abstains: the question's words ("purposes",
+  "preamble") never appear in the preamble, and the 0.6B embedding model ranks
+  the correct chunk outside its top 20. Not tuned away to avoid overfitting the
+  evaluation set.
+- Citation verification checks that cited IDs were retrieved, not that the
+  cited passage supports the sentence. A model can still answer from memory
+  with a valid citation.
+- RAG prompts measure ~3.2–3.6k of the 4,096-token context before generation.
+  No truncated answers were observed, but long answers are near the limit.
+  Raising `num_ctx` to 8,192 would cost roughly 1.2 GB more VRAM on the GTX 1080.
+- The eval's abstention heuristic flags some substantive answers as
+  abstentions (for example `beard_suffrage`); read answers before trusting it.
+- Semantic search scans every vector in Python on each query (~0.4 s for 2,569
+  chunks). An in-memory vector cache or numpy would be the next speedup.
