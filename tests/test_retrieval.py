@@ -3,8 +3,8 @@ from pathlib import Path
 import pytest
 from pypdf import PdfWriter
 
-from deskai.extraction import ExtractionError, extract_chunks
-from deskai.retrieval import TextIndex
+from kiki.extraction import ExtractionError, extract_chunks
+from kiki.retrieval import TextIndex
 
 
 def test_index_search_and_remove_stale_file(tmp_path: Path) -> None:
@@ -129,7 +129,7 @@ def test_search_stems_terms_and_migrates_unstemmed_index(tmp_path: Path) -> None
 def test_titles_are_backfilled_and_author_surnames_name_documents(tmp_path: Path) -> None:
     import sqlite3
 
-    from deskai.retrieval import _named_sources
+    from kiki.retrieval import _named_sources
 
     corpus = tmp_path / "corpus"
     corpus.mkdir()

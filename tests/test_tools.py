@@ -1,9 +1,9 @@
 from pathlib import Path
 import json
 
-from deskai.retrieval import TextIndex
-from deskai.permissions import DESTRUCTIVE
-from deskai.tools import SearchFilesArgs, ToolRegistry, ToolSpec
+from kiki.retrieval import TextIndex
+from kiki.permissions import DESTRUCTIVE
+from kiki.tools import SearchFilesArgs, ToolRegistry, ToolSpec
 
 
 def test_registry_rejects_unknown_tool_and_extra_arguments(tmp_path: Path) -> None:

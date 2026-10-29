@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from pypdf import PdfWriter
 
-from deskai.extraction import ExtractionError, extract_chunks
+from kiki.extraction import ExtractionError, extract_chunks
 
 
 def test_text_chunks_follow_paragraphs_and_keep_line_spans(tmp_path: Path) -> None:
@@ -51,7 +51,7 @@ def test_gutenberg_license_matter_is_not_indexed(tmp_path: Path) -> None:
 
 
 def test_document_title_reads_gutenberg_authors_and_markdown_heading(tmp_path: Path) -> None:
-    from deskai.extraction import document_title
+    from kiki.extraction import document_title
 
     book = tmp_path / "book.txt"
     book.write_text(

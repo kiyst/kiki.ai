@@ -1,13 +1,13 @@
 import json
 from pathlib import Path
 
-from deskai.coding_evals import (
+from kiki.coding_evals import (
     CodingCase,
     load_coding_cases,
     run_coding_evaluation,
     score_coding_answer,
 )
-from deskai.model_client import CHAT_SYSTEM_PROMPT
+from kiki.model_client import CHAT_SYSTEM_PROMPT
 
 
 def test_chat_prompt_explicitly_supports_programming() -> None:

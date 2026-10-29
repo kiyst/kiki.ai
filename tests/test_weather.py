@@ -5,7 +5,7 @@ from typing import Any
 import httpx
 import pytest
 
-from deskai.providers.weather import FORECAST_URL, GEOCODING_URL, OpenMeteoWeatherProvider
+from kiki.providers.weather import FORECAST_URL, GEOCODING_URL, OpenMeteoWeatherProvider
 
 
 class FakeResponse:

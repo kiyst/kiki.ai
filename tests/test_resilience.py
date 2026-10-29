@@ -1,6 +1,6 @@
 import pytest
 
-from deskai.resilience import CircuitBreaker, CircuitOpenError
+from kiki.resilience import CircuitBreaker, CircuitOpenError
 
 
 def test_circuit_breaker_opens_after_repeated_failures() -> None:

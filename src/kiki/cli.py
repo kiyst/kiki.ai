@@ -24,7 +24,7 @@ from .personality import PersonalitySettings, personality_prompt
 from .rerank import ModelReranker
 from .retrieval import TextIndex
 from .retrieval_evals import load_retrieval_cases, run_retrieval_evaluation
-from .resilience import DeskAIError, safe_error
+from .resilience import KikiError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .terminal import (
     TerminalSession,
@@ -43,14 +43,14 @@ DEFAULT_EMBEDDING_MODEL = "qwen3-embedding:0.6b"
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="deskai",
+        prog="kiki",
         description="Local conversation, grounded document Q&A, and validated tools.",
     )
     parser.add_argument(
         "--database",
         type=Path,
-        default=Path(".deskai/index.sqlite3"),
-        help="SQLite document index (default: .deskai/index.sqlite3)",
+        default=Path(".kiki/index.sqlite3"),
+        help="SQLite document index (default: .kiki/index.sqlite3)",
     )
     parser.add_argument(
         "--json",
@@ -219,7 +219,7 @@ def main() -> None:
     try:
         output, kind = _dispatch(arguments)
     except Exception as exc:
-        error = exc.payload() if isinstance(exc, DeskAIError) else safe_error(exc)
+        error = exc.payload() if isinstance(exc, KikiError) else safe_error(exc)
         if arguments.json:
             print(json.dumps(error, indent=2))
         else:

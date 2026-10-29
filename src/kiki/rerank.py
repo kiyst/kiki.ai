@@ -20,7 +20,7 @@ from dataclasses import replace
 from pathlib import Path
 from typing import Any, Protocol
 
-from .resilience import DeskAIError, ErrorCode
+from .resilience import KikiError, ErrorCode
 from .retrieval import SearchResult
 
 
@@ -106,13 +106,13 @@ def _parse_grade(response: Any) -> int:
         content = message.content if hasattr(message, "content") else message["content"]
         grade = int(str(content).strip())
     except (AttributeError, KeyError, TypeError, ValueError) as exc:
-        raise DeskAIError(
+        raise KikiError(
             "The reranker returned an unreadable grade",
             code=ErrorCode.MODEL_RESPONSE,
             retryable=True,
         ) from exc
     if grade not in (0, 1, 2, 3):
-        raise DeskAIError(
+        raise KikiError(
             "The reranker returned an out-of-range grade",
             code=ErrorCode.MODEL_RESPONSE,
             retryable=True,

@@ -1,19 +1,19 @@
 # History RAG evaluation
 
-The local `.deskai/history.sqlite3` database contains five Project Gutenberg
+The local `.kiki/history.sqlite3` database contains five Project Gutenberg
 works covering U.S. history and political thought. The corpus has 1,540 paragraph-aware chunks,
 all embedded with `qwen3-embedding:0.6b`.
 
 Run a grounded question from the repository root:
 
 ```powershell
-.\.venv\Scripts\python.exe -m deskai.cli --database .deskai\history.sqlite3 rag "Why did Paine reject hereditary succession?" --debug
+.\.venv\Scripts\python.exe -m kiki.cli --database .kiki\history.sqlite3 rag "Why did Paine reject hereditary succession?" --debug
 ```
 
 `--debug` shows the allowlisted tool calls, verified sources, and whether hybrid
 retrieval was used. Omit it for a cleaner answer.
 
-For an ongoing session, run `deskai --database .deskai\history.sqlite3`, type
+For an ongoing session, run `kiki --database .kiki\history.sqlite3 run`, type
 `/rag`, and ask the questions below. Use `/chat` when you want ordinary
 conversation without document retrieval.
 
@@ -31,5 +31,5 @@ Useful evaluation questions:
 10. What does the corpus say about nuclear deterrence? (Expected result: insufficient evidence.)
 
 The Beard history was published in 1921. Treat its framing as one historical
-interpretation and ask deskAI to distinguish it from primary sources. Retrieval
+interpretation and ask Kiki to distinguish it from primary sources. Retrieval
 can locate evidence; it does not make every source neutral, complete, or correct.

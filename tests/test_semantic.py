@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from deskai.retrieval import TextIndex
-from deskai.semantic import HybridRetriever, SemanticIndex, _query_variants
+from kiki.retrieval import TextIndex
+from kiki.semantic import HybridRetriever, SemanticIndex, _query_variants
 
 
 class FakeEmbedder:
@@ -101,7 +101,7 @@ def test_named_document_is_represented_even_when_crowded_out(tmp_path: Path) -> 
 
 
 def test_qwen3_queries_get_instruction_prefix_but_documents_do_not(tmp_path: Path) -> None:
-    from deskai.semantic import query_instruction
+    from kiki.semantic import query_instruction
 
     class RecordingEmbedder(FakeEmbedder):
         def __init__(self) -> None:

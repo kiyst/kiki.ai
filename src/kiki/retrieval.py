@@ -21,7 +21,7 @@ from .extraction import (
     document_title,
     extract_chunks,
 )
-from .resilience import DeskAIError, ErrorCode
+from .resilience import KikiError, ErrorCode
 
 
 @dataclass(frozen=True)
@@ -84,7 +84,7 @@ class TextIndex:
                     yield connection
             except sqlite3.OperationalError as exc:
                 retryable = "locked" in str(exc).casefold() or "busy" in str(exc).casefold()
-                raise DeskAIError(
+                raise KikiError(
                     "The document index is busy; try again shortly"
                     if retryable
                     else "The document index could not complete the operation",

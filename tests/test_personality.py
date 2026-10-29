@@ -1,4 +1,4 @@
-from deskai.personality import DEFAULT_PERSONA, PersonaFile, PersonalitySettings, personality_prompt
+from kiki.personality import DEFAULT_PERSONA, PersonaFile, PersonalitySettings, personality_prompt
 
 
 def test_personality_settings_persist(tmp_path) -> None:

@@ -19,7 +19,7 @@ def build_diagnostics(
     tool_catalog: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
     try:
-        package_version = version("deskai")
+        package_version = version("kiki-local")
     except PackageNotFoundError:
         package_version = "development"
     return {

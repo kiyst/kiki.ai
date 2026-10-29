@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from deskai.behavior_evals import (
+from kiki.behavior_evals import (
     BehaviorCase,
     load_behavior_cases,
     run_behavior_evaluation,

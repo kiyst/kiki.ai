@@ -6,7 +6,7 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.output import DummyOutput
 
-from deskai.input_editor import ChatInput
+from kiki.input_editor import ChatInput
 
 
 def test_editor_buffer_preserves_multiline_paste() -> None:
@@ -50,7 +50,7 @@ def test_editor_uses_persistent_history_and_completes_commands(tmp_path) -> None
 def test_plain_input_reads_piped_lines_and_signals_eof() -> None:
     import io
 
-    from deskai.input_editor import PlainInput
+    from kiki.input_editor import PlainInput
 
     echo = io.StringIO()
     reader = PlainInput(io.StringIO("/status\r\nhello"), echo)
@@ -65,7 +65,7 @@ def test_plain_input_reads_piped_lines_and_signals_eof() -> None:
 def test_non_console_streams_use_plain_input(monkeypatch) -> None:
     import io
 
-    from deskai import input_editor
+    from kiki import input_editor
 
     monkeypatch.setattr(input_editor.sys, "stdin", io.StringIO(""))
     assert isinstance(input_editor.create_chat_input(), input_editor.PlainInput)

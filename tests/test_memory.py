@@ -1,6 +1,6 @@
 import pytest
 
-from deskai.memory import MemoryStore, SensitiveMemoryError
+from kiki.memory import MemoryStore, SensitiveMemoryError
 
 
 def test_memory_round_trip_and_forget(tmp_path) -> None:

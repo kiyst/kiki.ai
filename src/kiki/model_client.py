@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from time import sleep
 from typing import Any, Protocol
 
-from .resilience import DeskAIError, ErrorCode
+from .resilience import KikiError, ErrorCode
 from .tools import ToolRegistry
 
 
@@ -117,7 +117,7 @@ class OllamaClient:
                     last_error = exc
                     if attempt + 1 < self.max_attempts:
                         sleep(0.25 * (2**attempt))
-        raise DeskAIError(
+        raise KikiError(
             "The local language model is unavailable",
             code=ErrorCode.SERVICE_UNAVAILABLE,
             retryable=True,
@@ -273,7 +273,7 @@ class ToolCallingAssistant:
                 try:
                     name, arguments = _tool_call(call)
                     result = self.registry.call(name, arguments)
-                except DeskAIError as exc:
+                except KikiError as exc:
                     name, arguments = "malformed_tool_call", {}
                     result = exc.payload()
                 if name == "search_files":
@@ -326,7 +326,7 @@ def _message_dict(response: Any) -> dict[str, Any]:
     try:
         message = response.message if hasattr(response, "message") else response["message"]
     except (KeyError, TypeError, AttributeError) as exc:
-        raise DeskAIError(
+        raise KikiError(
             "Ollama returned a response without an assistant message",
             code=ErrorCode.MODEL_RESPONSE,
             retryable=True,
@@ -336,19 +336,19 @@ def _message_dict(response: Any) -> dict[str, Any]:
     try:
         result = dict(message)
     except (TypeError, ValueError) as exc:
-        raise DeskAIError(
+        raise KikiError(
             "Ollama returned a malformed assistant message",
             code=ErrorCode.MODEL_RESPONSE,
             retryable=True,
         ) from exc
     if result.get("tool_calls") is not None and not isinstance(result["tool_calls"], list):
-        raise DeskAIError(
+        raise KikiError(
             "Ollama returned malformed tool calls",
             code=ErrorCode.MODEL_RESPONSE,
             retryable=True,
         )
     if result.get("content") is not None and not isinstance(result["content"], str):
-        raise DeskAIError(
+        raise KikiError(
             "Ollama returned non-text assistant content",
             code=ErrorCode.MODEL_RESPONSE,
             retryable=True,
@@ -362,12 +362,12 @@ def _tool_call(call: Any) -> tuple[str, dict[str, Any]]:
         name = function.name if hasattr(function, "name") else function["name"]
         arguments = function.arguments if hasattr(function, "arguments") else function.get("arguments", {})
     except (KeyError, TypeError, AttributeError) as exc:
-        raise DeskAIError(
+        raise KikiError(
             "The model emitted a malformed tool call",
             code=ErrorCode.TOOL_CALL_FORMAT,
         ) from exc
     if not isinstance(name, str) or not name.strip():
-        raise DeskAIError(
+        raise KikiError(
             "The model emitted a tool call without a name",
             code=ErrorCode.TOOL_CALL_FORMAT,
         )
@@ -375,12 +375,12 @@ def _tool_call(call: Any) -> tuple[str, dict[str, Any]]:
         try:
             arguments = json.loads(arguments)
         except json.JSONDecodeError as exc:
-            raise DeskAIError(
+            raise KikiError(
                 "The model emitted invalid JSON tool arguments",
                 code=ErrorCode.TOOL_CALL_FORMAT,
             ) from exc
     if not isinstance(arguments, dict):
-        raise DeskAIError(
+        raise KikiError(
             "The model's tool arguments were not an object",
             code=ErrorCode.TOOL_CALL_FORMAT,
         )

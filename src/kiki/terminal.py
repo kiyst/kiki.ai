@@ -31,7 +31,7 @@ from .providers.weather import GEOCODING_URL, OpenMeteoWeatherProvider
 from .personality import PRESETS, PersonaFile, PersonalitySettings, personality_prompt
 from .rerank import ModelReranker
 from .retrieval import SearchResult, TextIndex
-from .resilience import DeskAIError, safe_error
+from .resilience import KikiError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .self_knowledge import COMMAND_HELP, capabilities_text, self_knowledge_prompt
 from .tools import ToolRegistry
@@ -414,7 +414,7 @@ def run_shell(
                 debug=session.debug,
             )
         except Exception as exc:  # terminal boundary: preserve session after provider/model errors
-            error = exc.payload() if isinstance(exc, DeskAIError) else safe_error(exc)
+            error = exc.payload() if isinstance(exc, KikiError) else safe_error(exc)
             message = f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}"
             console.print(Panel(message, title="Request failed", border_style="red"))
 

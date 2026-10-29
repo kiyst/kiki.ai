@@ -1,6 +1,6 @@
 # Kiki
 
-*A small, honest assistant that lives on your own machine.* (Python package and repository code name: `deskai`.)
+*A small, honest assistant that lives on your own machine.*
 
 Kiki is a terminal assistant that runs entirely on local models through
 [Ollama](https://ollama.com). She can hold an ordinary conversation, help with
@@ -148,7 +148,7 @@ You start in **CHAT**. Type `/rag` to ask your documents and `/chat` to switch
 back. To use a specific document library:
 
 ```powershell
-kiki --database .deskai\history.sqlite3 run
+kiki --database .kiki\history.sqlite3 run
 ```
 
 ### Commands inside Kiki
@@ -204,9 +204,9 @@ kiki --json rag "Why is the judiciary the least dangerous branch?"
 Point Kiki at a folder, then create the meaning-based search vectors:
 
 ```powershell
-kiki --database .deskai\notes.sqlite3 index C:\path\to\your\notes
-kiki --database .deskai\notes.sqlite3 embed
-kiki --database .deskai\notes.sqlite3 run
+kiki --database .kiki\notes.sqlite3 index C:\path\to\your\notes
+kiki --database .kiki\notes.sqlite3 embed
+kiki --database .kiki\notes.sqlite3 run
 ```
 
 - Text and Markdown cite line numbers; PDFs cite pages.
@@ -226,7 +226,7 @@ links in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) into
 
 | Setting | Where | Purpose |
 | --- | --- | --- |
-| `--database PATH` | command line | Which document library to use (default `.deskai/index.sqlite3`) |
+| `--database PATH` | command line | Which document library to use (default `.kiki/index.sqlite3`) |
 | `--no-rerank` | command line, before the command | Skip the grading step: about 7 s faster, less precise |
 | `--model NAME` | command line | Main generation model (default `qwen3:4b-instruct`) |
 | `KIKI_MODEL_FAST` / `_SMART` / `_MAX` | environment | Models for each profile; `AUTO` uses FAST for chat and SMART for code and documents |
@@ -288,7 +288,7 @@ The full picture, including suggestions and constraints, is in
 ## Project layout
 
 ```text
-src/deskai/
+src/kiki/
   terminal.py        the interactive Kiki session and slash commands
   cli.py             one-off commands and evaluations
   model_client.py    the answer loop, citation checks, evidence trimming
@@ -309,10 +309,10 @@ tests/               110 automated tests, no network or models required
 
 ```powershell
 pytest                                   # fast, offline
-kiki --database .deskai\history.sqlite3 eval-retrieval   # passage ranking
-kiki --database .deskai\history.sqlite3 eval-rag --with-model
-kiki --database .deskai\history.sqlite3 eval-behavior    # refusals, tone, scope
-kiki --database .deskai\history.sqlite3 eval-chat        # coding questions
+kiki --database .kiki\history.sqlite3 eval-retrieval   # passage ranking
+kiki --database .kiki\history.sqlite3 eval-rag --with-model
+kiki --database .kiki\history.sqlite3 eval-behavior    # refusals, tone, scope
+kiki --database .kiki\history.sqlite3 eval-chat        # coding questions
 ```
 
 Evaluation results are written to the ignored `evals/results/` folder.

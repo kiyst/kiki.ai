@@ -1,4 +1,4 @@
-from deskai.capabilities import Capability, route_prompt
+from kiki.capabilities import Capability, route_prompt
 
 
 def test_router_recognizes_code_rag_weather_and_chat() -> None:

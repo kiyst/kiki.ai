@@ -1,5 +1,5 @@
-from deskai.capabilities import Capability
-from deskai.models import ModelRouter
+from kiki.capabilities import Capability
+from kiki.models import ModelRouter
 
 
 def test_auto_model_profile_routes_stronger_tasks(monkeypatch) -> None:

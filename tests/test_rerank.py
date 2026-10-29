@@ -3,11 +3,11 @@ from typing import Any
 
 import pytest
 
-from deskai.rerank import ModelReranker
-from deskai.resilience import DeskAIError
-from deskai.retrieval import SearchResult, TextIndex
-from deskai.retrieval_evals import EvidenceGroup, RetrievalCase, score_case
-from deskai.semantic import HybridRetriever, SemanticIndex
+from kiki.rerank import ModelReranker
+from kiki.resilience import KikiError
+from kiki.retrieval import SearchResult, TextIndex
+from kiki.retrieval_evals import EvidenceGroup, RetrievalCase, score_case
+from kiki.semantic import HybridRetriever, SemanticIndex
 
 
 def result(name: str, excerpt: str, start: int = 1) -> SearchResult:
@@ -65,7 +65,7 @@ def test_rerank_rejects_unreadable_or_out_of_range_grades(content: str) -> None:
         def chat(self, **kwargs: Any) -> dict[str, Any]:
             return {"message": {"content": content}}
 
-    with pytest.raises(DeskAIError):
+    with pytest.raises(KikiError):
         ModelReranker(BadClient()).rerank("question?", [result("a", "text")])
 
 
@@ -105,7 +105,7 @@ def test_hybrid_rerank_promotes_answer_and_keeps_named_document_slot(tmp_path: P
 def test_hybrid_falls_back_to_fused_order_when_reranker_fails(tmp_path: Path) -> None:
     class DownClient:
         def chat(self, **kwargs: Any) -> Any:
-            raise DeskAIError("The local language model is unavailable")
+            raise KikiError("The local language model is unavailable")
 
     index, semantic = _indexed(tmp_path)
     retriever = HybridRetriever(index, semantic, ModelReranker(DownClient()))

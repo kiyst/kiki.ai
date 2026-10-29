@@ -3,16 +3,16 @@ from typing import Any
 
 import pytest
 
-from deskai.model_client import (
+from kiki.model_client import (
     ToolCallingAssistant,
     ToolLoopLimitError,
     _bounded_search_result,
     _message_dict,
     _tool_call,
 )
-from deskai.retrieval import TextIndex
-from deskai.resilience import DeskAIError
-from deskai.tools import ToolRegistry
+from kiki.retrieval import TextIndex
+from kiki.resilience import KikiError
+from kiki.tools import ToolRegistry
 
 
 class FakeClient:
@@ -194,19 +194,19 @@ def test_string_encoded_tool_arguments_are_parsed() -> None:
 
 
 def test_malformed_tool_call_is_classified() -> None:
-    with pytest.raises(DeskAIError) as caught:
+    with pytest.raises(KikiError) as caught:
         _tool_call({"wrong": "shape"})
 
     assert caught.value.code == "tool_call_format"
 
 
 def test_malformed_model_response_is_classified() -> None:
-    with pytest.raises(DeskAIError) as caught:
+    with pytest.raises(KikiError) as caught:
         _message_dict({"not_message": {}})
 
     assert caught.value.code == "model_response"
 
-    with pytest.raises(DeskAIError):
+    with pytest.raises(KikiError):
         _message_dict({"message": {"role": "assistant", "content": 42}})
 
 

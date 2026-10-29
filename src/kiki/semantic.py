@@ -8,7 +8,7 @@ from dataclasses import replace
 from time import sleep
 from typing import Any, Protocol
 
-from .resilience import DeskAIError, ErrorCode
+from .resilience import KikiError, ErrorCode
 
 from .rerank import ModelReranker
 from .retrieval import SearchResult, TextIndex
@@ -37,18 +37,18 @@ class OllamaEmbeddingClient:
                 response = self.client.embed(model=model, input=texts)
                 vectors = getattr(response, "embeddings", None)
                 if not isinstance(vectors, (list, tuple)):
-                    raise DeskAIError(
+                    raise KikiError(
                         "Ollama returned a malformed embedding response",
                         code=ErrorCode.MODEL_RESPONSE,
                     )
                 return [list(vector) for vector in vectors]
-            except DeskAIError:
+            except KikiError:
                 raise
             except Exception as exc:
                 last_error = exc
                 if attempt + 1 < self.max_attempts:
                     sleep(0.2 * (2**attempt))
-        raise DeskAIError(
+        raise KikiError(
             "The embedding model is unavailable",
             code=ErrorCode.SERVICE_UNAVAILABLE,
             retryable=True,

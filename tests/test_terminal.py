@@ -1,4 +1,4 @@
-from deskai.terminal import (
+from kiki.terminal import (
     TerminalSession,
     _browse_path,
     _handle_command,
@@ -7,7 +7,7 @@ from deskai.terminal import (
     _weather_answer,
     _weather_location_from_prompt,
 )
-from deskai.model_client import ChatOutcome
+from kiki.model_client import ChatOutcome
 from rich.console import Console
 
 
@@ -131,7 +131,7 @@ def test_retry_copy_sources_and_transcript_workflow(tmp_path, monkeypatch) -> No
     session._remember("Original prompt", outcome, "none")
     console = Console(record=True, width=100)
     copied: list[str] = []
-    monkeypatch.setattr("deskai.terminal.pyperclip.copy", copied.append)
+    monkeypatch.setattr("kiki.terminal.pyperclip.copy", copied.append)
 
     _handle_command(console, session, "/copy")
     _handle_command(console, session, "/sources")
@@ -260,16 +260,16 @@ def test_remember_keeps_text_verbatim(tmp_path, monkeypatch) -> None:
     session = TerminalSession(tmp_path / "index.sqlite3")
     monkeypatch.setattr(session.memory, "path", tmp_path / "kiki-memory.md")
 
-    _handle_command(Console(record=True), session, "/remember Use C:\work for scratch files")
+    _handle_command(Console(record=True), session, r"/remember Use C:\work for scratch files")
 
-    assert session.memory.notes() == ["Use C:\work for scratch files"]
+    assert session.memory.notes() == [r"Use C:\work for scratch files"]
 
 
 def test_answer_panels_are_titled_kiki() -> None:
-    from deskai.terminal import render_outcome
+    from kiki.terminal import render_outcome
 
     console = Console(record=True, width=80)
     render_outcome(console, ChatOutcome("Hello.", [], []), mode="chat", retrieval_mode="none")
 
     rendered = console.export_text()
-    assert "Kiki · Chat" in rendered and "deskAI" not in rendered
+    assert "Kiki · Chat" in rendered

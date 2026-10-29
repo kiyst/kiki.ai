@@ -28,7 +28,7 @@ book.
 | `/forget 2026` did nothing when there were fewer than 2,026 notes | Falls back to matching the text |
 | `/forget 3` removed every copy of a duplicated note | Removes only that entry |
 | The folder browser could loop forever on an unreadable drive | It gives up cleanly |
-| The terminal said "deskAI" | It says "Kiki" |
+| The terminal used an older project name | It now says "Kiki" consistently |
 
 ### Document search
 
@@ -168,7 +168,7 @@ live sessions.
 
 ## Housekeeping
 
-- The pre-upgrade search library is kept at `.deskai/history.pre-v4.sqlite3`
+- The pre-upgrade search library is kept at `.kiki/history.pre-v4.sqlite3`
   (not tracked by git) and can be deleted once the new one has proven itself.
 - Older libraries upgrade their search tables and titles automatically when
   opened. Run `index` and then `embed` again to get the shorter passages.

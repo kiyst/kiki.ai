@@ -1,5 +1,21 @@
 # Kiki engineering log
 
+## 2026-10-28 — Complete Kiki namespace and data-path migration
+
+- Renamed the Python package from its prototype namespace to `kiki`.
+- Renamed the installed distribution to `kiki-local`; `kiki` is now the only
+  console command.
+- Moved runtime databases and configuration into `.kiki` and changed the
+  default database to `.kiki/index.sqlite3`.
+- Changed internal error names and the weather provider's user-agent branding.
+- Made the portable `kiki.cmd` launcher resolve both the environment and data
+  directory relative to its own location instead of embedding an absolute path.
+- Added regression coverage for the CLI name, default path, and product text.
+
+The outer checkout directory is controlled by the development workspace rather
+than the application and is deliberately not renamed while an active workspace
+is attached.
+
 This is the human-review record for architectural decisions, known bugs,
 proposals, and verified solutions. Capri is used only as a behavioral reference;
 its PolyForm Noncommercial source and assets are not copied.

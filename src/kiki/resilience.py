@@ -20,7 +20,7 @@ class ErrorCode(StrEnum):
     INTERNAL_ERROR = "internal_error"
 
 
-class DeskAIError(RuntimeError):
+class KikiError(RuntimeError):
     def __init__(
         self,
         message: str,
@@ -46,7 +46,7 @@ class DeskAIError(RuntimeError):
         }
 
 
-class CircuitOpenError(DeskAIError):
+class CircuitOpenError(KikiError):
     def __init__(self, service: str) -> None:
         super().__init__(
             f"{service} is temporarily paused after repeated failures; try again shortly",
@@ -91,15 +91,15 @@ class CircuitBreaker:
 
 
 def safe_error(exc: Exception) -> dict[str, Any]:
-    if isinstance(exc, DeskAIError):
+    if isinstance(exc, KikiError):
         return exc.payload()
     if isinstance(exc, ValueError):
-        error = DeskAIError(
+        error = KikiError(
             str(exc), code=ErrorCode.INVALID_REQUEST, retryable=False
         )
         return error.payload()
     if isinstance(exc, OSError):
-        error = DeskAIError(
+        error = KikiError(
             str(exc), code=ErrorCode.SERVICE_UNAVAILABLE, retryable=True
         )
         return error.payload()

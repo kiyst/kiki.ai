@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from deskai.evals import EvalCase, _looks_like_abstention, run_evaluation
-from deskai.retrieval import SearchResult
+from kiki.evals import EvalCase, _looks_like_abstention, run_evaluation
+from kiki.retrieval import SearchResult
 
 
 class FakeSearch:

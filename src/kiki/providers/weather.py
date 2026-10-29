@@ -8,7 +8,7 @@ from typing import Any, Callable, Protocol
 
 import httpx
 
-from ..resilience import CircuitBreaker, DeskAIError, ErrorCode
+from ..resilience import CircuitBreaker, KikiError, ErrorCode
 
 
 GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
@@ -64,7 +64,7 @@ class OpenMeteoWeatherProvider:
     ) -> None:
         self.client = client or httpx.Client(
             timeout=10,
-            headers={"User-Agent": "deskAI/0.1 (local personal assistant)"},
+            headers={"User-Agent": "Kiki/0.1 (local personal assistant)"},
         )
         self.cache_seconds = cache_seconds
         self.stale_seconds = max(stale_seconds, cache_seconds)
@@ -120,7 +120,7 @@ class OpenMeteoWeatherProvider:
             }
             self._cache[key] = (monotonic(), result)
             return result
-        except (DeskAIError, OSError, ValueError):
+        except (KikiError, OSError, ValueError):
             if cached and monotonic() - cached[0] <= self.stale_seconds:
                 return {
                     **cached[1],
@@ -168,7 +168,7 @@ class OpenMeteoWeatherProvider:
         current = payload.get("current")
         daily = payload.get("daily")
         if not isinstance(current, dict) or not isinstance(daily, dict):
-            raise DeskAIError(
+            raise KikiError(
                 "Open-Meteo returned an incomplete forecast",
                 code=ErrorCode.PROVIDER_RESPONSE,
             )
@@ -220,12 +220,12 @@ class OpenMeteoWeatherProvider:
                 response.raise_for_status()
                 payload = response.json()
                 if not isinstance(payload, dict):
-                    raise DeskAIError(
+                    raise KikiError(
                         "Open-Meteo returned a malformed response",
                         code=ErrorCode.PROVIDER_RESPONSE,
                     )
                 if payload.get("error"):
-                    raise DeskAIError(
+                    raise KikiError(
                         str(payload.get("reason", "Provider rejected the request")),
                         code=ErrorCode.PROVIDER_RESPONSE,
                     )
@@ -237,12 +237,12 @@ class OpenMeteoWeatherProvider:
                 status = exc.response.status_code
                 if status not in {408, 429, 500, 502, 503, 504}:
                     self.circuit_breaker.failure()
-                    raise DeskAIError(
+                    raise KikiError(
                         f"Open-Meteo rejected the request (HTTP {status})",
                         code=ErrorCode.PROVIDER_RESPONSE,
                     ) from exc
                 last_error = exc
-            except DeskAIError:
+            except KikiError:
                 self.circuit_breaker.failure()
                 raise
             if attempt + 1 < self.max_attempts:
@@ -256,7 +256,7 @@ class OpenMeteoWeatherProvider:
             if isinstance(last_error, httpx.TimeoutException)
             else ErrorCode.SERVICE_UNAVAILABLE
         )
-        raise DeskAIError(
+        raise KikiError(
             "Open-Meteo timed out or could not be reached",
             code=code,
             retryable=True,
@@ -328,7 +328,7 @@ def _location_choice(location: dict[str, Any]) -> dict[str, Any]:
 def _number(mapping: dict[str, Any], key: str) -> float:
     value = mapping.get(key)
     if not isinstance(value, (int, float)):
-        raise DeskAIError(
+        raise KikiError(
             f"Open-Meteo response omitted {key}",
             code=ErrorCode.PROVIDER_RESPONSE,
         )
@@ -338,7 +338,7 @@ def _number(mapping: dict[str, Any], key: str) -> float:
 def _list(mapping: dict[str, Any], key: str) -> list[Any]:
     value = mapping.get(key)
     if not isinstance(value, list):
-        raise DeskAIError(
+        raise KikiError(
             f"Open-Meteo response omitted {key}",
             code=ErrorCode.PROVIDER_RESPONSE,
         )
