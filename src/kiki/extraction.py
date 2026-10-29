@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+from .pdf_chunking import chunk_pages
+
 
 TEXT_EXTENSIONS = {
     ".txt", ".md", ".markdown", ".py", ".js", ".ts", ".tsx",
@@ -12,6 +14,9 @@ TEXT_EXTENSIONS = {
 }
 SUPPORTED_EXTENSIONS = TEXT_EXTENSIONS | {".pdf"}
 EXTRACTION_VERSION = "paragraph-v3"
+# Versioned separately so a PDF chunking change re-extracts only PDFs; text
+# files keep their source IDs and embeddings.
+PDF_EXTRACTION_VERSION = "pdf-continuous-v1"
 # Roughly what the RAG evidence budget shows the model per result, so retrieved
 # chunks are seen whole and embeddings stay focused on one passage.
 TEXT_CHUNK_CHARACTERS = 1_400
@@ -27,6 +32,10 @@ class ExtractedChunk:
 
 class ExtractionError(Exception):
     """A document could not be converted to searchable text."""
+
+
+def extraction_version(path: Path) -> str:
+    return PDF_EXTRACTION_VERSION if path.suffix.lower() == ".pdf" else EXTRACTION_VERSION
 
 
 def extract_chunks(path: Path) -> list[ExtractedChunk]:
@@ -160,6 +169,11 @@ def _text_chunk(blocks: list[tuple[int, int, str]]) -> ExtractedChunk:
 
 
 def _extract_pdf(path: Path) -> Iterable[ExtractedChunk]:
+    """Passages that may continue across page breaks, with start and end pages.
+
+    Blank and image-only pages contribute nothing; a page whose text cannot be
+    extracted is skipped so the rest of a partly damaged PDF stays searchable.
+    """
     try:
         from pypdf import PdfReader
         from pypdf.errors import PdfReadError
@@ -170,28 +184,19 @@ def _extract_pdf(path: Path) -> Iterable[ExtractedChunk]:
         reader = PdfReader(path, strict=False)
         if reader.is_encrypted:
             raise ExtractionError("PDF is encrypted")
-        found_text = False
+        pages: list[tuple[int, str]] = []
         for page_number, page in enumerate(reader.pages, start=1):
-            text = (page.extract_text() or "").strip()
+            try:
+                text = (page.extract_text() or "").strip()
+            except Exception:  # noqa: BLE001 - pypdf raises many types on damaged pages
+                continue
             if text:
-                found_text = True
-                for passage in _bounded_passages(text):
-                    yield ExtractedChunk("page", page_number, page_number, passage)
-        if not found_text:
-            raise ExtractionError("PDF has no extractable text; OCR is not enabled")
+                pages.append((page_number, text))
     except ExtractionError:
         raise
     except (PdfReadError, OSError, ValueError) as exc:
         raise ExtractionError(f"PDF could not be read: {type(exc).__name__}") from exc
-
-
-def _bounded_passages(text: str, max_characters: int = 4_000, overlap: int = 400) -> Iterable[str]:
-    if len(text) <= max_characters:
-        yield text
-        return
-    step = max_characters - overlap
-    for offset in range(0, len(text), step):
-        passage = text[offset : offset + max_characters].strip()
-        if passage:
-            yield passage
-
+    if not pages:
+        raise ExtractionError("PDF has no extractable text; OCR is not enabled")
+    for chunk in chunk_pages(pages, TEXT_CHUNK_CHARACTERS):
+        yield ExtractedChunk("page", chunk.start_page, chunk.end_page, chunk.text)

@@ -14,7 +14,7 @@ from collections.abc import Collection
 from typing import Iterator
 
 from .extraction import (
-    EXTRACTION_VERSION,
+    extraction_version,
     SUPPORTED_EXTENSIONS,
     ExtractedChunk,
     ExtractionError,
@@ -305,7 +305,8 @@ class TextIndex:
 
     def _replace_file(self, connection: sqlite3.Connection, root: Path, path: Path) -> bool:
         data = path.read_bytes()
-        digest = hashlib.sha256(data + b"\0" + EXTRACTION_VERSION.encode("ascii")).hexdigest()
+        version = extraction_version(path).encode("ascii")
+        digest = hashlib.sha256(data + b"\0" + version).hexdigest()
         existing = connection.execute(
             "SELECT source_id, content_hash FROM files WHERE path = ?", (str(path),)
         ).fetchone()

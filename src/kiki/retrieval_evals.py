@@ -24,7 +24,7 @@ import httpx
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from .extraction import EXTRACTION_VERSION
+from .extraction import EXTRACTION_VERSION, PDF_EXTRACTION_VERSION
 from .retrieval import SearchResult
 
 
@@ -192,7 +192,7 @@ def _database_identity(database: Path) -> dict[str, Any]:
         "files": len(files),
         "chunks": chunks,
         "embeddings": dict(embeddings),
-        "extraction_version": EXTRACTION_VERSION,
+        "extraction_version": {"text": EXTRACTION_VERSION, "pdf": PDF_EXTRACTION_VERSION},
     }
 
 

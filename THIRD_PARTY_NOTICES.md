@@ -47,3 +47,43 @@ the required attribution in terminal output. Use is subject to Open-Meteo's
 [terms](https://open-meteo.com/en/terms); data is fetched at request time and is
 not included in this repository.
 
+
+## Adapted source code
+
+| Project | Commit | Files | Used in | License |
+| --- | --- | --- | --- | --- |
+| [rhenryliu/zotero-rag](https://github.com/rhenryliu/zotero-rag) | `a9f308d27d6074c3a8c0478af23787ae4251acd1` | `rag/chunking.py` (`chunk_document`, `_hard_split`) | `src/kiki/pdf_chunking.py` | MIT |
+
+What was adapted: the page-tagged paragraph stream, character-budget packing,
+and sentence-boundary splitting of oversized paragraphs. Kiki changed overlap
+(whole paragraph with its own pages instead of a character tail credited to the
+next page), added cross-page sentence joining, per-offset page maps for split
+pieces, and running header/footer removal. Zotero RAG's `rag/reranking.py`
+was studied for design only (fallback to retrieval order, calibrated score
+bands); none of its code is included.
+
+The license of the adapted code:
+
+```text
+MIT License
+
+Copyright (c) 2026 R. Henry Liu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
