@@ -1,0 +1,119 @@
+{
+  "recorded": "2026-10-29",
+  "git_commit": "0e74d0601f5b",
+  "working_tree": "clean except untracked docs/RAG_PIPELINE_HANDOFF.md (documentation only)",
+  "command": "kiki --database .kiki/history.sqlite3 eval-retrieval --output evals/results/rag-milestone/00-baseline-retrieval.json",
+  "database": {
+    "path": ".kiki/history.sqlite3",
+    "files": 6,
+    "chunks": 2569,
+    "embeddings": 2569,
+    "corpus_identity": "2161829777560d6b",
+    "documents": [
+      "CORPUS.md",
+      "common_sense.txt",
+      "declaration_of_independence.txt",
+      "federalist_papers.txt",
+      "history_of_the_united_states.txt",
+      "united_states_constitution.txt"
+    ]
+  },
+  "models": {
+    "generation": "qwen3:4b-instruct",
+    "embedding": "qwen3-embedding:0.6b",
+    "reranker": "grader (qwen3:4b-instruct, 0-3 pointwise)",
+    "ollama_version": "0.40.12",
+    "digests": {
+      "qwen3:4b-instruct": "0edcdef34593",
+      "qwen3-embedding:0.6b": "ac6da0dfba84"
+    }
+  },
+  "retrieval_settings": {
+    "candidates": 20,
+    "passages_k": 5,
+    "rerank": "grader",
+    "context_characters": 7000,
+    "fusion": "RRF k=60, 20 per list"
+  },
+  "gpu_snapshot_after_run": "NVIDIA GeForce GTX 1080, 582.28, 2534 MiB, 8192 MiB",
+  "peak_vram": "not measured for this run (no sampler existed at the baseline commit)",
+  "wall_clock_seconds": 200.4,
+  "summary": {
+    "lexical/development": {
+      "cases": 11,
+      "hit_at_1": 1,
+      "full_at_k": 5,
+      "mrr": 0.208,
+      "mean_ms": 116.1
+    },
+    "lexical/holdout": {
+      "cases": 14,
+      "hit_at_1": 1,
+      "full_at_k": 5,
+      "mrr": 0.196,
+      "mean_ms": 11.8
+    },
+    "lexical/all": {
+      "cases": 25,
+      "hit_at_1": 2,
+      "full_at_k": 10,
+      "mrr": 0.201,
+      "mean_ms": 57.7
+    },
+    "hybrid/development": {
+      "cases": 11,
+      "hit_at_1": 2,
+      "full_at_k": 10,
+      "mrr": 0.462,
+      "mean_ms": 1480.7
+    },
+    "hybrid/holdout": {
+      "cases": 14,
+      "hit_at_1": 4,
+      "full_at_k": 6,
+      "mrr": 0.36,
+      "mean_ms": 740.1
+    },
+    "hybrid/all": {
+      "cases": 25,
+      "hit_at_1": 6,
+      "full_at_k": 16,
+      "mrr": 0.405,
+      "mean_ms": 1066.0
+    },
+    "rerank/development": {
+      "cases": 11,
+      "hit_at_1": 7,
+      "full_at_k": 11,
+      "mrr": 0.765,
+      "mean_ms": 6910.9
+    },
+    "rerank/holdout": {
+      "cases": 14,
+      "hit_at_1": 8,
+      "full_at_k": 11,
+      "mrr": 0.696,
+      "mean_ms": 6684.9
+    },
+    "rerank/all": {
+      "cases": 25,
+      "hit_at_1": 15,
+      "full_at_k": 22,
+      "mrr": 0.727,
+      "mean_ms": 6784.4
+    }
+  },
+  "historical_comparison": {
+    "handoff_table_holdout_full_at_5": {
+      "lexical": "5/14",
+      "hybrid": "6/14",
+      "rerank": "11/14"
+    },
+    "this_run_holdout_full_at_5": {
+      "lexical": "5/14",
+      "hybrid": "6/14",
+      "rerank": "11/14"
+    },
+    "difference": "none"
+  }
+}

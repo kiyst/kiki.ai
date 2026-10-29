@@ -221,3 +221,29 @@ valid citations (was 14/15), 3/3 unsupported questions abstained.
 - Attribution and embellishment are not verified. Live answers credited the
   Federalist Papers with points from a cited Beard passage and added veto and
   judicial-review details absent from the excerpts while citing valid IDs.
+
+## RAG pipeline milestone, stage 0: frozen baseline
+
+```text
+Date: 2026-10-29
+Stage: 0 (baseline before any change; docs/RAG_PIPELINE_HANDOFF.md)
+Commit before change: 0e74d06
+Files changed: docs/RAG_PIPELINE_HANDOFF.md (added), evals/receipts/rag-milestone/00-*
+Behavior changed: none
+Tests/evaluations run: kiki eval-retrieval (all 25 cases, lexical/hybrid/rerank, k=5)
+Result: holdout full-evidence@5 lexical 5/14, hybrid 6/14, rerank 11/14;
+        hit@1 1/14, 4/14, 8/14; MRR 0.196, 0.360, 0.696;
+        rerank mean 6.7 s per query (hybrid 0.74 s). Matches the historical
+        table exactly; no environmental difference to explain.
+Known bugs: as listed in the previous entry (beard_trusts, articles_weaknesses
+        recall-limited; compare_preamble_grievances ranking).
+Decision or proposal: receipts for this milestone live in evals/receipts/
+        (evals/results/ is gitignored). Peak VRAM was not sampled for the
+        baseline; later stages add a sampler.
+Human review needed: none for this stage.
+```
+
+Corpus identity `2161829777560d6b` (6 files, 2,569 passages, all embedded);
+Ollama 0.40.12; model digests `qwen3:4b-instruct` 0edcdef34593,
+`qwen3-embedding:0.6b` ac6da0dfba84. Full metadata:
+`evals/receipts/rag-milestone/00-baseline-environment.json`.
