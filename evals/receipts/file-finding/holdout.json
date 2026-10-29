@@ -58,7 +58,7 @@
   "stale_returned": 0,
   "dependency_returned": 0,
   "invalid_paths": 0,
-  "slowest_seconds": 0.0515,
+  "slowest_seconds": 0.0055,
   "failures": [],
   "label_counts": {
     "Likely": 65,

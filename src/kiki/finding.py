@@ -7,9 +7,11 @@ word is. Read-only: nothing here opens, moves, or changes a file.
 from __future__ import annotations
 
 import math
+import os
 import re
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime, timedelta
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -191,6 +193,7 @@ def query_words(text: str) -> list[str]:
     return list(dict.fromkeys(useful))
 
 
+@lru_cache(maxsize=65_536)
 def _stem(word: str) -> str:
     for suffix, replacement in (("ies", "y"), ("ing", ""), ("ed", ""), ("es", ""), ("s", "")):
         if word.endswith(suffix) and len(word) - len(suffix) >= 3:
@@ -242,8 +245,7 @@ class FileFinder:
 
         contents = self.index.content_matches(words) if words else {}
         places = {
-            entry["path"]: [_best_field(word, entry, folder, contents) for word in words]
-            for entry, folder in prepared
+            entry["path"]: _places(words, entry, folder, contents) for entry, folder in prepared
         }
         # Inverse document frequency: a word most files share says little
         # about which file is meant.
@@ -310,21 +312,35 @@ class FileFinder:
 
 
 
-def _best_field(
-    word: str, entry: dict[str, Any], folder: str, contents: dict[str, dict[str, float]]
-) -> str | None:
-    """The strongest place a query word appears for this file, if any."""
-    if _hits(word, _split_words(Path(entry["name"]).stem)):
-        return "name"
-    if entry["title"] and _hits(word, _split_words(entry["title"])):
-        return "title"
-    if folder and _hits(word, _split_words(folder)):
-        return "folder"
-    if entry["extension"] in _TYPE_WORDS.get(word, set()) or entry["extension"] == f".{word}":
-        return "type"
-    if entry["path"] in contents.get(word, {}):
-        return "contents"
-    return None
+def _places(
+    words: list[str], entry: dict[str, Any], folder: str, contents: dict[str, dict[str, float]]
+) -> list[str | None]:
+    """The strongest place each query word appears for this file, if any.
+
+    Every way `_hits` can match shares the word's first three letters, so a
+    name, title, or folder without them is skipped before splitting it into
+    words: on a 50,000-file catalog almost every file is.
+    """
+    haystack = f"{entry['name']}\n{entry['title'] or ''}\n{folder}".casefold()
+    fields: list[tuple[str, list[str]]] | None = None
+    found: list[str | None] = []
+    for word in words:
+        place = None
+        if word[:3] in haystack:
+            if fields is None:
+                fields = [
+                    ("name", _split_words(entry["name"].rsplit(".", 1)[0] if entry["extension"] else entry["name"])),
+                    ("title", _split_words(entry["title"] or "")),
+                    ("folder", _split_words(folder)),
+                ]
+            place = next((field for field, split in fields if _hits(word, split)), None)
+        if place is None:
+            if entry["extension"] in _TYPE_WORDS.get(word, ()) or entry["extension"] == f".{word}":
+                place = "type"
+            elif entry["path"] in contents.get(word, {}):
+                place = "contents"
+        found.append(place)
+    return found
 
 
 _LEVELS = ("Weak match", "Possible", "Likely")
@@ -355,11 +371,12 @@ def _label(
 
 
 def _relative_folder(path: str, root: str) -> str:
-    try:
-        relative = Path(path).parent.relative_to(root)
-    except ValueError:
-        return str(Path(path).parent)
-    return "" if str(relative) == "." else str(relative)
+    # String operations: Path objects cost seconds across a large catalog.
+    parent = os.path.dirname(path)
+    prefix = root if root.endswith(os.sep) else root + os.sep
+    if parent == root.rstrip(os.sep):
+        return ""
+    return parent[len(prefix):] if parent.startswith(prefix) else parent
 
 
 def _date(ns: int) -> str:

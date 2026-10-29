@@ -26,6 +26,7 @@ from .model_client import (
 from .capabilities import Capability, route_prompt
 from .diagnostics import build_diagnostics, diagnostics_markdown
 from .finding import FileFinder, FindError, FindResult, format_size
+from .folders_command import folders_command
 from .input_editor import create_chat_input
 from .memory import MemoryStore, SensitiveMemoryError
 from .models import PROFILES, ModelRouter, ModelSelection
@@ -49,6 +50,7 @@ INTERACTIVE_COMMANDS = (
     "/copy",
     "/sources",
     "/find",
+    "/folders",
     "/run",
     "/workspace",
     "/apply",
@@ -797,6 +799,14 @@ def _handle_command(
         session.last_find = result
         render_find_results(console, result)
         return False, None
+    if name == "/folders":
+        if folders_command(
+            console, session.index, rest, read=console.input,
+            browse=lambda: _browse_path(console, Path.home(), purpose="folder",
+                                        default_filename=None),
+        ):
+            session.last_find = None
+        return False, None
     if name == "/run":
         previous = session.last_outcomes[session.mode]
         run_command(
@@ -965,6 +975,13 @@ def _browse_for_database(
     )
 
 
+# Browser purposes that pick a folder, and what "here" does for each.
+_FOLDER_PURPOSES = {
+    "workspace": "use this folder as the workspace",
+    "folder": "index this folder",
+}
+
+
 def _browse_path(
     console: Console,
     start: Path,
@@ -1015,9 +1032,9 @@ def _browse_path(
                 "[dim]number: open folder · here [NAME]: save here · new NAME: create/open folder · "
                 "..: parent · path PATH: direct destination · cancel[/dim]"
             )
-        elif purpose == "workspace":
+        elif purpose in _FOLDER_PURPOSES:
             console.print(
-                "[dim]number: open folder · here: use this folder as the workspace · "
+                f"[dim]number: open folder · here: {_FOLDER_PURPOSES[purpose]} · "
                 "..: parent · path PATH: direct folder · cancel[/dim]"
             )
         else:
@@ -1039,7 +1056,7 @@ def _browse_path(
             selected = Path(choice[5:].strip().strip('"')).expanduser().resolve()
             if purpose == "save":
                 return selected / default_filename if selected.is_dir() else _markdown_path(selected)
-            if purpose == "workspace":
+            if purpose in _FOLDER_PURPOSES:
                 if selected.is_dir():
                     return selected
                 console.print("[yellow]Choose an existing folder.[/yellow]")
@@ -1048,7 +1065,7 @@ def _browse_path(
                 return selected
             console.print("[yellow]Choose an existing .sqlite, .sqlite3, or .db file.[/yellow]")
             continue
-        if purpose == "workspace" and lowered == "here":
+        if purpose in _FOLDER_PURPOSES and lowered == "here":
             return current
         if purpose == "save" and (lowered == "here" or lowered.startswith("here ")):
             filename = choice[4:].strip().strip('"') or str(default_filename)

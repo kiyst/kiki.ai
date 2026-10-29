@@ -895,3 +895,44 @@ Decision or proposal: file-finding stage 2 (/summarize NUMBER) next.
         Image metadata, OCR, and transcription need review first (new
         dependencies or models).
 ```
+
+## Folder management, stage 1: `/folders`
+
+```text
+Date: 2026-10-29
+Stage: Phase 2 (folder management), first part; watching comes next
+Commit before change: 6df7e87
+Files changed: src/kiki/folders_command.py (new), retrieval.py (one pruned
+        walk for reading and the catalog, roots.indexed_at, nested-folder
+        handling, roots(), remove_root(), progress), finding.py (speed),
+        terminal.py (/folders, folder browser mode), self_knowledge.py,
+        tests/test_folders.py (new), README.md, docs
+Behavior changed: /folders lists indexed folders with file counts and the
+        last index time; `add PATH|browse` indexes with live progress
+        (Ctrl+C cancels and changes nothing); `reindex [NUMBER|all]`;
+        `remove NUMBER` forgets a folder after a [y/N] (files on disk are
+        never touched). Tool folders (.git, node_modules, virtual
+        environments, caches) are now skipped when reading, not only in the
+        catalog. A folder inside an indexed one is refused; adding a parent
+        takes over the folders inside it, keeping their passages and
+        embeddings.
+Tests/evaluations run: pytest 265 passed (6 new). eval-find unchanged
+        (development and holdout identical apart from timing).
+        This PC's Documents folder, into a throwaway database (counts only,
+        deleted afterwards): 50,434 files, 2,754 readable, 26 unreadable
+        (18 image-only PDFs); first index 35-61 s, unchanged rerun 10-11 s,
+        peak 144 MB, database 296 MB.
+Result: folders are managed from the chat.
+Known bugs: /find took 3-10 s per query on that 50,000-file catalog (0.05 s
+        on the test folders): every name was split and stemmed for every
+        query word. Fixed with a three-letter pre-check that every match
+        shares, a stem cache, and string folder paths: 0.35-0.8 s, same
+        evaluation results.
+Known limits: indexing runs in the foreground; the chat waits (with
+        progress) until it finishes. No watching yet.
+Decision or proposal: stage 2, watching with background updates: a
+        periodic, cheap reconciliation (the unchanged rerun above costs about
+        10 s for 50,000 files, so only changed folders should be re-read)
+        plus Windows change notifications, off the chat thread.
+Human review needed: none for this stage.
+```

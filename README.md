@@ -167,6 +167,7 @@ kiki --database .kiki\history.sqlite3 run
 | `/rag [question]` | Answer from your indexed documents |
 | `/sources` | Show the last answer's sources again |
 | `/find WORDS` | Find whole files in your indexed folders; `/find` alone shows the last list again |
+| `/folders` | List indexed folders; `add PATH\|browse`, `reindex [NUMBER\|all]`, `remove NUMBER` |
 | `/run [FILE.py]` | Run the last answer's Python (or a copy of a file) in the sandbox, after you confirm |
 | `/workspace [PATH\|browse]` | Choose the folder `/apply` may write into (this session only) |
 | `/apply FILE` | Save the last answer's code to a file in the workspace, after you approve the diff |
@@ -227,8 +228,8 @@ Kiki shows up to three candidates, each with how sure she is, why it matched
 full path on its own line so you can copy it. Where your terminal supports it,
 the file name is a clickable link.
 
-- **Every file counts, not just documents.** `kiki index FOLDER` also
-  catalogues spreadsheets, images, archives, and other files she cannot read.
+- **Every file counts, not just documents.** Adding a folder (`/folders add`
+  or `kiki index FOLDER`) also catalogues spreadsheets, images, archives, and other files she cannot read.
   Those are found by name, folder, and type, and are marked as such. Tool
   folders such as `.git`, `node_modules`, and virtual environments are skipped.
 - **Confidence means something.** *Likely* appears only on the first result,
@@ -241,10 +242,11 @@ the file name is a clickable link.
 - **Never stale.** A file deleted since indexing is never shown; Kiki tells you
   how many were skipped. A file changed since indexing is marked.
 - **Read-only.** Finding never opens, moves, or changes anything. It loads no
-  model, so it is quick (under 0.1 s on the test folders) and light on memory.
+  model, so it is quick (under a second across 50,000 files) and light on
+  memory.
 
 Indexes made before this feature know only their readable files until you run
-`kiki index` on the folder again.
+`/folders reindex`.
 
 ### Running code
 
@@ -300,13 +302,33 @@ The design, threat model, and trial results are in
 
 ## Building your own library
 
-Point Kiki at a folder, then create the meaning-based search vectors:
+Kiki only looks in folders you add. Inside a conversation:
+
+```text
+/folders add C:\Users\you\Documents     (or: /folders add browse)
+/folders                                list folders, file counts, last indexed
+/folders reindex                        pick up new, changed, and deleted files
+/folders remove 2                       forget a folder (your files are untouched)
+```
+
+Or from the command line, then create the meaning-based search vectors that
+document questions use (`/find` does not need them):
 
 ```powershell
 kiki --database .kiki\notes.sqlite3 index C:\path\to\your\notes
 kiki --database .kiki\notes.sqlite3 embed
 kiki --database .kiki\notes.sqlite3 run
 ```
+
+- Folders are not watched yet: re-run `/folders reindex` after adding files.
+- On a 16 GB test PC, a Documents folder of 50,000 files (2,750 readable)
+  took 35-60 s to add, about 10 s to re-check unchanged, and at most 144 MB
+  of memory. `/find` across it takes under a second.
+- A folder inside one you already added is refused (it is already included);
+  adding a parent folder takes over the folders inside it without re-reading
+  them.
+- Tool folders (`.git`, `node_modules`, virtual environments, caches) are
+  skipped, for both reading and `/find`.
 
 - Text and Markdown cite line numbers; PDFs cite pages; Word documents and web
   pages cite paragraphs.
@@ -428,6 +450,7 @@ src/kiki/
   retrieval.py       document index, file catalog, keyword search, migrations
   documents.py       Word and web page text (standard library only)
   finding.py         /find: whole-file ranking, filters, confidence
+  folders_command.py /folders: add, list, reindex, and forget folders
   semantic.py        meaning-based search and hybrid merging
   rerank.py          the passage grading step
   extraction.py      turning files into citable passages
@@ -469,9 +492,10 @@ helpful thing to send.
 Roughly in priority order (details in the
 [development notes](docs/DEVELOPMENT_NOTES.md)):
 
-1. **Find files** (in progress). `/find` is done ([Finding files](#finding-files));
-   next, `/summarize NUMBER` for a found file, then letting Kiki search for
-   files herself when you ask in plain conversation.
+1. **Find files** (in progress). `/find` and `/folders` are done
+   ([Finding files](#finding-files)); next, watching folders so new files
+   appear without a reindex, `/summarize NUMBER` for a found file, and letting
+   Kiki search for files herself when you ask in plain conversation.
 2. **Run Python safely** (paused). The sandbox, `/run`, and `/apply` are done.
    Left: finishing the LeetCode and MBPP+ benchmarks, and a loop in which Kiki
    fixes her own failing code.

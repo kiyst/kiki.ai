@@ -224,6 +224,8 @@ environments, `.git`, hidden system data, and configurable private locations.
 
 - Manage multiple roots in one library.
 - Add `/folders` with add, remove, pause, resume, inspect, and reindex actions.
+  (Done October 29, 2026, except pause and resume, which belong with
+  watching.)
 - Add a first-run personal-folder preset with visible exclusions.
 - Implement an initial crawl, filesystem-event queue, debounce, and periodic
   reconciliation pass.

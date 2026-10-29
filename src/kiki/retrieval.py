@@ -11,7 +11,7 @@ from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from time import sleep
-from collections.abc import Collection
+from collections.abc import Callable, Collection
 from typing import Any, Iterator
 
 from .extraction import (
@@ -215,7 +215,7 @@ class TextIndex:
                 )
             connection.executescript(
                 """
-                CREATE TABLE IF NOT EXISTS roots (path TEXT PRIMARY KEY);
+                CREATE TABLE IF NOT EXISTS roots (path TEXT PRIMARY KEY, indexed_at TEXT);
                 CREATE TABLE IF NOT EXISTS files (
                     source_id TEXT PRIMARY KEY,
                     root TEXT NOT NULL,
@@ -275,6 +275,10 @@ class TextIndex:
                         ).fetchall()
                     ],
                 )
+            if "indexed_at" not in {
+                row["name"] for row in connection.execute("PRAGMA table_info(roots)")
+            }:
+                connection.execute("ALTER TABLE roots ADD COLUMN indexed_at TEXT")
             columns = {row["name"] for row in connection.execute("PRAGMA table_info(files)")}
             if "title" not in columns:
                 # Titles let citations and queries refer to "the Beard history"
@@ -313,7 +317,10 @@ class TextIndex:
             """
         )
 
-    def index_root(self, root: Path) -> dict[str, object]:
+    def index_root(
+        self, root: Path, progress: Callable[[int, int], None] | None = None
+    ) -> dict[str, object]:
+        """Read and catalogue a folder; `progress(done, total)` reports readable files."""
         root = root.resolve(strict=True)
         if not root.is_dir():
             raise ValueError(f"Not a directory: {root}")
@@ -321,30 +328,26 @@ class TextIndex:
         counts = {"indexed": 0, "unchanged": 0, "skipped": 0, "failed": 0, "removed": 0}
         issues: list[dict[str, str]] = []
         seen: set[str] = set()
+        files = self._walk(root, issues)
+        readable = [(path, size) for path, size, _ in files if path.suffix.lower() in SUPPORTED_EXTENSIONS]
+        counts["skipped"] = len(files) - len(readable)
         with self._session() as connection:
-            connection.execute("INSERT OR IGNORE INTO roots(path) VALUES (?)", (str(root),))
-            for path in root.rglob("*"):
-                if not path.is_file():
-                    continue
-                if path.suffix.lower() not in SUPPORTED_EXTENSIONS:
-                    counts["skipped"] += 1
-                    continue
-                if path.stat().st_size > self.MAX_FILE_BYTES:
+            self._claim_root(connection, root)
+            for done, (path, size) in enumerate(readable, start=1):
+                if progress:
+                    progress(done, len(readable))
+                if size > self.MAX_FILE_BYTES:
                     counts["skipped"] += 1
                     issues.append({"path": str(path), "reason": "file exceeds 25 MiB limit"})
                     continue
-                canonical = path.resolve(strict=True)
-                if not canonical.is_relative_to(root):
-                    counts["skipped"] += 1
-                    issues.append({"path": str(path), "reason": "resolved path is outside selected root"})
-                    continue
-                seen.add(str(canonical))
+                seen.add(str(path))
                 try:
-                    changed = self._replace_file(connection, root, canonical)
+                    changed = self._replace_file(connection, root, path)
                 except (ExtractionError, OSError) as exc:
-                    self._delete_path(connection, canonical)
+                    self._delete_path(connection, path)
+                    seen.discard(str(path))
                     counts["failed"] += 1
-                    issues.append({"path": str(canonical), "reason": str(exc)})
+                    issues.append({"path": str(path), "reason": str(exc)})
                     continue
                 counts["indexed" if changed else "unchanged"] += 1
 
@@ -355,27 +358,35 @@ class TextIndex:
             for row in stale:
                 self._delete_source(connection, row["source_id"])
             counts["removed"] = len(stale)
-            counts["catalogued"] = self._catalog_root(connection, root, issues)
+            connection.execute("DELETE FROM catalog WHERE root = ?", (str(root),))
+            connection.executemany(
+                "INSERT OR REPLACE INTO catalog VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [
+                    (str(path), str(root), path.name, path.suffix.casefold(), size,
+                     modified_ns, int(str(path) in seen))
+                    for path, size, modified_ns in files
+                ],
+            )
+            counts["catalogued"] = len(files)
+            connection.execute(
+                "UPDATE roots SET indexed_at = ? WHERE path = ?",
+                (datetime.now(UTC).isoformat(timespec="seconds"), str(root)),
+            )
         self._record_roots()
         self.backup()
         return {**counts, "issues": issues}
 
-    def _catalog_root(
-        self, connection: sqlite3.Connection, root: Path, issues: list[dict[str, str]]
-    ) -> int:
-        """Record every file under the root, readable or not, for /find."""
-        searchable = {
-            row["path"]
-            for row in connection.execute("SELECT path FROM files WHERE root = ?", (str(root),))
-        }
-        entries: list[tuple[object, ...]] = []
+    def _walk(self, root: Path, issues: list[dict[str, str]]) -> list[tuple[Path, int, int]]:
+        """Every file under the root as (path, size, modified_ns), skipping tool
+        folders and links (which could lead outside the root)."""
+        files: list[tuple[Path, int, int]] = []
         for folder, subfolders, names in os.walk(root, onerror=lambda error: None):
-            subfolders[:] = [
+            subfolders[:] = sorted(
                 name for name in subfolders
                 if name.casefold() not in self.CATALOG_SKIP_DIRS
                 and not _is_link(os.path.join(folder, name))
-            ]
-            for name in names:
+            )
+            for name in sorted(names):
                 path = Path(folder, name)
                 try:
                     if path.is_symlink():
@@ -383,21 +394,64 @@ class TextIndex:
                     stat = path.stat()
                 except OSError:
                     continue
-                entries.append((
-                    str(path), str(root), name, path.suffix.casefold(), stat.st_size,
-                    stat.st_mtime_ns, int(str(path) in searchable),
-                ))
-            if len(entries) >= self.MAX_CATALOG_FILES:
+                files.append((path, stat.st_size, stat.st_mtime_ns))
+            if len(files) >= self.MAX_CATALOG_FILES:
                 issues.append({
                     "path": str(root),
-                    "reason": f"catalog stopped at {self.MAX_CATALOG_FILES:,} files",
+                    "reason": f"stopped at {self.MAX_CATALOG_FILES:,} files",
                 })
                 break
-        connection.execute("DELETE FROM catalog WHERE root = ?", (str(root),))
-        connection.executemany(
-            "INSERT OR REPLACE INTO catalog VALUES (?, ?, ?, ?, ?, ?, ?)", entries
-        )
-        return len(entries)
+        return files
+
+    def _claim_root(self, connection: sqlite3.Connection, root: Path) -> None:
+        """Register a root. A folder already inside an indexed folder is refused;
+        indexed folders inside this one are absorbed, keeping their files."""
+        for row in connection.execute("SELECT path FROM roots").fetchall():
+            existing = Path(row["path"])
+            if existing != root and root.is_relative_to(existing):
+                raise ValueError(
+                    f"{root} is already inside the indexed folder {existing}; "
+                    "reindex that folder instead"
+                )
+            if existing != root and existing.is_relative_to(root):
+                for table in ("files", "catalog"):
+                    connection.execute(
+                        f"UPDATE {table} SET root = ? WHERE root = ?", (str(root), str(existing))
+                    )
+                connection.execute("DELETE FROM roots WHERE path = ?", (str(existing),))
+        connection.execute("INSERT OR IGNORE INTO roots(path) VALUES (?)", (str(root),))
+
+    def roots(self) -> list[dict[str, Any]]:
+        """Indexed folders with their file counts and when they were last indexed."""
+        with self._session() as connection:
+            rows = connection.execute(
+                """
+                SELECT r.path, r.indexed_at,
+                       (SELECT COUNT(*) FROM catalog AS c WHERE c.root = r.path) AS files,
+                       (SELECT COUNT(*) FROM files AS f WHERE f.root = r.path) AS readable
+                FROM roots AS r ORDER BY r.path
+                """
+            ).fetchall()
+        return [{**dict(row), "exists": Path(row["path"]).is_dir()} for row in rows]
+
+    def remove_root(self, root: Path) -> int:
+        """Forget a folder: its passages, embeddings, and catalog entries. The
+        folder and its files on disk are not touched. Returns files forgotten."""
+        key = str(root)
+        with self._session() as connection:
+            if not connection.execute("SELECT 1 FROM roots WHERE path = ?", (key,)).fetchone():
+                raise ValueError(f"Not an indexed folder: {root}")
+            forgotten = connection.execute(
+                "SELECT COUNT(*) FROM catalog WHERE root = ?", (key,)
+            ).fetchone()[0]
+            for row in connection.execute(
+                "SELECT source_id FROM files WHERE root = ?", (key,)
+            ).fetchall():
+                self._delete_source(connection, row["source_id"])
+            connection.execute("DELETE FROM catalog WHERE root = ?", (key,))
+            connection.execute("DELETE FROM roots WHERE path = ?", (key,))
+        self._record_roots()
+        return int(forgotten)
 
     def catalog_entries(self) -> list[dict[str, Any]]:
         """Every catalogued file, with its title when its contents were read."""
