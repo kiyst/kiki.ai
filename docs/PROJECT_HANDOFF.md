@@ -368,6 +368,14 @@ The milestone is complete only when held-out file-finding cases demonstrate
 measured file recall@k and stale/deleted files are never returned as current
 results.
 
+## Approved separate milestone: coding sandbox
+
+On October 29, 2026 the user approved a sandboxed code-execution environment
+as a separate milestone, to come before Phase 1. It is specified, with its
+threat model, limits, staged plan, and review checkpoints, in
+[CODING_SANDBOX_HANDOFF.md](CODING_SANDBOX_HANDOFF.md). Nothing is
+implemented yet; implementation starts only after that document is reviewed.
+
 ## Human-review checkpoints
 
 Stop for review before:
