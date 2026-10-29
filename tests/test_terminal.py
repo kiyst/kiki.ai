@@ -273,3 +273,29 @@ def test_answer_panels_are_titled_kiki() -> None:
 
     rendered = console.export_text()
     assert "Kiki · Chat" in rendered
+
+
+def test_sources_table_lists_cited_passages_and_counts_the_rest() -> None:
+    from rich.console import Console
+
+    from kiki.terminal import render_sources
+
+    sources = [
+        {"passage_id": f"p{n}", "source_id": "doc", "path": f"C:\\c\\f{n}.txt",
+         "citation": f"[source:p{n}] f{n}.txt (lines {n}-{n})"}
+        for n in range(1, 5)
+    ]
+    console = Console(record=True, width=120)
+
+    render_sources(console, sources, "Point one [source:p3]. Point two [source:p1].")
+    cited = console.export_text()
+    render_sources(console, sources, "No citations here.")
+    none = console.export_text()
+    render_sources(console, sources)
+    everything = console.export_text()
+
+    assert "Cited sources" in cited
+    assert cited.index("p3") < cited.index("p1") and "p2" not in cited and "p4" not in cited
+    assert "2 more retrieved passages were not cited" in cited
+    assert "the answer cites none" in none
+    assert all(f"p{n}" in everything for n in range(1, 5))

@@ -6,7 +6,7 @@ COMMAND_HELP = (
     ("/rag [question]", "Switch to evidence-grounded document Q&A."),
     ("/retry", "Regenerate the last response."),
     ("/copy", "Copy the last response to the clipboard."),
-    ("/sources", "Show the last response's verified RAG sources."),
+    ("/sources [all]", "Show the passages the last answer cited (all: every retrieved passage)."),
     ("/history", "Show the last ten prompts in this conversation."),
     ("/save [PATH]", "Browse for a folder or export directly to a Markdown path."),
     ("/new", "Start a fresh conversation in the active mode."),

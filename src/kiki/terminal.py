@@ -21,6 +21,7 @@ from .model_client import (
     OllamaClient,
     ToolCallingAssistant,
     ToolTrace,
+    resolve_citations,
 )
 from .capabilities import Capability, route_prompt
 from .diagnostics import build_diagnostics, diagnostics_markdown
@@ -455,25 +456,44 @@ def render_outcome(
 ) -> None:
     title = "Kiki · RAG" if mode == "rag" else "Kiki · Chat"
     console.print(Panel(Markdown(outcome.answer or "_(No response)_"), title=title, border_style="cyan"))
-    render_sources(console, outcome.sources)
+    render_sources(console, outcome.sources, outcome.answer)
     if debug:
         render_trace(console, outcome, retrieval_mode)
 
 
-def render_sources(console: Console, sources: list[dict[str, Any]]) -> None:
+def render_sources(
+    console: Console, sources: list[dict[str, Any]], answer: str | None = None
+) -> None:
+    """Passages the answer cites, in citation order; uncited passages are counted.
+
+    Without an answer every shown passage is listed, as before.
+    """
     if not sources:
         return
-    table = Table(title="Verified sources", show_lines=True)
+    title = "Verified sources"
+    listed = sources
+    if answer is not None:
+        cited = [item for item in resolve_citations(answer, sources) if item["resolved"]]
+        if not cited:
+            console.print(
+                f"[dim]{len(sources)} passages were retrieved; the answer cites none.[/dim]"
+            )
+            return
+        listed, title = cited, "Cited sources"
+    table = Table(title=title, show_lines=True)
     table.add_column("ID", style="cyan", no_wrap=True)
     table.add_column("Document", style="bold")
     table.add_column("Location", no_wrap=True)
-    for source in sources:
+    for source in listed:
         table.add_row(
             str(source.get("passage_id") or source["source_id"]),
             Path(str(source["path"])).name,
             _citation_location(str(source.get("citation") or "")),
         )
     console.print(table)
+    uncited = len(sources) - len(listed)
+    if uncited:
+        console.print(f"[dim]{uncited} more retrieved passages were not cited. /sources all lists them.[/dim]")
 
 
 def render_trace(console: Console, outcome: ChatOutcome, retrieval_mode: str) -> None:
@@ -702,7 +722,8 @@ def _handle_command(
         if previous is None or not previous.sources:
             console.print("[yellow]The last response has no verified sources.[/yellow]")
         else:
-            render_sources(console, previous.sources)
+            show_all = rest.casefold() == "all"
+            render_sources(console, previous.sources, None if show_all else previous.answer)
         return False, None
     if name == "/history":
         recent = [turn for turn in session.turns if turn["mode"] == session.mode][-10:]

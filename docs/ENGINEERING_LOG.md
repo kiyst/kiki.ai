@@ -583,3 +583,34 @@ Incident: the PC ran out of virtual memory around 03:50 and was restarted
         card; close large applications during long evaluations.
 Human review needed: no further action proposed.
 ```
+
+## RAG pipeline milestone: completion review
+
+```text
+Date: 2026-10-29
+Stage: close-out against docs/RAG_PIPELINE_HANDOFF.md completion criteria
+Files changed: src/kiki/terminal.py, self_knowledge.py, tests/test_terminal.py
+Behavior changed: the sources table now lists only the passages the answer
+        cites, in citation order, and counts the uncited retrieved passages;
+        `/sources all` lists every retrieved passage. An answer with no
+        resolvable citation says so instead of implying all were used.
+Tests/evaluations run: pytest 183 passed (1 new). No model evaluation:
+        display-only change.
+```
+
+| Criterion | Status | Evidence |
+| --- | --- | --- |
+| 1. Original evaluation reproducible | Met | Receipts 00 and 01: identical top-5 lists for every case and method |
+| 2. Settings configurable and diagnosable | Met | `settings.py`, `/diagnostics`, `/status`, `/doctor`; tests in `test_settings.py` |
+| 3. Dedicated reranker evaluated against the grader | Met, did not win | Receipts 03 (Ollama builds unusable) and 08 (llama.cpp: 25/29 vs 26/29) |
+| 4. Candidate/context experiments with receipts | Met | Receipts 04, 05, 08 |
+| 5. PDF passages cross pages with provenance | Met | `pdf_chunking.py`; 14 fixture tests; sample-corpus comparison |
+| 6. Citations resolve to specific passages | Met | Receipt 06: every cited ID resolved; `resolve_citations` |
+| 7. Reranker failure keeps grounded answers | Met | Live fallback on 29/29 (receipt 03-holdout); fallback tests for every reranker |
+| 8. Tests pass, focused tests added | Met | 183 passing (112 at milestone start) |
+| 9. Documentation of defaults, rejections, bugs, tradeoffs | Met | Stage entries above; README configuration and results; DEVELOPMENT_NOTES |
+
+Known gaps carried forward: GPU-reranker latency in receipts 08-c32, c50,
+recovery, and development is invalid (overlapping runs, see incident);
+three holdout misses remain; no labeled PDF retrieval set; citations are
+not yet checked for claim support; recovery has never triggered.
