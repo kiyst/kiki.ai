@@ -73,6 +73,7 @@ python -m deskai.cli rag "What does Paine say about hereditary monarchy?" --debu
 python -m deskai.cli weather "Boston, Massachusetts"
 python -m deskai.cli --database .deskai\history.sqlite3 doctor
 python -m deskai.cli --database .deskai\history.sqlite3 eval-rag
+python -m deskai.cli --database .deskai\history.sqlite3 eval-retrieval
 python -m deskai.cli --database .deskai\history.sqlite3 eval-chat
 python -m deskai.cli --database .deskai\history.sqlite3 eval-behavior
 ```
@@ -106,6 +107,16 @@ one evidence slot. Long excerpts are cut to the window that best matches the
 question rather than their opening characters. Opening an older index upgrades
 its search table and titles in place; run `index` and `embed` again to apply
 the newer chunking.
+
+RAG reranks the top 20 hybrid candidates by asking the local model to grade
+each passage 0–3 against the question (answers it, partly answers it, same
+topic, or unrelated/index/table of contents). Grades are constrained to a
+single digit by a JSON schema, so retrieved text can influence only its own
+grade. Comparison questions grade each side separately so both are
+represented. If grading fails, retrieval falls back to the hybrid order and
+`/debug` shows `hybrid (reranker unavailable)`. Reranking adds ~6–7 s per
+search; pass `--no-rerank` (before the subcommand) to skip it, for example
+`deskai --no-rerank run`.
 
 Weather uses Open-Meteo through a fixed, validated provider. It has a short
 cache, exponential-backoff retries for timeouts, 408, 429, and selected 5xx
@@ -188,10 +199,21 @@ questions. Machine-specific receipts are written to the ignored
 `evals/results/` directory. Expected-document coverage is a retrieval
 diagnostic, not proof that every answer is factually correct.
 
+`evals/retrieval_cases.json` scores retrieval at the passage level, separately
+from answer generation: 25 questions (11 development, 14 holdout, including 10
+paraphrased holdout questions written before reranking was tuned), each with
+evidence phrases that mark the passages actually answering it. Comparison
+questions need evidence for every side. Labels widened after reviewing results
+carry a `label_note`.
+
+```powershell
+deskai --database .deskai\history.sqlite3 eval-retrieval --methods lexical,hybrid,rerank
+```
+
 ## Verification receipt
 
 - Python 3.12 virtual environment created locally.
-- Unit tests: 98 passing.
+- Unit tests: 109 passing.
 - CommonMark corpus: 12 supported files indexed; cited search verified.
 - py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
   as encrypted, image-only/OCR-required, or malformed.
@@ -206,15 +228,17 @@ diagnostic, not proof that every answer is factually correct.
 - RAG chat performs a deterministic baseline search before generation, then
   allows the model to make narrower follow-up tool calls. This guarantees that
   both supported answers and insufficient-evidence responses follow retrieval.
-- Current full set (October 28, 2026, all 18 cases): hybrid expected-document
-  coverage 15/15 (previously 14/15; all expected documents present in 15/15,
-  previously 13/15), mean hybrid search 0.77 s (previously 1.63 s). With Qwen,
-  14/15 answerable questions were answered with valid inline citations
-  (previously 12/15) and 3/3 unsupported questions were correctly abstained.
-  The remaining miss asks for the Constitution's "preamble" and "purposes",
-  words the preamble itself never uses; the 0.6B embedding model does not
-  bridge that paraphrase, so the model correctly reports insufficient evidence.
-  Answer-level accuracy remains a human-review junction.
+- Passage-level retrieval (October 28, 2026, `eval-retrieval`, top 5):
+  holdout passages with all evidence present 6/14 hybrid → 11/14 reranked,
+  top-1 hits 4/14 → 8/14, MRR 0.36 → 0.70; development 10/11 → 11/11.
+  Reranking costs ~6.7 s per search on the GTX 1080. Two remaining holdout
+  misses are recall-limited: the evidence is not among the 20 candidates.
+- Answer-level RAG set (`eval-rag --with-model`, all 18 cases, reranking on):
+  15/15 answerable questions answered with valid inline citations (12/15 before
+  this session's retrieval work) and 3/3 unsupported questions correctly
+  abstained. End-to-end RAG answers take roughly 15 s. Valid citations do not
+  prove attribution: one answer credited the Federalist Papers with points from
+  a cited Beard passage. Answer-level accuracy remains a human-review junction.
 - Live coding regression: 10/10 medium/hard cases included the expected
   algorithm signals with 0 false refusals; 9/10 initially passed strict Python
   syntax because one answer included a broken draft before its corrected code.

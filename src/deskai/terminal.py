@@ -29,6 +29,7 @@ from .memory import MemoryStore, SensitiveMemoryError
 from .models import PROFILES, ModelRouter, ModelSelection
 from .providers.weather import GEOCODING_URL, OpenMeteoWeatherProvider
 from .personality import PRESETS, PersonaFile, PersonalitySettings, personality_prompt
+from .rerank import ModelReranker
 from .retrieval import SearchResult, TextIndex
 from .resilience import DeskAIError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
@@ -71,9 +72,11 @@ class TerminalSession:
         *,
         model: str = "qwen3:4b-instruct",
         embedding_model: str = "qwen3-embedding:0.6b",
+        rerank: bool = True,
     ) -> None:
         self.database = database
         self.model = model
+        self.rerank = rerank
         self.model_profile = "auto"
         self.model_router = ModelRouter(model)
         self.last_model_selection = ModelSelection("fast", model, "session default")
@@ -105,7 +108,9 @@ class TerminalSession:
             semantic = SemanticIndex(
                 self.index, OllamaEmbeddingClient(), self.embedding_model
             )
-            return HybridRetriever(self.index, semantic), "hybrid"
+            reranker = ModelReranker(OllamaClient(), self.model) if self.rerank else None
+            backend = HybridRetriever(self.index, semantic, reranker)
+            return backend, backend.mode
         return self.index, "lexical"
 
     def ask(self, prompt: str) -> tuple[ChatOutcome, str]:
@@ -190,8 +195,7 @@ class TerminalSession:
             )
         outcome = assistant.ask(prompt, history=self.histories[self.mode])
         if self.mode == "rag" and isinstance(backend, HybridRetriever):
-            if backend.last_fallback_reason:
-                retrieval_mode = "lexical fallback (embedding service unavailable)"
+            retrieval_mode = backend.mode
         return self._remember(prompt, outcome, retrieval_mode)
 
     def _system_prompt(self, base: str) -> str:
@@ -368,10 +372,11 @@ def run_shell(
     model: str = "qwen3:4b-instruct",
     embedding_model: str = "qwen3-embedding:0.6b",
     console: Console | None = None,
+    rerank: bool = True,
 ) -> None:
     console = console or Console()
     session = TerminalSession(
-        database, model=model, embedding_model=embedding_model
+        database, model=model, embedding_model=embedding_model, rerank=rerank
     )
     _render_banner(console, session)
     editor = create_chat_input(
@@ -727,6 +732,7 @@ def _handle_command(
                 "last_model": session.last_model_selection.model,
                 "model_reason": session.last_model_selection.reason,
                 "embedding_model": session.embedding_model,
+                "rerank": "on" if session.rerank else "off",
                 "memories": len(session.memory.notes()),
                 "persona_file": session.persona.path,
                 "debug": session.debug,

@@ -21,7 +21,9 @@ from .model_client import (
 )
 from .providers.weather import OpenMeteoWeatherProvider
 from .personality import PersonalitySettings, personality_prompt
+from .rerank import ModelReranker
 from .retrieval import TextIndex
+from .retrieval_evals import load_retrieval_cases, run_retrieval_evaluation
 from .resilience import DeskAIError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .terminal import (
@@ -54,6 +56,11 @@ def _parser() -> argparse.ArgumentParser:
         "--json",
         action="store_true",
         help="Emit machine-readable JSON instead of formatted output",
+    )
+    parser.add_argument(
+        "--no-rerank",
+        action="store_true",
+        help="Skip model-graded reranking of RAG candidates (faster, less precise)",
     )
     commands = parser.add_subparsers(dest="command")
 
@@ -135,6 +142,26 @@ def _parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--embedding-model", default=DEFAULT_EMBEDDING_MODEL)
     evaluate.add_argument("--output", type=Path, help="Optional JSON receipt path")
 
+    retrieval_eval = commands.add_parser(
+        "eval-retrieval",
+        help="Score passage-level retrieval separately from answer generation",
+    )
+    retrieval_eval.add_argument(
+        "--cases", type=Path, default=Path("evals/retrieval_cases.json")
+    )
+    retrieval_eval.add_argument("--limit", type=int, default=5)
+    retrieval_eval.add_argument(
+        "--split", choices=("all", "development", "holdout"), default="all"
+    )
+    retrieval_eval.add_argument(
+        "--methods",
+        default="lexical,hybrid,rerank",
+        help="Comma-separated subset of lexical, hybrid, rerank",
+    )
+    retrieval_eval.add_argument("--model", default=DEFAULT_MODEL)
+    retrieval_eval.add_argument("--embedding-model", default=DEFAULT_EMBEDDING_MODEL)
+    retrieval_eval.add_argument("--output", type=Path, help="Optional JSON receipt path")
+
     coding = commands.add_parser(
         "eval-chat", help="Run live medium/hard coding refusal and concept regressions"
     )
@@ -185,6 +212,7 @@ def main() -> None:
                 arguments, "embedding_model", DEFAULT_EMBEDDING_MODEL
             ),
             console=console,
+            rerank=not arguments.no_rerank,
         )
         return
 
@@ -226,7 +254,11 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
         backend = (
             semantic
             if arguments.command == "semantic-search"
-            else HybridRetriever(index, semantic)
+            else HybridRetriever(
+                index,
+                semantic,
+                None if arguments.no_rerank else ModelReranker(OllamaClient(), DEFAULT_MODEL),
+            )
         )
         return backend.search(arguments.query, arguments.limit), "search"
     if arguments.command == "weather":
@@ -248,6 +280,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             arguments.database,
             model=arguments.model,
             embedding_model=arguments.embedding_model,
+            rerank=not arguments.no_rerank,
         )
         session.mode = arguments.command
         if arguments.command == "rag" and arguments.lexical_only:
@@ -263,6 +296,8 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
         }, "outcome"
     if arguments.command == "eval-rag":
         return _run_eval(arguments, index), "evaluation"
+    if arguments.command == "eval-retrieval":
+        return _run_retrieval_eval(arguments, index), "retrieval_evaluation"
     if arguments.command == "eval-chat":
         cases = load_coding_cases(arguments.cases)
         if arguments.case_ids:
@@ -330,6 +365,45 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
     raise ValueError(f"Unknown command: {arguments.command}")
 
 
+def _run_retrieval_eval(arguments: argparse.Namespace, index: TextIndex) -> dict[str, Any]:
+    cases = load_retrieval_cases(arguments.cases)
+    if arguments.split != "all":
+        cases = [case for case in cases if case.split == arguments.split]
+    if not cases:
+        raise ValueError("No evaluation cases matched the selected split")
+    methods = [method.strip() for method in arguments.methods.split(",") if method.strip()]
+    unknown = set(methods) - {"lexical", "hybrid", "rerank"}
+    if unknown or not methods:
+        raise ValueError(f"Unknown retrieval methods: {', '.join(sorted(unknown)) or 'none'}")
+    if {"hybrid", "rerank"} & set(methods) and not index.embedding_count(arguments.embedding_model):
+        raise ValueError("This database has no embeddings for the selected model")
+    semantic = SemanticIndex(index, OllamaEmbeddingClient(), arguments.embedding_model)
+    available = {
+        "lexical": index,
+        "hybrid": HybridRetriever(index, semantic),
+        "rerank": HybridRetriever(
+            index, semantic, ModelReranker(OllamaClient(), arguments.model)
+        ),
+    }
+    receipt = run_retrieval_evaluation(
+        cases, {method: available[method] for method in methods}, limit=arguments.limit
+    )
+    receipt["configuration"] = {
+        "database": str(arguments.database.resolve()),
+        "cases": str(arguments.cases.resolve()),
+        "split": arguments.split,
+        "limit": arguments.limit,
+        "embedding_model": arguments.embedding_model,
+        "rerank_model": arguments.model if "rerank" in methods else None,
+    }
+    if arguments.output:
+        arguments.output.parent.mkdir(parents=True, exist_ok=True)
+        arguments.output.write_text(
+            json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+    return receipt
+
+
 def _run_eval(arguments: argparse.Namespace, index: TextIndex) -> dict[str, Any]:
     cases = load_cases(arguments.cases)
     if arguments.split != "all":
@@ -340,7 +414,8 @@ def _run_eval(arguments: argparse.Namespace, index: TextIndex) -> dict[str, Any]
         raise ValueError("This database has no embeddings for the selected model")
 
     semantic = SemanticIndex(index, OllamaEmbeddingClient(), arguments.embedding_model)
-    hybrid = HybridRetriever(index, semantic)
+    reranker = None if arguments.no_rerank else ModelReranker(OllamaClient(), arguments.model)
+    hybrid = HybridRetriever(index, semantic, reranker)
     ask_model = None
     if arguments.with_model:
         assistant = ToolCallingAssistant(
@@ -395,6 +470,8 @@ def _render(
         )
     elif kind == "evaluation":
         _render_evaluation(console, output)
+    elif kind == "retrieval_evaluation":
+        _render_retrieval_evaluation(console, output)
     elif kind == "coding_evaluation":
         _render_coding_evaluation(console, output)
     elif kind == "behavior_evaluation":
@@ -427,6 +504,38 @@ def _render_evaluation(console: Console, receipt: dict[str, Any]) -> None:
     console.print(
         "[dim]Retrieval hits measure expected-source presence, not factual correctness. "
         "Model answers still require human support review.[/dim]"
+    )
+
+
+def _render_retrieval_evaluation(console: Console, receipt: dict[str, Any]) -> None:
+    summary = Table(title="Passage-level retrieval", show_lines=True)
+    for column in ("Method / split", "Cases", "Hit@1", "All evidence@k", "MRR", "Mean ms"):
+        summary.add_column(column, justify="left" if column == "Method / split" else "right")
+    for name, row in receipt["summary"].items():
+        summary.add_row(
+            name,
+            str(row["cases"]),
+            str(row["hit_at_1"]),
+            str(row["full_at_k"]),
+            f"{row['mrr']:.3f}",
+            f"{row['mean_ms']:.0f}",
+        )
+    console.print(summary)
+    misses = [row for row in receipt["cases"] if not row["full_at_k"]]
+    if misses:
+        table = Table(title="Cases missing evidence in the top results", show_lines=True)
+        table.add_column("Method")
+        table.add_column("Case")
+        table.add_column("Split")
+        table.add_column("First evidence rank", justify="right")
+        for row in misses:
+            table.add_row(
+                row["method"], row["id"], row["split"], str(row["first_evidence_rank"] or "—")
+            )
+        console.print(table)
+    console.print(
+        "[dim]Evidence phrases mark passages that answer each question; hit@1 and MRR "
+        "measure ranking, not answer correctness.[/dim]"
     )
 
 

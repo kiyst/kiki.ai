@@ -10,6 +10,7 @@ from typing import Any, Protocol
 
 from .resilience import DeskAIError, ErrorCode
 
+from .rerank import ModelReranker
 from .retrieval import SearchResult, TextIndex
 
 
@@ -153,34 +154,108 @@ class SemanticIndex:
 
 
 class HybridRetriever:
-    """Reciprocal-rank fusion over lexical and local semantic candidates."""
+    """Reciprocal-rank fusion over lexical and semantic candidates, optionally
+    followed by model-graded reranking."""
 
-    def __init__(self, lexical: TextIndex, semantic: SemanticIndex) -> None:
+    def __init__(
+        self,
+        lexical: TextIndex,
+        semantic: SemanticIndex,
+        reranker: ModelReranker | None = None,
+    ) -> None:
         self.lexical = lexical
         self.semantic = semantic
+        self.reranker = reranker
         self.last_fallback_reason: str | None = None
+        self.last_rerank_error: str | None = None
+
+    @property
+    def mode(self) -> str:
+        if self.last_fallback_reason:
+            return "lexical fallback (embedding service unavailable)"
+        if self.reranker is None:
+            return "hybrid"
+        if self.last_rerank_error:
+            return "hybrid (reranker unavailable)"
+        return "hybrid + rerank"
 
     def search(self, query: str, limit: int = 5) -> list[SearchResult]:
         self.last_fallback_reason = None
-        candidate_limit = min(20, max(limit * 3, 10))
+        self.last_rerank_error = None
         variants = _query_variants(query)
-        fused = self._fuse(variants, candidate_limit)[:limit]
+        if self.reranker is None:
+            ranked = self._fuse(variants, min(20, max(limit * 3, 10)))
+        else:
+            budget = max(limit, self.reranker.candidates)
+            pool = self._fuse(variants, 20)[:budget]
+            try:
+                if len(variants) > 1:
+                    ranked = self._rerank_comparison(variants[1:], pool, budget, limit)
+                else:
+                    ranked = self.reranker.rerank(query, pool)
+            except Exception as exc:
+                # Answers stay available with fused ordering if grading fails.
+                self.last_rerank_error = str(exc)
+                ranked = pool
+        top = ranked[:limit]
         # A document named in the question ("the Declaration") gets at least one
         # slot; otherwise long works that discuss it can crowd out the source itself.
-        present = {result.source_id for result in fused}
+        present = {result.source_id for result in top}
         missing = [
             source_id
             for source_id in self.lexical.named_sources(query)
             if source_id not in present
         ][:limit]
         if not missing:
-            return fused
+            return top
         additions: list[SearchResult] = []
         for source_id in missing:
-            best = self._fuse(variants, candidate_limit, (source_id,))
+            # Prefer the best-ranked candidate already graded for this document.
+            best = [result for result in ranked if result.source_id == source_id]
+            if not best:
+                best = self._fuse(variants, 20, (source_id,))
             if best:
                 additions.append(best[0])
-        return fused[: limit - len(additions)] + additions
+        return top[: limit - len(additions)] + additions
+
+    def _rerank_comparison(
+        self, sides: list[str], pool: list[SearchResult], budget: int, limit: int
+    ) -> list[SearchResult]:
+        """Grade each side of "Compare X with Y" separately and share the slots.
+
+        Grading every passage against the whole comparison lets whichever side
+        has more matching text take every slot. Each side instead gets its own
+        candidates (within the same grading budget) graded against that side.
+        """
+        assert self.reranker is not None
+        per_side = max(1, budget // len(sides))
+        rankings = [
+            self.reranker.rerank(side, self._fuse([side], 20)[:per_side]) for side in sides
+        ]
+        merged: list[SearchResult] = []
+        seen: set[tuple[str, int, int]] = set()
+
+        def take(result: SearchResult) -> None:
+            key = (result.source_id, result.start_location, result.end_location)
+            if key not in seen:
+                seen.add(key)
+                merged.append(result)
+
+        # Each side's best passage is guaranteed a slot; the rest compete by grade,
+        # with earlier side positions winning ties.
+        for ranking in rankings:
+            if ranking:
+                take(ranking[0])
+        remainder = [
+            (position, result)
+            for ranking in rankings
+            for position, result in enumerate(ranking[1:], start=1)
+        ]
+        for _, result in sorted(remainder, key=lambda item: (-item[1].score, item[0])):
+            take(result)
+        for result in pool:
+            take(result)
+        return merged
 
     def _fuse(
         self,

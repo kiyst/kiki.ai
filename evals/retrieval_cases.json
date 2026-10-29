@@ -1,0 +1,337 @@
+[
+  {
+    "id": "paine_society_government",
+    "prompt": "Why does Paine distinguish society from government?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "society is produced by our wants"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "paine_hereditary",
+    "prompt": "Why did early Americans distrust rule passed down through a royal bloodline?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "no one by birth could have a right to set up his own family",
+          "evil of hereditary succession",
+          "giving hereditary right to his descendant",
+          "afterwards claimed as a right"
+        ]
+      }
+    ],
+    "label_note": "Evidence widened after review: retrieved passages that also answer the question were initially unlabeled."
+  },
+  {
+    "id": "federalist_faction",
+    "prompt": "How does Federalist No. 10 propose controlling the effects of faction?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "controlling its effects",
+          "extend the sphere"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "federalist_large_republic",
+    "prompt": "Why might a large republic restrain an organized political majority better than a small one?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "extend the sphere",
+          "the smaller the society"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "federalist_judiciary",
+    "prompt": "Why does Hamilton call the judiciary the least dangerous branch?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "least dangerous"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "constitution_preamble",
+    "prompt": "What purposes for the new government are listed in the Constitution's preamble?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "form a more perfect union"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "constitution_congress",
+    "prompt": "Which powers over taxation, borrowing, commerce, and war are assigned to Congress?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "to borrow money on the credit"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "declaration_grievances",
+    "prompt": "What complaints does the Declaration make about taxation, trials, and legislatures?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "imposing taxes on us without our consent",
+          "benefits of trial by jury"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "declaration_consent",
+    "prompt": "According to the Declaration, where do governments obtain legitimate power?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "consent of the governed"
+        ],
+        "documents": [
+          "declaration_of_independence.txt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "beard_after_1763",
+    "prompt": "According to the Beard history, what forces converged after 1763 to produce revolution?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "number of forces that happened to converge"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "beard_suffrage",
+    "prompt": "How does the Beard textbook describe the national struggle for woman suffrage?",
+    "split": "development",
+    "evidence": [
+      {
+        "phrases": [
+          "agitation for equal suffrage came to the front",
+          "national suffrage convention of 1850"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "beard_trusts",
+    "prompt": "What does the Beard history say about railways, trusts, and late nineteenth-century unrest?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "uncertainty about the railways and trusts",
+          "sherman anti-trust law of 1890"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compare_preamble_grievances",
+    "prompt": "Compare the Constitution's stated purposes with the grievances in the Declaration.",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "form a more perfect union"
+        ]
+      },
+      {
+        "phrases": [
+          "history of repeated injuries and usurpations",
+          "he has refused his assent to laws",
+          "imposing taxes on us without our consent"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compare_paine_madison",
+    "prompt": "Compare Paine's objection to hereditary monarchy with Madison's remedy for faction.",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "no one by birth could have a right to set up his own family",
+          "evil of hereditary succession",
+          "giving hereditary right to his descendant",
+          "afterwards claimed as a right"
+        ]
+      },
+      {
+        "phrases": [
+          "controlling its effects",
+          "extend the sphere"
+        ]
+      }
+    ],
+    "label_note": "Paine evidence kept consistent with paine_hereditary after that case's labels were widened."
+  },
+  {
+    "id": "articles_weaknesses",
+    "prompt": "What weaknesses of the Articles of Confederation are identified in the Federalist Papers?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "last stage of national humiliation",
+          "radical vice in the construction of the existing confederation",
+          "want of a mutual guaranty"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "new_president_age",
+    "prompt": "How old does someone have to be to become President under the Constitution?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "age of thirty five years"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "new_soldiers_housed",
+    "prompt": "What did the colonists object to about soldiers being housed among them?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "quartering large bodies of armed troops",
+          "provide accommodations for the soldiers"
+        ]
+      }
+    ],
+    "label_note": "Evidence widened after review: retrieved passages that also answer the question were initially unlabeled."
+  },
+  {
+    "id": "new_treason",
+    "prompt": "How narrowly does the Constitution define betraying the country?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "treason against the united states, shall consist"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "new_island_continent",
+    "prompt": "Why did Paine find it ridiculous for a small country across the ocean to rule a whole continent?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "governed by an island"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "new_branches_check",
+    "prompt": "How should the self-interest of officials in each branch keep the other branches in check?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "ambition must be made to counteract ambition",
+          "private interest of every individual may be a sentinel"
+        ]
+      }
+    ],
+    "label_note": "Evidence widened after review: retrieved passages that also answer the question were initially unlabeled."
+  },
+  {
+    "id": "new_revenue_bills",
+    "prompt": "Where must laws about raising taxes begin in Congress?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "bills for raising revenue shall originate"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "new_detention",
+    "prompt": "When may the Constitution allow people to be held without a court reviewing their imprisonment?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "privilege of the writ of habeas corpus shall not be suspended"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "new_cotton_slavery",
+    "prompt": "How did new cotton machinery affect Southern attitudes toward slavery, according to Beard?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "invention of the cotton gin and textile machinery"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "new_officials_swarm",
+    "prompt": "What does the Declaration say the king did by creating many new government posts?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "swarms of officers"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "new_time_to_part",
+    "prompt": "What blunt conclusion does Paine draw about whether America should break away now?",
+    "split": "holdout",
+    "evidence": [
+      {
+        "phrases": [
+          "'tis time to part"
+        ]
+      }
+    ]
+  }
+]

@@ -151,3 +151,57 @@ citations 14/15; unsupported abstentions 3/3.
   slot did not apply. In-document search alone ranks the grievance first.
 - Small-model context bleed: a follow-up RAG answer repeated a caveat from the
   previous turn ("does not directly address judicial views"). `/new` clears it.
+
+## 2026-10-28 — Passage reranking and retrieval evaluation chunk
+
+### Why
+
+Document-level coverage was 15/15, but a new passage-level benchmark
+(`evals/retrieval_cases.json`, `eval-retrieval`) showed the passage that
+answers the question reached the top five in only 13/25 cases, and 4/14 on the
+holdout. With 20 candidates the evidence was present in 20/25 cases, so the
+loss was mostly ranking, not recall.
+
+### Decisions
+
+- Pointwise graded reranking (0–3) with the installed `qwen3:4b-instruct`;
+  output is a single digit constrained by a JSON schema. Rejected alternatives,
+  measured on the development split only: yes/no log-probabilities (this Ollama
+  build returned unnormalized values around −20 for the chosen token, and
+  identical inputs scored differently) and listwise batches of six (same
+  coverage, lower top-1, ~9 s). Wrapping the grade in a JSON object cost ~2x.
+- 20 candidates, chosen on development results and cost. A 30-candidate pool
+  would raise the recall ceiling from 20/25 to 22/25 for ~3 s more per search.
+- Comparison questions grade each side's own candidates against that side, give
+  each side's best passage a slot, then fill by grade.
+- Reranker failure falls back to hybrid order for the whole query.
+- Ten paraphrased holdout cases were written before tuning. After reviewing
+  results, evidence labels were widened in four cases where unlabeled retrieved
+  passages also answered the question (`label_note` in the case file); the
+  label change raised hybrid scores too, and comparisons use the same labels.
+
+### Results (top 5)
+
+| Split | Method | Hit@1 | All evidence | MRR | Mean time |
+| --- | --- | --- | --- | --- | --- |
+| Holdout (14) | hybrid | 4 | 6 | 0.36 | 0.8 s |
+| Holdout (14) | rerank | 8 | 11 | 0.70 | 6.8 s |
+| Development (11) | hybrid | 2 | 10 | 0.46 | 0.8 s |
+| Development (11) | rerank | 7 | 11 | 0.77 | 6.5 s |
+
+End-to-end `eval-rag --with-model`: 15/15 answerable questions answered with
+valid citations (was 14/15), 3/3 unsupported questions abstained.
+
+### Known limits
+
+- Latency: ~15 s per RAG answer (≈7 s grading, ≈8 s generation). `--no-rerank`
+  restores ~9 s answers with weaker passage ranking.
+- `beard_trusts` and `articles_weaknesses` remain recall-limited.
+- `compare_preamble_grievances` finds the preamble but takes the Declaration's
+  opening paragraph instead of a grievance.
+- The reranker reads untrusted passages. Schema-constrained output limits an
+  injected instruction to inflating its own passage's grade, which the answer
+  model still treats as untrusted evidence.
+- Attribution and embellishment are not verified. Live answers credited the
+  Federalist Papers with points from a cited Beard passage and added veto and
+  judicial-review details absent from the excerpts while citing valid IDs.
