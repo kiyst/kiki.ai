@@ -41,6 +41,12 @@ switches back without mixing the two conversation histories. Useful commands:
 | `/debug` | Show validated tool calls and retrieval mode. |
 | `/personality` | Show persistent warmth, wit, opinions, and verbosity controls. |
 | `/personality preset lively` | Apply the lively, balanced, or quiet preset. |
+| `/persona` | Show the hot-reloaded `kiki-persona.md` file and its path. |
+| `/remember TEXT` | Save an explicit non-sensitive memory in `kiki-memory.md`. |
+| `/forget TEXT` | Remove matching saved memories. |
+| `/memory` | Inspect all durable memories. |
+| `/model [auto\|fast\|smart\|max]` | Inspect or choose a task-aware model profile. |
+| `/diagnostics [copy\|save]` | Produce a privacy-filtered support report. |
 | `/clear` | Clear history for the active mode only. |
 | `/help` | Show all interactive commands. |
 
@@ -68,6 +74,7 @@ python -m deskai.cli weather "Boston, Massachusetts"
 python -m deskai.cli --database .deskai\history.sqlite3 doctor
 python -m deskai.cli --database .deskai\history.sqlite3 eval-rag
 python -m deskai.cli --database .deskai\history.sqlite3 eval-chat
+python -m deskai.cli --database .deskai\history.sqlite3 eval-behavior
 ```
 
 By default, runtime data is written to `.deskai/index.sqlite3`. Only roots added
@@ -104,6 +111,22 @@ retried locally and can try comma-separated fallback models from the
 a recoverable backup and corpus-root manifest after indexing, checks integrity
 through `/doctor`, and preserves corrupt databases before rebuilding an index.
 
+Kiki classifies obvious chat, code, RAG, weather, and memory requests before
+generation. This classification informs model selection but does not grant
+permissions or silently switch chat into RAG. The `AUTO` model profile uses
+`FAST` for ordinary conversation and `SMART` for coding and RAG. Configure the
+profile identifiers with `KIKI_MODEL_FAST`, `KIKI_MODEL_SMART`, and
+`KIKI_MODEL_MAX`; unset profiles safely reuse the normal `--model` value.
+
+The editable `kiki-persona.md` file is reloaded on every response. Application
+rules governing evidence, tool execution, and safety are kept separately and
+override persona text. Durable memory is opt-in through `/remember` or explicit
+"remember that..." language. Kiki blocks common secrets, financial details,
+identity numbers, and contact details; users can inspect or delete the Markdown
+file directly. Existing tools publish risk metadata and are currently read-only.
+See [`docs/ENGINEERING_LOG.md`](docs/ENGINEERING_LOG.md) for architectural
+decisions, known limitations, and proposals awaiting human review.
+
 ## Development setup
 
 ```powershell
@@ -136,6 +159,13 @@ cases and scores false refusals, expected approach signals, Python syntax, and
 the presence of code separately. Use `--case CASE_ID` for a targeted rerun. It
 does not execute generated code on the host without a dedicated sandbox.
 
+`eval-behavior` runs eight benign prompts covering defensive security education,
+controversial comparison, non-graphic fiction, workplace disagreement, general
+health/legal education, ordinary code, and unrelated conversation. It flags
+generic refusals, missing answer signals, and leakage of the removed hard-coded
+food or season preferences. See [`docs/PERSONA_DESIGN.md`](docs/PERSONA_DESIGN.md)
+for the open-source comparison and Kiki's persona rules.
+
 ## Evaluation
 
 `evals/history_cases.json` contains 18 fixed history questions: 11 development
@@ -147,7 +177,7 @@ diagnostic, not proof that every answer is factually correct.
 ## Verification receipt
 
 - Python 3.12 virtual environment created locally.
-- Unit tests: 59 passing.
+- Unit tests: 77 passing.
 - CommonMark corpus: 12 supported files indexed; cited search verified.
 - py-pdf sample corpus: 50 supported documents indexed; 7 PDFs cleanly reported
   as encrypted, image-only/OCR-required, or malformed.
@@ -172,4 +202,10 @@ diagnostic, not proof that every answer is factually correct.
   syntax because one answer included a broken draft before its corrected code.
   After adding a corrected-code-only instruction, that hard case passed its
   targeted rerun. The full run took 245.97 seconds locally.
+- Live behavior regression after removing fixed preferences: 8/8 benign prompts
+  answered without refusal, 0/8 leaked the former food or season preferences,
+  and all eight stayed within their word limits and avoided canned openings.
+  Overall result is 7/8 because Qwen 3 4B repeatedly violated an explicit request
+  to omit a SQL-injection payload. The failing case remains in the suite as a
+  documented small-model instruction-following limitation.
 

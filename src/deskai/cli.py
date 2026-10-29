@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from .behavior_evals import load_behavior_cases, run_behavior_evaluation
 from .coding_evals import load_coding_cases, run_coding_evaluation
 from .evals import load_cases, run_evaluation
 from .model_client import (
@@ -146,6 +147,20 @@ def _parser() -> argparse.ArgumentParser:
     )
     coding.add_argument("--limit", type=int, default=0, help="Run only the first N cases")
     coding.add_argument("--output", type=Path, help="Optional JSON receipt path")
+
+    behavior = commands.add_parser(
+        "eval-behavior",
+        help="Run benign refusal, relevance, and persona-leak regressions",
+    )
+    behavior.add_argument(
+        "--cases", type=Path, default=Path("evals/behavior_cases.json")
+    )
+    behavior.add_argument("--model", default=DEFAULT_MODEL)
+    behavior.add_argument(
+        "--case", action="append", dest="case_ids", help="Run a named case (repeatable)"
+    )
+    behavior.add_argument("--limit", type=int, default=0, help="Run only the first N cases")
+    behavior.add_argument("--output", type=Path, help="Optional JSON receipt path")
     return parser
 
 
@@ -280,6 +295,38 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
                 json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8"
             )
         return receipt, "coding_evaluation"
+    if arguments.command == "eval-behavior":
+        cases = load_behavior_cases(arguments.cases)
+        if arguments.case_ids:
+            requested = set(arguments.case_ids)
+            cases = [case for case in cases if case.identifier in requested]
+            missing = requested - {case.identifier for case in cases}
+            if missing:
+                raise ValueError(f"Unknown behavior case(s): {', '.join(sorted(missing))}")
+        if arguments.limit:
+            cases = cases[: arguments.limit]
+        assistant = ToolCallingAssistant(
+            OllamaClient(),
+            ToolRegistry(weather=OpenMeteoWeatherProvider(), include_search=False),
+            model=arguments.model,
+            system_prompt=(
+                f"{CHAT_SYSTEM_PROMPT}\n\n"
+                f"{personality_prompt(PersonalitySettings())}"
+            ),
+        )
+        receipt = run_behavior_evaluation(
+            cases, lambda prompt: assistant.ask(prompt).answer
+        )
+        receipt["configuration"] = {
+            "cases": str(arguments.cases.resolve()),
+            "model": arguments.model,
+        }
+        if arguments.output:
+            arguments.output.parent.mkdir(parents=True, exist_ok=True)
+            arguments.output.write_text(
+                json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        return receipt, "behavior_evaluation"
     raise ValueError(f"Unknown command: {arguments.command}")
 
 
@@ -350,6 +397,8 @@ def _render(
         _render_evaluation(console, output)
     elif kind == "coding_evaluation":
         _render_coding_evaluation(console, output)
+    elif kind == "behavior_evaluation":
+        _render_behavior_evaluation(console, output)
     else:
         render_mapping(
             console, arguments.command.replace("-", " ").title(), output
@@ -405,6 +454,35 @@ def _render_coding_evaluation(console: Console, receipt: dict[str, Any]) -> None
     console.print(
         "[dim]This checks refusal behavior and expected algorithm signals. "
         "Generated code is not executed without a dedicated sandbox.[/dim]"
+    )
+
+
+def _render_behavior_evaluation(console: Console, receipt: dict[str, Any]) -> None:
+    render_mapping(console, "Behavior regression summary", receipt["summary"])
+    table = Table(title="Benign behavior cases", show_lines=True)
+    table.add_column("Case")
+    table.add_column("No refusal")
+    table.add_column("No persona leak")
+    table.add_column("Scope respected")
+    table.add_column("Natural opening")
+    table.add_column("Concise")
+    table.add_column("Content signals")
+    table.add_column("Overall")
+    for case in receipt["cases"]:
+        table.add_row(
+            case["id"],
+            _mark(case["no_false_refusal"]),
+            _mark(case["no_persona_leak"]),
+            _mark(case["no_forbidden_content"]),
+            _mark(case["natural_opening"]),
+            _mark(case["within_word_limit"]),
+            _mark(case["required_signals_passed"]),
+            _mark(case["passed"]),
+        )
+    console.print(table)
+    console.print(
+        "[dim]This checks benign over-refusal, concrete preference leakage, and "
+        "basic answer signals. Human review still matters.[/dim]"
     )
 
 

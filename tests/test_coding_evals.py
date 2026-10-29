@@ -16,6 +16,8 @@ def test_chat_prompt_explicitly_supports_programming() -> None:
     assert "write, explain, review, and debug code" in lowered
     assert "do not claim that programming is outside" in lowered
     assert "do not leave a known-broken draft" in lowered
+    assert "default to answering benign requests directly" in lowered
+    assert "do not add moralizing" in lowered
 
 
 def test_coding_score_separates_refusal_from_concept_coverage() -> None:

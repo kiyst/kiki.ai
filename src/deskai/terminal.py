@@ -22,9 +22,13 @@ from .model_client import (
     ToolCallingAssistant,
     ToolTrace,
 )
+from .capabilities import Capability, route_prompt
+from .diagnostics import build_diagnostics, diagnostics_markdown
 from .input_editor import ChatInput
+from .memory import MemoryStore, SensitiveMemoryError
+from .models import PROFILES, ModelRouter, ModelSelection
 from .providers.weather import GEOCODING_URL, OpenMeteoWeatherProvider
-from .personality import PRESETS, PersonalitySettings, personality_prompt
+from .personality import PRESETS, PersonaFile, PersonalitySettings, personality_prompt
 from .retrieval import SearchResult, TextIndex
 from .resilience import DeskAIError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
@@ -47,6 +51,12 @@ INTERACTIVE_COMMANDS = (
     "/doctor",
     "/debug",
     "/personality",
+    "/persona",
+    "/memory",
+    "/remember",
+    "/forget",
+    "/model",
+    "/diagnostics",
     "/help",
     "/exit",
 )
@@ -62,6 +72,9 @@ class TerminalSession:
     ) -> None:
         self.database = database
         self.model = model
+        self.model_profile = "auto"
+        self.model_router = ModelRouter(model)
+        self.last_model_selection = ModelSelection("fast", model, "session default")
         self.embedding_model = embedding_model
         self.weather = OpenMeteoWeatherProvider()
         self.mode = "chat"
@@ -69,6 +82,8 @@ class TerminalSession:
         self.pending_weather_choices: list[dict[str, Any]] = []
         self.personality_path = database.resolve().parent / "kiki-personality.json"
         self.personality = PersonalitySettings.load(self.personality_path)
+        self.persona = PersonaFile(database.resolve().parent / "kiki-persona.md")
+        self.memory = MemoryStore(database.resolve().parent / "kiki-memory.md")
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": []}
         self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None}
         self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None}
@@ -92,6 +107,16 @@ class TerminalSession:
         return self.index, "lexical"
 
     def ask(self, prompt: str) -> tuple[ChatOutcome, str]:
+        route = route_prompt(prompt, mode=self.mode)
+        self.last_model_selection = self.model_router.select(
+            self.model_profile, route.capability
+        )
+        if route.capability == Capability.MEMORY:
+            memory_answer = self._handle_natural_memory(prompt)
+            if memory_answer is not None:
+                return self._remember(
+                    prompt, ChatOutcome(memory_answer, [], []), "none"
+                )
         weather_location = _weather_location_from_prompt(prompt)
         if not weather_location and self.pending_weather_choices:
             if prompt.strip().casefold() in {"cancel", "never mind", "nevermind"}:
@@ -144,9 +169,9 @@ class TerminalSession:
             assistant = ToolCallingAssistant(
                 OllamaClient(),
                 registry,
-                model=self.model,
+                model=self.last_model_selection.model,
                 pre_retrieve=weather_location is None,
-                system_prompt=f"{RAG_SYSTEM_PROMPT}\n\n{personality_prompt(self.personality)}",
+                system_prompt=self._system_prompt(RAG_SYSTEM_PROMPT),
             )
         else:
             retrieval_mode = "none"
@@ -157,15 +182,63 @@ class TerminalSession:
             assistant = ToolCallingAssistant(
                 OllamaClient(),
                 registry,
-                model=self.model,
+                model=self.last_model_selection.model,
                 pre_retrieve=False,
-                system_prompt=f"{CHAT_SYSTEM_PROMPT}\n\n{personality_prompt(self.personality)}",
+                system_prompt=self._system_prompt(CHAT_SYSTEM_PROMPT),
             )
         outcome = assistant.ask(prompt, history=self.histories[self.mode])
         if self.mode == "rag" and isinstance(backend, HybridRetriever):
             if backend.last_fallback_reason:
                 retrieval_mode = "lexical fallback (embedding service unavailable)"
         return self._remember(prompt, outcome, retrieval_mode)
+
+    def _system_prompt(self, base: str) -> str:
+        sections = [
+            base,
+            personality_prompt(self.personality, self.persona.load()),
+        ]
+        memory = self.memory.prompt()
+        if memory:
+            sections.append(memory)
+        return "\n\n".join(sections)
+
+    def _handle_natural_memory(self, prompt: str) -> str | None:
+        stripped = prompt.strip()
+        remember = re.match(r"^(?:please\s+)?remember(?:\s+that)?\s+(.+)$", stripped, re.I)
+        if remember:
+            try:
+                note = self.memory.remember(remember.group(1))
+                return f"Remembered: {note}"
+            except (SensitiveMemoryError, ValueError) as exc:
+                return str(exc)
+        forget = re.match(r"^(?:please\s+)?forget(?:\s+that)?\s+(.+)$", stripped, re.I)
+        if forget:
+            removed = self.memory.forget(forget.group(1))
+            return (
+                "Forgot: " + "; ".join(removed)
+                if removed
+                else "I couldn't find a matching saved memory."
+            )
+        if re.match(r"^what do you remember\b", stripped, re.I):
+            notes = self.memory.notes()
+            return (
+                "Saved memories:\n" + "\n".join(f"- {note}" for note in notes)
+                if notes
+                else "I don't have any saved memories yet."
+            )
+        return None
+
+    def diagnostics(self) -> dict[str, Any]:
+        registry = ToolRegistry(self.index, weather=self.weather)
+        return build_diagnostics(
+            database=self.database,
+            mode=self.mode,
+            model_profile=self.model_profile,
+            selected_model=self.last_model_selection.model,
+            embedding_model=self.embedding_model,
+            index_health=self.index.health(),
+            tool_catalog=registry.catalog(),
+        )
 
     def doctor(self) -> dict[str, Any]:
         try:
@@ -487,6 +560,83 @@ def _handle_command(
     if name == "/personality":
         _handle_personality(console, session, parts[1:])
         return False, None
+    if name == "/persona":
+        action = parts[1].casefold() if len(parts) > 1 else "show"
+        if action in {"show", "path"}:
+            session.persona.ensure()
+            console.print(
+                Panel(
+                    session.persona.load(),
+                    title=f"Editable persona · {session.persona.path}",
+                    border_style="cyan",
+                )
+            )
+        elif action == "reset":
+            backup = session.persona.reset()
+            message = "Persona reset to Kiki's default."
+            if backup:
+                message += f" Previous text saved to {backup}."
+            console.print(f"[green]{message}[/green]")
+        else:
+            console.print("[yellow]Usage: /persona [show|path|reset][/yellow]")
+        return False, None
+    if name in {"/memory", "/remember", "/forget"}:
+        if name == "/memory":
+            notes = session.memory.notes()
+            if notes:
+                console.print(Panel("\n".join(f"• {note}" for note in notes), title="Kiki memory"))
+            else:
+                console.print("[yellow]No saved memories.[/yellow]")
+        elif not rest:
+            console.print(f"[yellow]Usage: {name} TEXT[/yellow]")
+        elif name == "/remember":
+            try:
+                note = session.memory.remember(rest)
+                console.print(f"[green]Remembered:[/green] {note}")
+            except (SensitiveMemoryError, ValueError) as exc:
+                console.print(f"[yellow]{exc}[/yellow]")
+        else:
+            removed = session.memory.forget(rest)
+            if removed:
+                console.print("[green]Forgot:[/green] " + "; ".join(removed))
+            else:
+                console.print("[yellow]No matching memory found.[/yellow]")
+        return False, None
+    if name == "/model":
+        if not rest:
+            models = session.model_router.models()
+            render_mapping(
+                console,
+                "Model profiles",
+                {
+                    "active_profile": session.model_profile,
+                    "last_selected": session.last_model_selection.model,
+                    **models,
+                    "configuration": "KIKI_MODEL_FAST / SMART / MAX",
+                },
+            )
+        elif rest.casefold() in PROFILES:
+            session.model_profile = rest.casefold()
+            console.print(f"[green]Model profile set to {session.model_profile.upper()}.[/green]")
+        else:
+            console.print(f"[yellow]Choose one of: {', '.join(PROFILES)}[/yellow]")
+        return False, None
+    if name == "/diagnostics":
+        report = diagnostics_markdown(session.diagnostics())
+        action = rest.casefold()
+        if action == "copy":
+            try:
+                pyperclip.copy(report)
+                console.print("[green]Copied privacy-filtered diagnostics.[/green]")
+            except pyperclip.PyperclipException as exc:
+                console.print(f"[red]Clipboard unavailable:[/red] {exc}")
+        elif action == "save":
+            path = session.database.parent / "kiki-diagnostics.md"
+            path.write_text(report, encoding="utf-8")
+            console.print(f"[green]Diagnostics saved to[/green] {path}")
+        else:
+            console.print(Markdown(report))
+        return False, None
     if name == "/retry":
         previous = session.prepare_retry()
         if previous is None:
@@ -547,8 +697,12 @@ def _handle_command(
                 "mode": session.mode,
                 "database": session.database.resolve(),
                 "embeddings": session.index.embedding_count(session.embedding_model),
-                "model": session.model,
+                "model_profile": session.model_profile,
+                "last_model": session.last_model_selection.model,
+                "model_reason": session.last_model_selection.reason,
                 "embedding_model": session.embedding_model,
+                "memories": len(session.memory.notes()),
+                "persona_file": session.persona.path,
                 "debug": session.debug,
             },
         )
@@ -595,6 +749,12 @@ def _render_help(console: Console) -> None:
         ("/doctor", "Check Ollama models, index integrity, and provider health."),
         ("/debug", "Toggle validated tool traces."),
         ("/personality", "Show or adjust warmth, wit, opinions, and verbosity."),
+        ("/persona [show|reset]", "Inspect the hot-reloaded persona text file."),
+        ("/remember TEXT", "Save an explicit, non-sensitive memory."),
+        ("/forget TEXT", "Remove matching saved memories."),
+        ("/memory", "Show saved memories."),
+        ("/model [auto|fast|smart|max]", "Inspect or select a model profile."),
+        ("/diagnostics [copy|save]", "Create a privacy-filtered support report."),
         ("/clear", "Alias for /new."),
         ("/quit", "Close the terminal session."),
     )

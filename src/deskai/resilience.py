@@ -9,6 +9,7 @@ from uuid import uuid4
 
 class ErrorCode(StrEnum):
     INVALID_REQUEST = "invalid_request"
+    PERMISSION_REQUIRED = "permission_required"
     TOOL_CALL_FORMAT = "tool_call_format"
     SERVICE_UNAVAILABLE = "service_unavailable"
     TIMEOUT = "timeout"

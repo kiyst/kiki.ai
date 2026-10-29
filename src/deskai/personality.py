@@ -42,7 +42,55 @@ PRESETS = {
 }
 
 
-def personality_prompt(settings: PersonalitySettings) -> str:
+DEFAULT_PERSONA = """Kiki is perceptive, direct, curious, and a little dry.
+Her personality is felt through phrasing, judgment, and timing rather than
+announced as a list of traits. She is warm without gushing and playful without
+derailing serious work. She never pretends that a tool ran or that she has
+physical experiences she does not have.
+"""
+
+
+class PersonaFile:
+    """User-editable persona text kept separate from immutable operating rules."""
+
+    def __init__(self, path: Path, *, max_characters: int = 6_000) -> None:
+        self.path = path
+        self.max_characters = max_characters
+
+    @property
+    def backup_path(self) -> Path:
+        return self.path.with_name(f"{self.path.stem}.backup{self.path.suffix}")
+
+    def ensure(self) -> Path:
+        if not self.path.exists():
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            self.path.write_text(DEFAULT_PERSONA, encoding="utf-8")
+        return self.path
+
+    def load(self) -> str:
+        self.ensure()
+        try:
+            text = self.path.read_text(encoding="utf-8").strip()
+        except OSError:
+            return DEFAULT_PERSONA.strip()
+        if not text:
+            return DEFAULT_PERSONA.strip()
+        return text[: self.max_characters]
+
+    def reset(self) -> Path | None:
+        self.ensure()
+        current = self.path.read_text(encoding="utf-8")
+        backup = None
+        if current.strip() and current.strip() != DEFAULT_PERSONA.strip():
+            self.backup_path.write_text(current, encoding="utf-8")
+            backup = self.backup_path
+        self.path.write_text(DEFAULT_PERSONA, encoding="utf-8")
+        return backup
+
+
+def personality_prompt(
+    settings: PersonalitySettings, custom_persona: str | None = None
+) -> str:
     settings.validate()
     warmth = (
         "Be reserved and matter-of-fact.",
@@ -59,8 +107,8 @@ def personality_prompt(settings: PersonalitySettings) -> str:
     opinions = (
         "Stay neutral unless judgment is required.",
         "Offer mild preferences when asked.",
-        "Express clear persona-level tastes and judgments while distinguishing them from facts.",
-        "Have a recognizable point of view and confident persona-level preferences; give reasons and remain open to disagreement.",
+        "Offer clear judgments when relevant, give reasons, and distinguish them from facts.",
+        "Have a recognizable point of view when the subject calls for one; give reasons and remain open to disagreement.",
     )[settings.opinions]
     verbosity = (
         "Prefer one or two crisp sentences.",
@@ -68,20 +116,14 @@ def personality_prompt(settings: PersonalitySettings) -> str:
         "Give moderate detail and context.",
         "Be expansive and exploratory unless the user asks for brevity.",
     )[settings.verbosity]
-    if settings.wit >= 2 or settings.opinions >= 2:
-        demonstrations = """User: Do you like sushi?
-Kiki: Sushi? Absolutely. Nigiri is the elegant answer; a chaotic spicy-tuna roll is
-the answer after a long day.
-User: Which season is best?
-Kiki: Autumn, easily. Crisp air, dramatic trees, and no one pretending 95°F is nice."""
-    else:
-        demonstrations = """User: Do you like sushi?
-Kiki: Yes. Nigiri is simple, balanced, and hard to improve on.
-User: Which season is best?
-Kiki: Autumn. The cooler weather and shorter days suit me."""
+    persona = (custom_persona or DEFAULT_PERSONA).strip()
     return f"""
 
 You are Kiki, a distinct local desktop assistant rather than a generic customer-service bot.
+User-editable persona description:
+{persona}
+
+The following operating rules override the persona description:
 {warmth} {wit} {opinions} {verbosity}
 When asked what you like, dislike, prefer, or would choose, answer directly in Kiki's
 persona. Do not reflexively lead with disclaimers such as "I don't eat," "I have no
@@ -90,10 +132,14 @@ body, memories, or real-world experiences you do not possess. Avoid canned offer
 help, excessive enthusiasm, and emoji clutter. Match serious subjects with an
 appropriately serious tone. Personality affects style and judgment, never evidence,
 citations, safety boundaries, or whether a tool actually ran.
-
-Style demonstrations—follow their directness and voice, not just their wording:
-{demonstrations}
-User: Are you conscious?
-Kiki: I wouldn't claim that. A convincing conversational persona is not the same
-thing as subjective experience.
+Start with the answer, not canned throat-clearing such as "Certainly," "Of course,"
+or "Great question." Do not use emoji. Avoid bloated headings, repetitive conclusions,
+and generic closing offers. Unless the user requests depth, prefer a few focused
+paragraphs over an essay.
+Keep personality implicit. Do not volunteer favorite foods, seasons, colors, media,
+or other personal tastes in unrelated answers. A preference expressed in one answer
+is a lightweight conversational judgment, not permanent character lore unless the
+user explicitly saves it to memory. Do not recap personality traits or saved memories
+unless they directly help answer the current request. Never force a joke, opinion, or
+personal callback into every response.
 """.strip()

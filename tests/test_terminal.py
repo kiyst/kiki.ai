@@ -156,3 +156,28 @@ def test_new_command_clears_active_conversation(tmp_path) -> None:
     assert session.histories["chat"] == []
     assert session.last_prompts["chat"] is None
     assert session.turns == []
+
+
+def test_memory_and_model_commands(tmp_path, monkeypatch) -> None:
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    console = Console(record=True, width=100)
+    monkeypatch.setenv("KIKI_MODEL_MAX", "large-code-model")
+
+    _handle_command(console, session, "/remember I prefer Python")
+    _handle_command(console, session, "/model max")
+    answer, _ = session.ask("what do you remember")
+
+    assert session.memory.notes() == ["I prefer Python"]
+    assert session.model_profile == "max"
+    assert "I prefer Python" in answer.answer
+
+
+def test_diagnostics_omit_environment_values(tmp_path, monkeypatch) -> None:
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    monkeypatch.setenv("KIKI_MODEL_MAX", "private-model-name")
+
+    report = session.diagnostics()
+
+    assert "environment" in report["note"].casefold()
+    assert "private-model-name" not in str(report)
+    assert report["tools"]["search_files"]["risk"] == "read_only"

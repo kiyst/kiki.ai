@@ -2,7 +2,8 @@ from pathlib import Path
 import json
 
 from deskai.retrieval import TextIndex
-from deskai.tools import ToolRegistry
+from deskai.permissions import DESTRUCTIVE
+from deskai.tools import SearchFilesArgs, ToolRegistry, ToolSpec
 
 
 def test_registry_rejects_unknown_tool_and_extra_arguments(tmp_path: Path) -> None:
@@ -65,4 +66,33 @@ def test_unexpected_tool_exception_is_contained(tmp_path: Path) -> None:
     assert result["code"] == "internal_error"
     assert "unexpected provider shape" not in result["error"]
     assert result["reference"]
+
+
+def test_tool_catalog_exposes_read_only_policy(tmp_path: Path) -> None:
+    registry = ToolRegistry(TextIndex(tmp_path / "index.sqlite3"))
+
+    assert registry.catalog()["search_files"] == {
+        "risk": "read_only",
+        "confirmation_required": False,
+        "description": "Search indexed local files and return cited excerpts.",
+    }
+
+
+def test_permission_policy_blocks_execution_without_approval(tmp_path: Path) -> None:
+    registry = ToolRegistry(TextIndex(tmp_path / "index.sqlite3"))
+    ran: list[str] = []
+    registry._tools["dangerous_test"] = ToolSpec(
+        SearchFilesArgs,
+        lambda arguments: ran.append(arguments.query),
+        "Test-only destructive tool.",
+        DESTRUCTIVE,
+    )
+
+    denied = registry.call("dangerous_test", {"query": "erase"})
+    allowed = registry.call("dangerous_test", {"query": "erase"}, approved=True)
+
+    assert denied["code"] == "permission_required"
+    assert denied["data"]["risk"] == "destructive"
+    assert ran == ["erase"]
+    assert allowed["status"] == "ok"
 
