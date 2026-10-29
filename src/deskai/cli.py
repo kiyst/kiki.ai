@@ -226,7 +226,7 @@ def main() -> None:
             console.print(
                 Panel(
                     f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}",
-                    title="deskAI error",
+                    title="Kiki error",
                     border_style="red",
                 )
             )

@@ -427,7 +427,7 @@ def render_outcome(
     retrieval_mode: str,
     debug: bool = False,
 ) -> None:
-    title = "deskAI · RAG" if mode == "rag" else "deskAI · Chat"
+    title = "Kiki · RAG" if mode == "rag" else "Kiki · Chat"
     console.print(Panel(Markdown(outcome.answer or "_(No response)_"), title=title, border_style="cyan"))
     render_sources(console, outcome.sources)
     if debug:
@@ -537,7 +537,7 @@ def _render_banner(console: Console, session: TerminalSession) -> None:
         "Use [bold]/help[/bold] for shortcuts and [bold]/new[/bold] for a fresh conversation.\n\n"
         f"Database: [dim]{session.database.resolve()}[/dim]"
     )
-    console.print(Panel(text, title="deskAI", border_style="cyan"))
+    console.print(Panel(text, title="Kiki", border_style="cyan"))
 
 
 def _prompt_text(session: TerminalSession) -> str:

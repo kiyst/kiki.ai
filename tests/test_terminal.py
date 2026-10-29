@@ -263,3 +263,13 @@ def test_remember_keeps_text_verbatim(tmp_path, monkeypatch) -> None:
     _handle_command(Console(record=True), session, "/remember Use C:\work for scratch files")
 
     assert session.memory.notes() == ["Use C:\work for scratch files"]
+
+
+def test_answer_panels_are_titled_kiki() -> None:
+    from deskai.terminal import render_outcome
+
+    console = Console(record=True, width=80)
+    render_outcome(console, ChatOutcome("Hello.", [], []), mode="chat", retrieval_mode="none")
+
+    rendered = console.export_text()
+    assert "Kiki · Chat" in rendered and "deskAI" not in rendered
