@@ -20,16 +20,23 @@ Approved by the user on October 29, 2026, as a separate milestone, with:
 
 - Execution triggered by benchmarks automatically, and in chat only by `/run`
   with an explicit confirmation.
-- **Languages:** Python, JavaScript/TypeScript, C/C++, Rust, Go, and Java.
-- **Backend chosen by measurement.** Docker is required for the compiled
-  languages. Whether Python (and possibly JavaScript) also gets a lightweight
-  WebAssembly backend is decided by a side-by-side trial in stage 1
-  ([Backend decision](#backend-decision)). The user accepted `wasmtime` as a
-  Kiki dependency if the WebAssembly backend is kept.
+- **Active scope: Python through WebAssembly** (`wasmtime` + CPython for
+  WASI), with no Docker needed. The user accepted `wasmtime` as a Kiki
+  dependency.
+- **Paused: Docker and every other language** (JavaScript/TypeScript, C/C++,
+  Rust, Go, Java). Reserved for a future, optional, opt-in addition. When it
+  is added, the Python WebAssembly path must keep working for users without
+  Docker.
+- **Design target: 16 GB of RAM** with everyday desktop apps open. Kiki must
+  not assume more.
 
-The design went through two drafts the same day: Docker only, then
-WebAssembly first. The user then asked for more languages than WebAssembly
-can serve and chose to measure both.
+History of the decision, all on October 29: the first draft used Docker only;
+the second used WebAssembly first; the user then asked for all six language
+groups and chose to measure both backends. The WebAssembly trial ran and
+passed (see [Trial results](#trial-results)). The Docker trial could not run
+safely: with normal apps open the PC had 2.3 GB of commit headroom, and
+starting Docker Desktop needs about 3 GB. The user then paused Docker and the
+other languages and kept the 16 GB target.
 
 Approval of the milestone is not approval of its checkpoints. Every item under
 [Human-review checkpoints](#human-review-checkpoints) still needs a yes before
@@ -124,8 +131,11 @@ Dependency facts checked on October 29, 2026:
 
 ### Backend decision
 
-Made in stage 1 from measurements, and presented to the user (checkpoint 6).
-Measured for each backend:
+**Decided October 29, 2026: WebAssembly for Python; Docker paused.** The
+WebAssembly trial met every target (below). The Docker measurements were not
+taken, because the machine lacked the memory headroom to start Docker Desktop
+safely with everyday apps open. That is itself the deciding evidence for a
+16 GB target. The original plan, kept for when Docker resumes, measured:
 
 - **Python on both backends:** cold start, warm per-run latency, peak host
   memory (including Docker's `vmmem`), Docker VM idle memory, and whether
@@ -143,6 +153,42 @@ Decision rule:
 
 Both outcomes keep the same `RunSpec` interface, so the choice can be
 revisited later.
+
+### Trial results
+
+October 29, 2026. Windows 11 Home, Ryzen 5 3600, 16 GB RAM, with everyday apps
+open (about 2.3 GB of commit headroom). `wasmtime` 50.0.1, CPython 3.14.9 for
+WASI (zip sha256 `8de78341...29dfa2`). Harness: `evals/sandbox_trial/`.
+Receipt: `evals/receipts/sandbox-trial/wasm-trial.json`. Each run used a fresh
+worker process in a Job Object (768 MiB cap, kill-on-close), a 256 MiB guest
+memory limit, read-only `/lib` and `/input`, and no writable directory.
+
+| Measure | Result |
+| --- | --- |
+| First run (compile and cache `python.wasm`) | 1.46 s, of which compile 1.09 s; once per install |
+| Warm run, hello world (whole worker process) | median 0.35 s (0.33-0.39, 10 runs) |
+| Worker peak commit | 57 MB typical; 274 MB under a memory bomb or deep recursion |
+| Compute workload (sieve + dict + sort) | 0.58-0.60 s versus 0.26 s native: about 2.3× slower |
+| Standard library | 31 of 36 probed modules import; missing `zlib`, `sqlite3`, `multiprocessing`, `ssl`, `ctypes` |
+| Host files (`C:/Windows/win.ini`, `/etc/passwd`, `/`, `/input/..`) | Blocked |
+| Writes (`/input`, `/lib`, `/tmp`, `/`, `/usr`) | Blocked |
+| Network (TCP, DNS) | Blocked (no socket support) |
+| `subprocess`, `os.fork`, `os.system`, threads | Blocked |
+| Environment | Only `PYTHONDONTWRITEBYTECODE`, `PYTHONUNBUFFERED` |
+| stdin | EOF |
+| Memory bomb; 1 GiB allocation | `MemoryError` at the 256 MiB limit, exit 1 |
+| Infinite loop, 10 s limit | Stopped at 10.02 s and reported as `timed_out` |
+| Output flood | Killed after 1 MiB; first 64 KiB kept |
+| Unbounded recursion | Trap, reported as a crash (no hang) |
+| Leftover staging dirs | None |
+
+Bug found and fixed during the trial: the first version counted 10 ms epoch
+ticks, and Windows timer granularity (~15.6 ms) stretched a 10 s limit to
+15.4 s. The deadline is now a single tick fired by a timer at the limit.
+
+Not yet covered: a stdlib-only coding benchmark (stage 0/3), a deliberate
+attempt at a wasmtime escape (out of scope; rely on wasmtime's security
+process and version pinning), and repeated runs under heavier host load.
 
 ## Architecture
 
@@ -213,8 +259,13 @@ edits:      proposed change -> unified diff -> explicit approval -> write to
 
 Compile and run commands are fixed in code; the model chooses only the
 language (from this list) and the file contents. Standard libraries only.
+Only the Python / WebAssembly row is in scope now; the Docker rows are paused.
 
 ## Docker specification
+
+**Paused (October 29, 2026).** Kept as the specification for the future,
+opt-in Docker backend. The trial harness (`evals/sandbox_trial/docker_trial.py`)
+is written but has not been run.
 
 The argv is built in code from a `RunSpec` and the runtime allowlist.
 Illustrative shape (values in [Resource limits](#resource-limits)):
@@ -280,7 +331,11 @@ and writes a results file. For Python, JavaScript, and TypeScript the launcher
 is a script in that language; for compiled languages it is a small POSIX `sh`
 script with fixed contents.
 
-## WebAssembly specification (if kept for Python)
+## WebAssembly specification
+
+The active backend. Validated in the trial; the implementation in
+`src/kiki/sandbox/` should follow `evals/sandbox_trial/wasm_worker.py` and
+`jobs.py`.
 
 - Fresh wasmtime store, instance, and worker process per run; the worker is
   started with a fixed argv (`sys.executable -I -m kiki.sandbox.worker <spec>`)
@@ -294,14 +349,21 @@ script with fixed contents.
 - Runtime pinned by version and sha256 under
   `%LOCALAPPDATA%\kiki\wasi-python\<version>`; compiled module cached there,
   keyed by wasmtime version and runtime sha256, and rebuilt if either differs.
-- `wasmtime` pinned to an exact version in `pyproject.toml`. If the runtime is
-  missing, Python runs fall back to the Docker backend if it is available,
-  otherwise refuse. Never the host.
+- Wall time is a single epoch tick fired by a timer at the deadline (not many
+  small ticks; Windows timer granularity makes those drift).
+- Output is captured with `stdout_custom`/`stderr_custom` callbacks that keep
+  the first 64 KiB / 16 KiB and stop the guest after 1 MiB.
+- `wasmtime` pinned to an exact version in `pyproject.toml` (currently the
+  `sandbox` extra; it becomes a required dependency when the runner ships).
+  If the runtime is missing, Python runs refuse with the setup command. Never
+  the host. (If the Docker backend is added later, it may serve as a second
+  option.)
 
 ## Resource limits
 
-Starting values; the stage-1 trial measures real usage, and changes go
-through checkpoint 10.
+Starting values; changes go through checkpoint 10. The WebAssembly column
+was validated in the trial. The Docker columns apply only if that backend
+resumes.
 
 | Limit | WebAssembly (Python) | Docker, interpreted (Python, JS, TS) | Docker, compiled (C, C++, Rust, Go, Java) |
 | --- | --- | --- | --- |
@@ -384,21 +446,21 @@ engineering-log entry in the existing format, and a separate commit.
 
 ### Stage 1: setup and backend trial
 
-- Docker: `.wslconfig` cap (checkpoint 3); pull the Python, gcc, and
-  Temurin images by digest (checkpoint 4).
-- WebAssembly: add `wasmtime` (checkpoint 1); download the CPython WASI
-  runtime (checkpoint 2).
-- `kiki sandbox doctor` for both backends; every missing piece produces a
+- **Done for WebAssembly (October 29):** `wasmtime` 50.0.1 installed as the
+  `sandbox` extra, CPython 3.14.9 for WASI downloaded and verified, trial run
+  and passed ([Trial results](#trial-results)).
+- **Remaining:** `kiki sandbox setup` (download, verify sha256, unpack,
+  compile cache) and `kiki sandbox doctor`; every missing piece produces a
   refusal with the fix.
-- The [backend trial](#backend-decision) with Fusion 360 and similar
-  applications closed, one job at a time. Report the numbers and a proposed
-  decision (checkpoint 6). If the WebAssembly backend is dropped, remove
-  `wasmtime` again.
+- **Paused:** the Docker half (images, Docker trial). `%USERPROFILE%\.wslconfig`
+  was created with the 2 GB / 2 processor / no-swap cap and left in place
+  as a guard; delete it to undo.
 
 ### Stage 2: the runner, Python first
 
-- `RunSpec`, runtime allowlist, staging, the chosen backend for Python,
-  output caps, timeouts, cleanup, single-run lock.
+- `RunSpec`, runtime allowlist, staging, the WebAssembly backend, output
+  caps, timeouts, cleanup, single-run lock. Promote `wasmtime` from the
+  `sandbox` extra to a required dependency.
 - Adversarial suite (see test plan) must pass before stage 3 (checkpoint 5).
 
 ### Stage 3: benchmark baseline (Python)
@@ -421,9 +483,11 @@ engineering-log entry in the existing format, and a separate commit.
 - `/apply` (separate sub-stage): diff preview, explicit approval, write under
   `LOCAL_WRITE` to a workspace chosen with the folder browser.
 
-### Stage 6: more languages, in waves
+### Stage 6: more languages, in waves (paused)
 
-Each wave: pin and pull images (checkpoint 4), add allowlist entries, run the
+Paused on October 29, 2026; a future, optional, opt-in addition. Resuming
+requires the Docker trial to run first, with at least 5 GB of commit headroom,
+and its results reviewed. Each wave: pin and pull images (checkpoint 4), add allowlist entries, run the
 adversarial suite for the new runtimes, add a per-language benchmark row.
 
 1. JavaScript and TypeScript.
@@ -482,16 +546,19 @@ memory.
 
 Stop and ask before:
 
-1. Adding `wasmtime` to `pyproject.toml` (approved in principle on October 29;
-   confirm the exact version).
-2. Downloading the CPython WASI runtime. Confirm the version and sha256.
+1. Adding `wasmtime` to `pyproject.toml`. Done October 29 (50.0.1, `sandbox`
+   extra), under the user's instruction to run the trials; making it required
+   happens in stage 2.
+2. Downloading the CPython WASI runtime. Done October 29 (3.14.9, sha256
+   recorded); changing the version needs a new yes.
 3. Creating or editing `%USERPROFILE%\.wslconfig`, or restarting WSL or
-   Docker Desktop.
-4. Pulling any Docker image. Show the image, digest, and size; images for
-   compiled languages are large (hundreds of MB to over 1 GB each).
+   Docker Desktop. The file was created on October 29 for the trial.
+4. Pulling any Docker image (paused). Show the image, digest, and size;
+   images for compiled languages are large (hundreds of MB to over 1 GB each).
 5. Running the adversarial integration suite for the first time for each
    backend or language wave (close Fusion 360 and similar applications first).
-6. The backend decision after the stage-1 trial.
+6. The backend decision after the stage-1 trial. Decided October 29:
+   WebAssembly for Python, Docker paused. Resuming Docker is a new decision.
 7. Enabling `/run` in the terminal.
 8. Enabling `/apply` or any other path that writes to the user's files.
 9. Downloading a coding model (stage 7).
@@ -502,10 +569,12 @@ Stop and ask before:
 
 ## Completion criteria
 
-1. Every requirement under [Docker specification](#docker-specification) (and
-   [WebAssembly specification](#webassembly-specification-if-kept-for-python),
-   if kept) is implemented and covered by a unit test, and the adversarial
-   suite passes for every enabled language.
+1. Every requirement under
+   [WebAssembly specification](#webassembly-specification) and the shared
+   requirements (disposable staging, no writable host paths, structured
+   invocation, allowlist, cleanup, fail closed) is implemented and covered by
+   a unit test, and the adversarial suite passes. The Docker specification
+   applies only if that backend resumes.
 2. An unavailable backend means no execution, with an actionable message,
    while the rest of Kiki keeps working.
 3. The benchmark exists with hidden tests that are provably absent from model

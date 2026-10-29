@@ -50,7 +50,8 @@ RAG you > What does Paine say about hereditary succession?
 ## What Kiki can do
 
 - **Talk.** Plain conversation, writing help, and code: explaining, writing,
-  reviewing, and debugging. She writes code but never runs it.
+  reviewing, and debugging. She writes code but does not run it yet; a safe
+  way to run Python is in development ([Running code](#running-code-in-development)).
 - **Answer from your documents.** Point her at a folder of text, Markdown, or
   PDF files. Answers cite the document and line or page they came from.
 - **Know when to stop.** Questions the documents cannot answer get "Evidence is
@@ -86,10 +87,10 @@ model. It goes through six steps, each of which can be inspected with `/debug`:
  3. Grade each passage 0–3: "does this actually answer the question?"
       │                     (graded by the local model; one digit only)
       ▼
- 4. Keep the best 5 ──────── any document you named gets a seat;
+ 4. Keep the best 8 ──────── any document you named gets a seat;
       │                      each side of a comparison gets a seat
       ▼
- 5. Write the answer from those 5 passages, citing each one
+ 5. Write the answer from those 8 passages, citing each one
       │
       ▼
  6. Check the citations ─── invented or missing? one retry, then
@@ -115,6 +116,8 @@ A few details make this work better on a small model:
 - [Ollama](https://ollama.com) running locally
 - About 3.5 GB of disk for the two default models; a GPU with 6–8 GB is
   comfortable
+- 16 GB of RAM. Kiki is designed for 16 GB machines with everyday apps open
+  and does not assume more
 
 ### Steps
 
@@ -198,6 +201,33 @@ kiki hybrid-search "Which problems should never get another try?"
 kiki weather "Boston, Massachusetts"
 kiki --json rag "Why is the judiciary the least dangerous branch?"
 ```
+
+### Running code (in development)
+
+Kiki cannot run code yet. This is what is coming, so you know what to expect:
+
+- **Python first, no Docker needed.** Python will run in a WebAssembly sandbox
+  (`wasmtime`), a small add-on of about 25 MB with no background service. In a
+  trial on a 16 GB PC with everyday apps open, each run took about a third of
+  a second and 57 MB of memory.
+- **The code is boxed in.** It cannot see your files, use the network, start
+  other programs, or write anywhere. It is stopped after 10 seconds, at
+  256 MB of memory, or after 1 MB of output. All of this was tested in the
+  trial.
+- **You stay in charge.** Code runs only when you type `/run` and confirm, and
+  it runs on a temporary copy. Changes to your real files will always be shown
+  as a diff and need your approval.
+- **Limits.** Standard library only (no `pip` packages, no internet), no
+  threads or subprocesses, and `zlib`, `sqlite3`, `multiprocessing`, `ssl`,
+  and `ctypes` are unavailable. Code runs about 2× slower than normal Python.
+- **Other languages are paused.** JavaScript/TypeScript, C/C++, Rust, Go, and
+  Java need Docker, which takes 1–2 GB of memory while it runs. That is too
+  much for a 16 GB machine with ordinary apps open, so Docker support is
+  reserved for a future, optional addition. When it arrives it will be opt-in,
+  and the Python sandbox will keep working without it.
+
+The design, threat model, and trial results are in
+[docs/CODING_SANDBOX_HANDOFF.md](docs/CODING_SANDBOX_HANDOFF.md).
 
 ## Building your own library
 
@@ -326,7 +356,7 @@ src/kiki/
   personality.py     persona file and tone settings
 evals/               question sets for retrieval, answers, behavior, and code
 docs/                design notes, the engineering log, development notes
-tests/               110 automated tests, no network or models required
+tests/               183 automated tests, no network or models required
 ```
 
 ## Development
@@ -338,6 +368,17 @@ kiki --database .kiki\history.sqlite3 eval-rag --with-model
 kiki --database .kiki\history.sqlite3 eval-behavior    # refusals, tone, scope
 kiki --database .kiki\history.sqlite3 eval-chat        # coding questions
 ```
+
+The code sandbox trial is separate and optional:
+
+```powershell
+python -m pip install -e ".[sandbox]"    # wasmtime
+cd evals\sandbox_trial; python wasm_trial.py
+```
+
+It needs the CPython WASI runtime listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), unpacked under
+`%LOCALAPPDATA%\kiki\wasi-python\3.14.9\runtime`.
 
 Evaluation results are written to the ignored `evals/results/` folder.
 Decisions, bugs, and trade-offs are recorded in
@@ -353,15 +394,22 @@ helpful thing to send.
 Roughly in priority order (details in the
 [development notes](docs/DEVELOPMENT_NOTES.md)):
 
-1. **Quote checking.** Anything in quotation marks must appear word for word
+1. **Run Python safely** (in progress). The WebAssembly sandbox described in
+   [Running code](#running-code-in-development), a coding benchmark with
+   hidden tests, and a loop in which Kiki fixes her own failing code.
+2. **Quote checking.** Anything in quotation marks must appear word for word
    in a retrieved passage.
-2. **Claim checking.** Confirm each sentence is supported by the passage it
+3. **Claim checking.** Confirm each sentence is supported by the passage it
    cites, and flag or remove the rest.
-3. **Rule checks in code.** When you say "don't include X", verify the answer
+4. **Rule checks in code.** When you say "don't include X", verify the answer
    instead of trusting the model.
-4. **One regression gate** that runs every evaluation before a change lands.
-5. **Try a larger model** for better instruction-following, within the GPU's
+5. **One regression gate** that runs every evaluation before a change lands.
+6. **Try a larger model** for better instruction-following, within the GPU's
    8 GB.
+
+Paused for a future, optional addition: running JavaScript/TypeScript, C/C++,
+Rust, Go, and Java through Docker. It is too memory-hungry for the 16 GB
+target today.
 
 Not planned: voice, a job engine, or controlling your mouse and keyboard.
 

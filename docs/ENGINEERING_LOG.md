@@ -614,3 +614,38 @@ Known gaps carried forward: GPU-reranker latency in receipts 08-c32, c50,
 recovery, and development is invalid (overlapping runs, see incident);
 three holdout misses remain; no labeled PDF retrieval set; citations are
 not yet checked for claim support; recovery has never triggered.
+
+## Coding sandbox milestone, stage 1: backend trial
+
+```text
+Date: 2026-10-29
+Stage: 1 (setup and backend trial), per docs/CODING_SANDBOX_HANDOFF.md
+Commit before change: bb70096
+Files changed: evals/sandbox_trial/ (new trial harness), evals/receipts/
+        sandbox-trial/wasm-trial.json, pyproject.toml (`sandbox` extra:
+        wasmtime==50.0.1), THIRD_PARTY_NOTICES.md, README.md, docs/
+        CODING_SANDBOX_HANDOFF.md, docs/PROJECT_HANDOFF.md
+Outside the repo: wasmtime in .venv; CPython 3.14.9 WASI build in
+        %LOCALAPPDATA%\kiki\wasi-python\3.14.9 (zip sha256 8de78341...29dfa2);
+        %USERPROFILE%\.wslconfig created (2 GB, 2 processors, swap 0)
+Behavior changed: none in Kiki itself; no execution path is wired up.
+Tests/evaluations run: WebAssembly trial (14 scenarios, 10 warm runs, 3
+        compute runs, native reference); pytest 183 passed.
+Result: WebAssembly passed every check. Warm run 0.35 s, 57 MB per run,
+        2.3x slower than native, all isolation and limit probes held.
+        Docker trial not run: 2.3 GB commit headroom with everyday apps open,
+        and Docker Desktop needs about 3 GB.
+Known bugs: fixed during the trial, a 10 s deadline ran 15.4 s because
+        Windows timer granularity stretched 10 ms epoch ticks; now one tick
+        at the deadline.
+Decision: Python through WebAssembly is the sandbox. Docker and other
+        languages are paused for a future, optional, opt-in addition. Kiki
+        targets 16 GB machines with everyday apps open.
+Human review needed: stage 0 benchmark problems and hidden tests; enabling
+        /run (checkpoint 7).
+```
+
+Before the trial the PC had 31.8 GB committed of a 34.2 GB limit, mostly
+VS Code, browsers, and Electron apps. That, not Kiki, is the binding
+constraint on a 16 GB machine, and it is why the decision favors the backend
+that adds tens of megabytes instead of gigabytes.

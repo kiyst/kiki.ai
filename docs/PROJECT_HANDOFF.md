@@ -373,8 +373,11 @@ results.
 On October 29, 2026 the user approved a sandboxed code-execution environment
 as a separate milestone, to come before Phase 1. It is specified, with its
 threat model, limits, staged plan, and review checkpoints, in
-[CODING_SANDBOX_HANDOFF.md](CODING_SANDBOX_HANDOFF.md). Nothing is
-implemented yet; implementation starts only after that document is reviewed.
+[CODING_SANDBOX_HANDOFF.md](CODING_SANDBOX_HANDOFF.md). Scope: Python in a
+WebAssembly sandbox (`wasmtime`), which passed its trial on October 29. Docker
+and other languages are paused for a future, optional addition. Kiki targets
+16 GB machines with everyday apps open. The trial harness exists; the runner
+itself is not implemented yet.
 
 ## Human-review checkpoints
 
