@@ -4,6 +4,7 @@ import shlex
 import re
 from datetime import datetime
 from pathlib import Path
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -32,6 +33,7 @@ from .personality import PRESETS, PersonaFile, PersonalitySettings, personality_
 from .retrieval import SearchResult, TextIndex
 from .resilience import DeskAIError, safe_error
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
+from .self_knowledge import COMMAND_HELP, capabilities_text, self_knowledge_prompt
 from .tools import ToolRegistry
 
 
@@ -57,6 +59,7 @@ INTERACTIVE_COMMANDS = (
     "/forget",
     "/model",
     "/diagnostics",
+    "/capabilities",
     "/help",
     "/exit",
 )
@@ -196,6 +199,9 @@ class TerminalSession:
         sections = [
             base,
             personality_prompt(self.personality, self.persona.load()),
+            self_knowledge_prompt(
+                mode=self.mode, model_profile=self.model_profile
+            ),
         ]
         memory = self.memory.prompt()
         if memory:
@@ -220,9 +226,9 @@ class TerminalSession:
                 else "I couldn't find a matching saved memory."
             )
         if re.match(r"^what do you remember\b", stripped, re.I):
-            notes = self.memory.notes()
+            notes = self.memory.numbered()
             return (
-                "Saved memories:\n" + "\n".join(f"- {note}" for note in notes)
+                "Saved memories:\n" + "\n".join(f"{number}. {note}" for number, note in notes)
                 if notes
                 else "I don't have any saved memories yet."
             )
@@ -306,7 +312,7 @@ class TerminalSession:
 
     def export_transcript(self, path: Path | None = None) -> Path:
         if path is None:
-            folder = self.database.parent / "transcripts"
+            folder = self.database.parent / "saved-chats"
             stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             path = folder / f"kiki-{stamp}.md"
         path = path.expanduser().resolve()
@@ -582,9 +588,14 @@ def _handle_command(
         return False, None
     if name in {"/memory", "/remember", "/forget"}:
         if name == "/memory":
-            notes = session.memory.notes()
+            notes = session.memory.numbered()
             if notes:
-                console.print(Panel("\n".join(f"• {note}" for note in notes), title="Kiki memory"))
+                console.print(
+                    Panel(
+                        "\n".join(f"{number}. {note}" for number, note in notes),
+                        title="Kiki memory · use /forget NUMBER",
+                    )
+                )
             else:
                 console.print("[yellow]No saved memories.[/yellow]")
         elif not rest:
@@ -637,6 +648,9 @@ def _handle_command(
         else:
             console.print(Markdown(report))
         return False, None
+    if name == "/capabilities":
+        console.print(Panel(capabilities_text(), title="Kiki capabilities", border_style="cyan"))
+        return False, None
     if name == "/retry":
         previous = session.prepare_retry()
         if previous is None:
@@ -675,7 +689,11 @@ def _handle_command(
         console.print(table)
         return False, None
     if name == "/save":
-        path = session.export_transcript(Path(rest) if rest else None)
+        selected = Path(rest) if rest else _browse_for_save(console, session)
+        if selected is None:
+            console.print("[dim]Save cancelled.[/dim]")
+            return False, None
+        path = session.export_transcript(selected)
         console.print(f"[green]Transcript saved to[/green] {path}")
         return False, None
     if name in {"/clear", "/new"}:
@@ -684,7 +702,18 @@ def _handle_command(
         return False, None
     if name in {"/database", "/db"}:
         if not rest:
-            console.print(f"Current database: [cyan]{session.database.resolve()}[/cyan]")
+            console.print(
+                f"Current database: [cyan]{session.database.resolve()}[/cyan]\n"
+                "Use [bold]/database browse[/bold] to navigate or "
+                "[bold]/database PATH[/bold] to set it directly."
+            )
+        elif rest.casefold() == "browse":
+            selected = _browse_for_database(console, session.database.parent)
+            if selected is None:
+                console.print("[dim]Database selection cancelled.[/dim]")
+                return False, None
+            session.set_database(selected)
+            console.print(f"RAG database changed to [cyan]{session.database.resolve()}[/cyan].")
         else:
             session.set_database(Path(rest))
             console.print(f"RAG database changed to [cyan]{session.database.resolve()}[/cyan].")
@@ -734,33 +763,150 @@ def _render_help(console: Console) -> None:
     table = Table(title="Interactive commands", show_lines=True)
     table.add_column("Command", style="cyan", no_wrap=True)
     table.add_column("Purpose")
-    rows = (
-        ("/chat [message]", "Switch to ordinary local conversation."),
-        ("/rag [question]", "Switch to evidence-grounded document Q&A."),
-        ("/retry", "Regenerate the last response."),
-        ("/copy", "Copy the last response to the system clipboard."),
-        ("/sources", "Show the last response's verified RAG sources again."),
-        ("/history", "Show the last ten prompts in this conversation."),
-        ("/save [PATH]", "Export this session to a Markdown transcript."),
-        ("/new", "Start a fresh conversation in the active mode."),
-        ("/weather City, State", "Fetch a current Open-Meteo forecast directly."),
-        ("/database PATH", "Change the SQLite index used by RAG mode."),
-        ("/status", "Show active model, database, mode, and embedding count."),
-        ("/doctor", "Check Ollama models, index integrity, and provider health."),
-        ("/debug", "Toggle validated tool traces."),
-        ("/personality", "Show or adjust warmth, wit, opinions, and verbosity."),
-        ("/persona [show|reset]", "Inspect the hot-reloaded persona text file."),
-        ("/remember TEXT", "Save an explicit, non-sensitive memory."),
-        ("/forget TEXT", "Remove matching saved memories."),
-        ("/memory", "Show saved memories."),
-        ("/model [auto|fast|smart|max]", "Inspect or select a model profile."),
-        ("/diagnostics [copy|save]", "Create a privacy-filtered support report."),
-        ("/clear", "Alias for /new."),
-        ("/quit", "Close the terminal session."),
-    )
-    for command, purpose in rows:
+    for command, purpose in COMMAND_HELP:
         table.add_row(command, purpose)
     console.print(table)
+
+
+def _browse_for_save(
+    console: Console,
+    session: TerminalSession,
+    input_fn: Callable[[str], str] | None = None,
+) -> Path | None:
+    folder = session.database.parent / "saved-chats"
+    folder.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    return _browse_path(
+        console,
+        folder,
+        purpose="save",
+        default_filename=f"kiki-{stamp}.md",
+        input_fn=input_fn,
+    )
+
+
+def _browse_for_database(
+    console: Console,
+    start: Path,
+    input_fn: Callable[[str], str] | None = None,
+) -> Path | None:
+    return _browse_path(
+        console,
+        start,
+        purpose="database",
+        default_filename=None,
+        input_fn=input_fn,
+    )
+
+
+def _browse_path(
+    console: Console,
+    start: Path,
+    *,
+    purpose: str,
+    default_filename: str | None,
+    input_fn: Callable[[str], str] | None = None,
+) -> Path | None:
+    """Small terminal folder navigator used by save and database selection."""
+    read = input_fn or console.input
+    current = start.expanduser().resolve()
+    while True:
+        try:
+            children = sorted(
+                (item for item in current.iterdir() if item.is_dir()),
+                key=lambda item: item.name.casefold(),
+            )
+            if purpose == "database":
+                children.extend(
+                    sorted(
+                        (
+                            item
+                            for item in current.iterdir()
+                            if item.is_file() and item.suffix.casefold() in {".sqlite", ".sqlite3", ".db"}
+                        ),
+                        key=lambda item: item.name.casefold(),
+                    )
+                )
+        except OSError as exc:
+            console.print(f"[red]Cannot read that folder:[/red] {exc}")
+            current = current.parent
+            continue
+
+        table = Table(title=f"Kiki {purpose} browser · {current}")
+        table.add_column("#", justify="right", style="cyan")
+        table.add_column("Name")
+        table.add_column("Type", style="dim")
+        for number, item in enumerate(children, start=1):
+            table.add_row(str(number), item.name, "folder" if item.is_dir() else "database")
+        if not children:
+            table.add_row("—", "No matching items", "—")
+        console.print(table)
+        if purpose == "save":
+            console.print(
+                "[dim]number: open folder · here [NAME]: save here · new NAME: create/open folder · "
+                "..: parent · path PATH: direct destination · cancel[/dim]"
+            )
+        else:
+            console.print(
+                "[dim]number: open folder/select database · ..: parent · "
+                "path PATH: direct database · cancel[/dim]"
+            )
+        try:
+            choice = read("Kiki browser > ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return None
+        lowered = choice.casefold()
+        if lowered == "cancel":
+            return None
+        if choice == "..":
+            current = current.parent
+            continue
+        if lowered.startswith("path "):
+            selected = Path(choice[5:].strip().strip('"')).expanduser().resolve()
+            if purpose == "save":
+                return selected / default_filename if selected.is_dir() else _markdown_path(selected)
+            if selected.is_file() and selected.suffix.casefold() in {".sqlite", ".sqlite3", ".db"}:
+                return selected
+            console.print("[yellow]Choose an existing .sqlite, .sqlite3, or .db file.[/yellow]")
+            continue
+        if purpose == "save" and (lowered == "here" or lowered.startswith("here ")):
+            filename = choice[4:].strip().strip('"') or str(default_filename)
+            return current / _markdown_path(Path(filename)).name
+        if purpose == "save" and lowered.startswith("new "):
+            name = choice[4:].strip().strip('"')
+            if not _safe_folder_name(name):
+                console.print("[yellow]Use a single folder name without path separators.[/yellow]")
+                continue
+            created = current / name
+            try:
+                created.mkdir(exist_ok=False)
+            except FileExistsError:
+                if not created.is_dir():
+                    console.print("[yellow]That name already belongs to a file.[/yellow]")
+                    continue
+            except OSError as exc:
+                console.print(f"[red]Could not create folder:[/red] {exc}")
+                continue
+            current = created
+            continue
+        if choice.isdigit() and 1 <= int(choice) <= len(children):
+            selected = children[int(choice) - 1]
+            if selected.is_dir():
+                current = selected
+            else:
+                return selected
+            continue
+        console.print("[yellow]Unknown browser command.[/yellow]")
+
+
+def _markdown_path(path: Path) -> Path:
+    return path if path.suffix.casefold() == ".md" else path.with_suffix(".md")
+
+
+def _safe_folder_name(name: str) -> bool:
+    return bool(name) and name not in {".", ".."} and not any(
+        character in name for character in '<>:"/\\|?*'
+    )
 
 
 def _handle_personality(

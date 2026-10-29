@@ -15,6 +15,22 @@ def test_memory_round_trip_and_forget(tmp_path) -> None:
     assert store.notes() == []
 
 
+def test_memories_are_numbered_and_can_be_forgotten_by_number(tmp_path) -> None:
+    store = MemoryStore(tmp_path / "kiki-memory.md")
+    store.remember("First preference")
+    store.remember("Second preference")
+    store.remember("Third preference")
+
+    assert store.numbered() == [
+        (1, "First preference"),
+        (2, "Second preference"),
+        (3, "Third preference"),
+    ]
+    assert store.forget("2") == ["Second preference"]
+    assert store.numbered() == [(1, "First preference"), (2, "Third preference")]
+    assert store.forget("99") == []
+
+
 @pytest.mark.parametrize(
     "note",
     [

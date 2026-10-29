@@ -158,6 +158,7 @@ class ToolCallingAssistant:
         sources: dict[str, dict[str, Any]] = {}
         tool_call_count = 0
         evidence_characters = 0
+        reconsidered_abstention = False
 
         if self.pre_retrieve:
             arguments = {"query": prompt, "limit": 5}
@@ -212,6 +213,26 @@ class ToolCallingAssistant:
             calls = message.get("tool_calls") or []
             if not calls:
                 answer = _visible_answer(message.get("content") or "")
+                if (
+                    self.pre_retrieve
+                    and sources
+                    and not reconsidered_abstention
+                    and round_number < self.max_rounds
+                    and _looks_like_insufficient(answer)
+                ):
+                    reconsidered_abstention = True
+                    messages.append(
+                        {
+                            "role": "user",
+                            "content": (
+                                "Grounding check: retrieval returned excerpts. Reconsider once. "
+                                "If any excerpt directly supports part of the question, answer only "
+                                "that supported part with exact [source:ID] citations. If none does, "
+                                "keep the insufficient-evidence answer."
+                            ),
+                        }
+                    )
+                    continue
                 if self.pre_retrieve:
                     answer = _verify_grounded_answer(answer, sources)
                 return ChatOutcome(
@@ -352,6 +373,10 @@ def _verify_grounded_answer(
             "I retrieved the sources listed below, but the model did not produce valid citations."
         )
     return answer
+
+
+def _looks_like_insufficient(answer: str) -> bool:
+    return answer.casefold().lstrip().startswith("evidence is insufficient")
 
 
 def _visible_answer(content: str) -> str:

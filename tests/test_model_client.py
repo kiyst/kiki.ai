@@ -183,3 +183,34 @@ def test_rag_answer_without_valid_citation_is_rejected(tmp_path: Path) -> None:
 
     assert outcome.answer.startswith("Evidence is insufficient to verify")
 
+
+def test_rag_reconsiders_model_abstention_when_retrieval_found_evidence(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "paine.md").write_text(
+        "Thomas Paine opposed hereditary monarchy and supported independence.",
+        encoding="utf-8",
+    )
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(corpus)
+    source_id = index.search("Thomas Paine", 1)[0].source_id
+    fake = FakeClient(
+        [
+            {"message": {"role": "assistant", "content": "Evidence is insufficient."}},
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": f"Paine opposed hereditary monarchy. [source:{source_id}]",
+                }
+            },
+        ]
+    )
+
+    outcome = ToolCallingAssistant(
+        fake, ToolRegistry(index), pre_retrieve=True
+    ).ask("What were Thomas Paine's views?")
+
+    assert outcome.answer.startswith("Paine opposed")
+    assert len(fake.requests) == 2
+    assert "Reconsider once" in fake.requests[1]["messages"][-1]["content"]
+
