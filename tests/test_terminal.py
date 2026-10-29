@@ -230,3 +230,15 @@ def test_browser_selects_database_and_saves_here(tmp_path) -> None:
         input_fn=lambda prompt: next(answers),
     )
     assert saved == tmp_path.resolve() / "notes.md"
+
+
+def test_help_and_capabilities_keep_bracketed_arguments(tmp_path) -> None:
+    console = Console(record=True, width=120)
+    session = TerminalSession(tmp_path / "index.sqlite3")
+
+    _handle_command(console, session, "/help")
+    _handle_command(console, session, "/capabilities")
+    rendered = console.export_text()
+
+    for usage in ("/chat [message]", "/model [auto|fast|smart|max]", "/persona [show|reset]"):
+        assert rendered.count(usage) == 2

@@ -25,7 +25,7 @@ from .model_client import (
 )
 from .capabilities import Capability, route_prompt
 from .diagnostics import build_diagnostics, diagnostics_markdown
-from .input_editor import ChatInput
+from .input_editor import create_chat_input
 from .memory import MemoryStore, SensitiveMemoryError
 from .models import PROFILES, ModelRouter, ModelSelection
 from .providers.weather import GEOCODING_URL, OpenMeteoWeatherProvider
@@ -375,7 +375,7 @@ def run_shell(
         database, model=model, embedding_model=embedding_model
     )
     _render_banner(console, session)
-    editor = ChatInput(
+    editor = create_chat_input(
         history_path=session.database.parent / "kiki-input-history",
         commands=INTERACTIVE_COMMANDS,
     )
@@ -649,7 +649,7 @@ def _handle_command(
             console.print(Markdown(report))
         return False, None
     if name == "/capabilities":
-        console.print(Panel(capabilities_text(), title="Kiki capabilities", border_style="cyan"))
+        console.print(Panel(Text(capabilities_text()), title="Kiki capabilities", border_style="cyan"))
         return False, None
     if name == "/retry":
         previous = session.prepare_retry()
@@ -764,7 +764,7 @@ def _render_help(console: Console) -> None:
     table.add_column("Command", style="cyan", no_wrap=True)
     table.add_column("Purpose")
     for command, purpose in COMMAND_HELP:
-        table.add_row(command, purpose)
+        table.add_row(Text(command), purpose)
     console.print(table)
 
 
