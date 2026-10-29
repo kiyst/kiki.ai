@@ -20,12 +20,16 @@ Approved by the user on October 29, 2026, as a separate milestone, with:
 
 - Execution triggered by benchmarks automatically, and in chat only by `/run`
   with an explicit confirmation.
-- **WebAssembly as the isolation boundary** (revised the same day). The first
-  draft used Docker. The user chose WebAssembly instead because Docker
-  Desktop's VM costs 1-2 GB of RAM on a machine that had just run out of
-  memory, while WebAssembly needs about 25 MB of disk and no background
-  service. The user accepted `wasmtime` as a required Kiki dependency. Docker
-  remains a possible later backend ([Deferred: Docker backend](#deferred-docker-backend)).
+- **Languages:** Python, JavaScript/TypeScript, C/C++, Rust, Go, and Java.
+- **Backend chosen by measurement.** Docker is required for the compiled
+  languages. Whether Python (and possibly JavaScript) also gets a lightweight
+  WebAssembly backend is decided by a side-by-side trial in stage 1
+  ([Backend decision](#backend-decision)). The user accepted `wasmtime` as a
+  Kiki dependency if the WebAssembly backend is kept.
+
+The design went through two drafts the same day: Docker only, then
+WebAssembly first. The user then asked for more languages than WebAssembly
+can serve and chose to measure both.
 
 Approval of the milestone is not approval of its checkpoints. Every item under
 [Human-review checkpoints](#human-review-checkpoints) still needs a yes before
@@ -39,25 +43,21 @@ stability of the host.
 
 Success means:
 
-1. Generated code runs only inside a disposable WebAssembly sandbox with no
-   file, network, or process access beyond what is granted per run.
-2. A benchmark with hidden tests measures pass rate honestly.
+1. Generated code runs only inside a disposable, locked-down sandbox.
+2. A benchmark with hidden tests measures pass rate honestly, per language.
 3. A bounded generate-test-repair loop measurably raises that pass rate.
 4. In chat, `/run` executes a temporary copy after confirmation, and any
    change to real files is shown as a diff and applied only on approval.
 
 ## Non-goals
 
-- Running generated code on the host outside the sandbox. There is no
-  fallback.
-- Network access from generated code, including installing packages.
-- Third-party packages (numpy and so on). First version: Python standard
-  library, minus what WASI lacks (threads, subprocesses, sockets).
-- Languages other than Python in the first version.
+- Running generated code on the host outside a sandbox. There is no fallback.
+- Network access from generated code, including installing packages (pip,
+  npm, cargo, Maven, Go modules). Each language uses its standard library.
 - GPU access, long-lived sandboxes, background services, or notebooks.
 - Autonomous edits, commits, or file moves. Kiki proposes; the user approves.
 - Replacing the answer model inside this milestone. That is a separately
-  measured, separately approved step (stage 6).
+  measured, separately approved step (stage 7).
 
 ## Current state
 
@@ -74,47 +74,90 @@ Success means:
   confirmation, and `ToolRegistry.call` refuses unapproved calls. No tool uses
   them yet.
 - **Machine:** Windows 11 Home (no Windows Sandbox), Ryzen 5 3600 (12
-  threads), 16 GB RAM, GTX 1080 8 GB. Docker 29.7.2 is installed but not
-  needed by this plan.
+  threads), 16 GB RAM, GTX 1080 8 GB. Docker 29.7.2 with Docker Desktop
+  installed; its `docker-desktop` WSL 2 distribution is stopped. There is no
+  `%USERPROFILE%\.wslconfig`, so Docker's VM may take up to half the RAM.
 - **Memory is the binding constraint.** On October 29 the PC ran out of virtual
   memory and had to be restarted (incident in the engineering log). Fusion
   360 and Ollama alone triggered low-memory warnings. Any design that adds
   memory pressure must cap it.
 
-## Why WebAssembly
+## How other assistants do it
 
-| Option | Isolation | Memory cost | Start per run | Decision |
-| --- | --- | --- | --- | --- |
-| Host subprocess with limits | None for files or network | Tiny | Instant | Rejected: not a boundary |
-| Windows Sandbox | VM | ~1 GB | Slow | Unavailable on Windows 11 Home |
-| Docker Desktop (WSL 2) | Container in a VM | 1-2 GB VM while running | ~1-2 s | Deferred: heavier, needs Docker Desktop running |
-| **wasmtime + CPython for WASI** | Capability-based: no files, network, or processes unless granted | Tens of MB per run (to be measured) | Sub-second once compiled (to be measured) | **Chosen** |
-| RestrictedPython / AST filtering | Language-level only, bypassable | Tiny | Instant | Rejected: not a boundary |
+From the implementer's knowledge as of mid-2026; re-check before citing.
+
+| Product | Where code runs | Languages |
+| --- | --- | --- |
+| ChatGPT code interpreter | Hosted containers (gVisor) | Python |
+| Gemini code execution | Hosted sandbox | Python |
+| Claude code execution tool | Hosted containers | Python, shell |
+| Open WebUI | WebAssembly in the browser (Pyodide), or Jupyter | Mostly Python |
+| OpenHands, SWE-agent | Docker | Any |
+| E2B, Daytona | Cloud micro-VMs | Any |
+| Codex CLI, Aider | The user's machine, with OS restrictions or none | Any installed toolchain |
+
+Hosted assistants mostly limit themselves to Python. Tools that support every
+language use containers or VMs. WebAssembly appears where a light footprint
+matters. Kiki is local, multi-language, and memory-constrained, so it may
+need both.
+
+## Backends
+
+| Backend | Languages | Isolation | Expected cost |
+| --- | --- | --- | --- |
+| **Docker** | All: Python, JavaScript/TypeScript, C/C++, Rust, Go, Java | Container inside the Docker Desktop VM (two layers) | 1-2 GB VM while Docker Desktop runs; ~1-2 s per run; images of a few GB in total |
+| **WebAssembly** (candidate) | Python (JavaScript possible later) | wasmtime capability sandbox (one layer) | ~25 MB on disk; tens of MB per run; sub-second runs once compiled; no background service |
+
+Rejected: a host subprocess with limits (no file or network boundary),
+Windows Sandbox (not on Windows 11 Home), and RestrictedPython or AST
+filtering (language-level and bypassable).
 
 Dependency facts checked on October 29, 2026:
 
 - `wasmtime` on PyPI: version 50.0.1, Apache-2.0 WITH LLVM-exception, 8.0 MB
   `win_amd64` wheel, no runtime dependencies.
 - CPython for WASI: `brettcannon/cpython-wasi-build` (maintained by a CPython
-  core developer), latest `v3.15.2` (October 27, 2026), asset
-  `python-3.15.2-wasi_sdk-33.zip`, 15.5 MB, PSF license. The exact version is
-  chosen at checkpoint 2. Prefer a release whose minor version Kiki's own
-  tests already cover.
+  core developer), latest `v3.15.2` (October 27, 2026), 15.5 MB, PSF
+  license. Prefer an older, settled release; choose at checkpoint 2.
+- Docker images: official images per language, pinned by digest at
+  checkpoint 4. Sizes and digests are read then, not now.
+
+### Backend decision
+
+Made in stage 1 from measurements, and presented to the user (checkpoint 6).
+Measured for each backend:
+
+- **Python on both backends:** cold start, warm per-run latency, peak host
+  memory (including Docker's `vmmem`), Docker VM idle memory, and whether
+  every limit holds.
+- **Docker for C and Java:** the fastest-compiling and the heaviest runtime,
+  to size the limits for compiled languages.
+
+Decision rule:
+
+- **Keep WebAssembly for Python** if Docker's warm Python run exceeds 2 s, or
+  Docker's VM needs more than 1 GB while idle beside Ollama. Python is the
+  most common case, and `/run` for Python then works without Docker Desktop
+  running.
+- **Otherwise use Docker only:** one backend is simpler to secure and test.
+
+Both outcomes keep the same `RunSpec` interface, so the choice can be
+revisited later.
 
 ## Architecture
 
 ```text
 model answer (text)
-  -> code extractor        pulls fenced Python blocks; model output is data only
-  -> staging               disposable host temp dir: main.py (+ visible tests)
-  -> SandboxRunner         starts a worker process with a fixed argv (no shell)
-       worker: wasmtime instance of python.wasm
-               preopens: /lib (stdlib, read-only), /input (staging copy, read-only)
-               no writable directory, no sockets, no env beyond an allowlist
-               memory limit, epoch deadline, output cap
-       worker process: Windows Job Object (memory cap, kill-on-close)
-  -> RunResult             exit code, bounded stdout/stderr, timings, limit flags
-  -> cleanup               worker ended, staging dir deleted, always
+  -> code extractor        fenced code blocks + declared language; model output is data only
+  -> staging               disposable host temp dir: source files (+ visible tests)
+  -> SandboxRunner         picks the backend from the runtime allowlist; fixed argv, never a shell
+       Docker backend:     container (read-only root, tmpfs, /input read-only, no network,
+                           non-root, no capabilities, no-new-privileges, limits)
+       WebAssembly backend (Python, if kept): wasmtime worker process
+                           (read-only /lib and /input, no writable dir, no sockets,
+                           memory limit, deadline, Job Object)
+  -> RunResult             compile and run phases: exit codes, bounded output, timings, limit flags
+  -> cleanup               container or worker ended, staging dir deleted, always
 
 benchmark:  RunResult(hidden tests) -> score only; never shown to the model
 repair:     RunResult(visible tests) -> short error summary -> model (max 2 rounds)
@@ -127,12 +170,11 @@ edits:      proposed change -> unified diff -> explicit approval -> write to
 
 | Component | Responsibility | Must not |
 | --- | --- | --- |
-| `runtimes.py` | Allowlist: runtime name -> pinned runtime version, sha256, file layout, fixed guest argv | Accept a runtime, path, or argv from model or user text |
+| `runtimes.py` | Allowlist: language -> backend, pinned image digest or runtime sha256, file names, fixed compile and run argv | Accept a language, image, path, flag, or argv from model or user text |
 | `staging.py` | Create a per-run temp dir, write files from memory, enforce size and count limits, delete it | Copy or link from the user's workspace; follow symlinks |
-| `wasi.py` | Configure the wasmtime engine and store: preopens, memory limit, epoch deadline, stdout/stderr capture; cache the compiled module | Grant a writable directory, sockets, inherited env, or host paths beyond `/lib` and `/input` |
-| `worker.py` | Entry point of the child process; runs one sandbox instance and writes a JSON result | Read anything from the parent except the fixed run spec |
-| `runner.py` | Start the worker with a fixed argv (`shell=False`), place it in a Job Object, enforce the backstop timeout and output caps, clean up | Interpolate any string into a command line |
-| `preflight.py` | Fail-closed checks: `wasmtime` importable at the pinned version, runtime present with the pinned sha256, compiled cache valid | Download the runtime or install packages by itself |
+| `docker.py` | Build the `docker run` argv from a `RunSpec`; run with `shell=False`; enforce wall time and output caps; remove the container | Interpolate any string into a shell; pass environment variables beyond the allowlist |
+| `wasi.py`, `worker.py` | WebAssembly backend (if kept): engine and store configuration, compiled-module cache, worker process in a Job Object | Grant a writable directory, sockets, inherited environment, or host paths beyond `/lib` and `/input` |
+| `preflight.py` | Fail-closed checks per backend: Docker CLI, daemon, Linux engine, VM memory cap, image digests; `wasmtime` version, runtime sha256 | Start Docker Desktop, pull images, download runtimes, or edit `.wslconfig` by itself |
 | `benchmark.py` | Load problems; keep hidden tests in a separate store; grade in the sandbox; write receipts | Put hidden test text in any prompt, log shown to the model, or repair message |
 | `repair.py` | Generate -> run visible tests -> summarize failure -> regenerate, at most 2 repairs | See hidden tests or their results beyond the final score |
 | `edits.py` | Turn a proposed file change into a unified diff; apply only on explicit approval to a user-selected workspace | Write anywhere else; apply anything produced inside the sandbox |
@@ -142,12 +184,13 @@ edits:      proposed change -> unified diff -> explicit approval -> write to
 - `/run` executes a **temporary copy** only. The staging directory is created
   fresh for that run from text held in memory (the code block or files the
   user names), and deleted afterwards.
-- The original workspace is **never preopened** into the sandbox, writable or
+- The original workspace is **never mounted or preopened**, writable or
   otherwise. If the user asks to run a file from their project, its contents
   are copied into staging; the sandbox sees only the copy, read-only at
   `/input`.
-- The sandbox has no writable directory, so nothing it produces can be written
-  back to the host. Its only outputs are stdout, stderr, and the exit code.
+- Nothing produced inside the sandbox is written back to the host. Its only
+  outputs are stdout, stderr, exit codes, and a results file the launcher
+  writes for grading.
 - A persistent change to the user's files is a separate action: Kiki shows a
   unified diff, the user approves it explicitly, and application code writes it
   under the `LOCAL_WRITE` policy to a workspace the user selected.
@@ -155,72 +198,128 @@ edits:      proposed change -> unified diff -> explicit approval -> write to
   code runs because the benchmark harness or the user's `/run` said so. A turn
   in which the model read retrieved document text cannot trigger execution.
 
-## Sandbox specification
+## Runtime allowlist
+
+| Language | Backend | Image (pinned by digest at checkpoint 4) | Compile | Run |
+| --- | --- | --- | --- | --- |
+| Python | WebAssembly or Docker | CPython WASI build / `python:<ver>-slim` | none | `python -I -B main.py` |
+| JavaScript | Docker | `node:<LTS>-slim` | none | `node main.js` |
+| TypeScript | Docker | same Node image | none (Node's built-in type stripping; no type checking) | `node main.ts` |
+| C | Docker | `gcc:<ver>` | `gcc -O2 -std=c17 -o /work/a.out main.c -lm` | `/work/a.out` |
+| C++ | Docker | `gcc:<ver>` | `g++ -O2 -std=c++20 -o /work/a.out main.cpp` | `/work/a.out` |
+| Rust | Docker | `rust:<ver>-slim` | `rustc -O --edition 2021 -o /work/a.out main.rs` | `/work/a.out` |
+| Go | Docker | `golang:<ver>` | `go build -o /work/a.out main.go` (cache under `/work`) | `/work/a.out` |
+| Java | Docker | `eclipse-temurin:<LTS>-jdk` | `javac -d /work Main.java` | `java -Xmx256m -cp /work Main` |
+
+Compile and run commands are fixed in code; the model chooses only the
+language (from this list) and the file contents. Standard libraries only.
+
+## Docker specification
+
+The argv is built in code from a `RunSpec` and the runtime allowlist.
+Illustrative shape (values in [Resource limits](#resource-limits)):
+
+```text
+docker run
+  --rm --name kiki-run-<uuid> --label kiki.sandbox=1
+  --pull never
+  --network none
+  --read-only
+  --tmpfs /work:rw,nosuid,nodev,size=<per class>,uid=10001,gid=10001[,noexec]
+  --tmpfs /tmp:rw,noexec,nosuid,nodev,size=16m,uid=10001,gid=10001
+  --mount type=bind,source=<staging dir>,target=/input,readonly
+  --user 10001:10001
+  --cap-drop ALL
+  --security-opt no-new-privileges
+  --pids-limit <per class>
+  --memory <per class> --memory-swap <same>
+  --cpus <per class>
+  --ulimit nofile=256:256 --ulimit fsize=<per class>
+  --log-driver none
+  --ipc none
+  --env HOME=/tmp (+ fixed per-language variables, e.g. GOCACHE=/work/.cache)
+  --workdir /work
+  --entrypoint <fixed launcher interpreter>
+  <image>@sha256:<pinned digest>
+  <fixed launcher argv>
+```
 
 Requirements:
 
-- **Disposable workspace per run:** a fresh staging dir, a fresh wasmtime
-  store and instance, and a fresh worker process for every run.
-- **Read-only grants only:** the only preopened directories are the pinned
-  standard library (`/lib`) and the staging copy (`/input`), both read-only
-  (wasmtime directory and file permissions set to read). No writable
-  directory exists; `-B` and `PYTHONDONTWRITEBYTECODE=1` keep Python from
-  trying to write bytecode.
-- **No network:** CPython for WASI (preview 1) has no socket support, and no
-  socket capability is granted.
-- **No processes:** WASI has no `fork`, `exec`, or `subprocess`; fork bombs
-  and child processes are impossible inside the guest.
-- **No ambient host access:** no inherited environment (fixed allowlist:
-  `PYTHONDONTWRITEBYTECODE`, `PYTHONUNBUFFERED`, `PYTHONHOME=/lib`,
-  `PYTHONSAFEPATH=1`), no inherited stdin, fixed guest argv.
-- **Pinned runtime:** the CPython WASI build is referenced by version and
-  sha256 in `runtimes.py`, stored under `%LOCALAPPDATA%\kiki\wasi-python\<version>`,
-  and verified by preflight. The `wasmtime` package is pinned to an exact
-  version in `pyproject.toml`.
-- **Compiled-module cache:** `python.wasm` is compiled once and serialized
-  under `%LOCALAPPDATA%\kiki\wasi-python\<version>\cache`, keyed by the
-  wasmtime version and the runtime sha256. Deserializing compiled code skips
-  validation, so the cache is trusted only if its own recorded sha256 matches;
-  otherwise it is rebuilt.
-- **Structured invocation:** the worker is started with
-  `subprocess.Popen([sys.executable, "-I", "-m", "kiki.sandbox.worker", <spec file>], shell=False)`.
-  Model or user text can only become file contents in staging, never an
-  argument, path, preopen, or environment variable.
-- **Strict runtime allowlist:** one runtime, `python-wasi`, with a fixed
-  launcher. Unknown runtimes are rejected before a worker starts.
-- **Cleanup after every run:** worker ended and staging dir removed on
-  success, failure, timeout, and exceptions. The Job Object uses
-  kill-on-close, so a worker cannot outlive Kiki. A startup sweep removes
-  leftover staging dirs (named `kiki-run-*`).
-- **Fail closed:** if `wasmtime` is missing or the wrong version, the runtime
-  is missing or its sha256 differs, or the Job Object cannot be created, the
-  run is refused with an actionable message (`kiki sandbox setup`). There is
-  never a host-execution fallback. Chat, search, and RAG keep working; only
-  execution is unavailable.
+- **Disposable workspace per run:** a fresh staging dir and a fresh container
+  for every run; `--rm` plus an explicit `docker rm -f` in a `finally` block.
+- **Read-only root with bounded tmpfs:** `--read-only`; the only writable
+  locations are size-capped tmpfs mounts. `/work` is `noexec` for
+  interpreted languages; compiled languages need to execute their own build
+  output, so `/work` allows exec for them (still inside the container, under
+  every other restriction). `/input` is a read-only bind of the staging copy,
+  never of the original workspace.
+- **No network:** `--network none`.
+- **Non-root user:** a fixed unprivileged UID/GID.
+- **Dropped capabilities and no-new-privileges:** `--cap-drop ALL` and
+  `--security-opt no-new-privileges`.
+- **Pinned image digests:** images are referenced only as `name@sha256:...`;
+  `--pull never`; preflight verifies each local image's repo digest.
+- **Structured invocation:** `subprocess.run([...], shell=False)` with an argv
+  assembled from typed fields. Model or user text can only become file
+  contents in staging, never an argument, flag, image, environment variable,
+  or mount.
+- **Strict runtime allowlist:** the table above; unknown languages are
+  rejected before Docker is called.
+- **Cleanup after every run:** container and staging dir removed on success,
+  failure, timeout, and exceptions. A startup sweep removes leftovers labeled
+  `kiki.sandbox=1`.
+- **Fail closed:** if the CLI is missing, the daemon is down, the engine is
+  not Linux, an image or digest does not match, or the memory cap is not in
+  place, the run is refused with an actionable message. There is never a
+  host-execution fallback. Chat, search, and RAG keep working.
 
-The launcher (`kiki_launcher.py`, written by Kiki, not the model) is placed in
-staging. It caps `sys.stdout` and `sys.stderr`, then runs the program or the
-test module with `runpy`/`unittest` and fixed arguments.
+A launcher written by Kiki (not the model) copies `/input` into `/work`, runs
+the fixed compile step with its own deadline, then the fixed run or test step,
+and writes a results file. For Python, JavaScript, and TypeScript the launcher
+is a script in that language; for compiled languages it is a small POSIX `sh`
+script with fixed contents.
+
+## WebAssembly specification (if kept for Python)
+
+- Fresh wasmtime store, instance, and worker process per run; the worker is
+  started with a fixed argv (`sys.executable -I -m kiki.sandbox.worker <spec>`)
+  and placed in a Windows Job Object (memory cap, kill-on-close).
+- Only `/lib` (pinned stdlib) and `/input` (staging copy) are preopened, both
+  read-only. No writable directory. No sockets (WASI preview 1). No process
+  creation. Environment limited to `PYTHONDONTWRITEBYTECODE`,
+  `PYTHONUNBUFFERED`, `PYTHONHOME=/lib`, `PYTHONSAFEPATH=1`.
+- Memory limit via `Store.set_limits`; wall time via epoch interruption, with
+  the parent killing the worker 2 s later as a backstop.
+- Runtime pinned by version and sha256 under
+  `%LOCALAPPDATA%\kiki\wasi-python\<version>`; compiled module cached there,
+  keyed by wasmtime version and runtime sha256, and rebuilt if either differs.
+- `wasmtime` pinned to an exact version in `pyproject.toml`. If the runtime is
+  missing, Python runs fall back to the Docker backend if it is available,
+  otherwise refuse. Never the host.
 
 ## Resource limits
 
-| Limit | Value | Enforced by | Why |
+Starting values; the stage-1 trial measures real usage, and changes go
+through checkpoint 10.
+
+| Limit | WebAssembly (Python) | Docker, interpreted (Python, JS, TS) | Docker, compiled (C, C++, Rust, Go, Java) |
 | --- | --- | --- | --- |
-| Wall time | 10 s run, 30 s benchmark case | wasmtime epoch deadline (timer thread); parent kills the worker 2 s later as a backstop | Infinite loops |
-| CPU | 1 core | WASI Python is single-threaded; one worker at a time | Keep Ollama and the desktop responsive |
-| Guest memory | 256 MiB | `Store.set_limits(memory_size=...)` | Memory bombs; the host is tight |
-| Worker process memory | 768 MiB (guest + compiled code + wasmtime) | Job Object process memory limit | Backstop if the engine itself grows |
-| Processes | 0 in the guest | WASI has no process creation | Fork bombs |
-| Disk writes | 0 bytes | No writable preopen | Disk filling |
-| Output | 64 KiB stdout + 16 KiB stderr kept; worker killed after 1 MiB | Launcher cap, plus the parent watching the capture file size | Flooding the terminal or model context |
-| Recursion and stack | wasmtime stack limit; Python recursion limit | Trap reported as `crashed` | Deep recursion |
-| Input staging | 2 MiB total, 50 files | `staging.py` | Bounded copies |
-| Concurrency | 1 run at a time | Host lock | One heavy job at a time |
+| Wall time | 10 s run | 10 s run | 30 s compile + 10 s run |
+| Benchmark case | 30 s | 30 s | 30 s compile + 30 s tests |
+| CPU | 1 (single-threaded) | 1 | 2 compile, then 1 for the run phase if separable; otherwise 2 |
+| Memory | 256 MiB guest; 768 MiB worker (Job Object) | 512 MiB, no swap | 1 GiB, no swap (Java heap 256 MiB) |
+| Processes and threads | none possible | 64 | 256 (compilers and the JVM use many threads) |
+| Disk | no writes | `/work` 64 MiB noexec, `/tmp` 16 MiB | `/work` 256 MiB exec, `/tmp` 16 MiB |
+| Output | 64 KiB stdout + 16 KiB stderr kept; killed after 1 MiB | same | same, per phase |
+| Input staging | 2 MiB, 50 files | same | same |
 
-All numbers are starting values; the stage-1 trial run measures real startup
-time and memory, and any change goes through checkpoint 8.
+Shared: one run at a time (host lock). Docker VM capped through
+`%USERPROFILE%\.wslconfig` at 2 GiB RAM, 2 processors, swap 0 to start;
+raising it to 3 GiB for compiled languages needs evidence from the trial and
+checkpoint 10.
 
-Each limit hit is reported (`timed_out`, `memory_exceeded`,
+Each limit hit is reported (`compile_timed_out`, `timed_out`, `oom_killed`,
 `output_truncated`, `crashed`, and so on) instead of looking like an ordinary
 failure.
 
@@ -236,20 +335,25 @@ code; user-supplied code run via `/run`.
 
 | Threat | Example | Mitigation | Residual risk |
 | --- | --- | --- | --- |
-| Read or alter user files | `open("C:/Users/...")`, `shutil.rmtree` | Only `/lib` and `/input` exist in the guest, both read-only; nothing written back | None known within wasmtime's guarantees |
-| Exfiltration or downloads | HTTP requests, DNS, `pip install` | No sockets in WASI preview 1; none granted | Covert channels via output text (bounded by output caps) |
-| Sandbox escape | Exploiting a wasmtime or Cranelift bug | Pinned, current wasmtime; small attack surface; worker is a separate process in a Job Object | An escape runs with the user's rights in the worker process. This boundary is one layer, where Docker on Windows is two (container plus VM). Accepted for stdlib-only code; revisit before adding packages or other languages |
-| Injection into the invocation | Model text becoming an argument or path | Worker argv and run spec built from typed fields; text only becomes file contents | Bugs in the spec builder (tested) |
-| Resource exhaustion | Memory bomb, infinite loop, output flood, deep recursion | Limits table; one run at a time | Brief memory spike up to the Job Object cap |
-| Persistence | Background processes, scheduled tasks | No processes or writable files in the guest; Job Object kill-on-close; startup sweep | None known |
-| Supply chain | Tampered runtime or package | Pinned `wasmtime` version; runtime sha256 verified; compiled cache verified | Trust in PyPI and the runtime publisher at review time |
+| Read or alter user files | `open("C:/Users/...")`, `rm -rf` | No host mounts except the read-only staging copy; read-only root or read-only preopens; nothing written back | None known within Docker's or wasmtime's guarantees |
+| Exfiltration or downloads | HTTP requests, DNS, package installs | `--network none`; no WASI sockets | Covert channels via output text (bounded by output caps) |
+| Privilege escalation | setuid binaries, capabilities | Non-root, `--cap-drop ALL`, `no-new-privileges` | Kernel or Docker vulnerabilities; the VM is a second layer |
+| Sandbox escape (WebAssembly) | A wasmtime or Cranelift bug | Pinned, current wasmtime; separate worker in a Job Object | An escape runs with the user's rights; one layer, versus two for Docker. Accepted for standard-library Python only |
+| Injection into the invocation | Model text becoming `-v C:\:/host` or a compiler flag | Argv and compile commands fixed per language; text only becomes file contents | Bugs in the argv builder (tested exhaustively) |
+| Malicious build steps | `#include "/etc/shadow"`, Go `//go:generate`, Rust `build.rs`, `include_str!` | Compilers run inside the same container with the same limits; no build tools that fetch packages; only the container's own files are reachable | Compiler bugs (inside the container) |
+| Resource exhaustion | Fork bomb, memory bomb, infinite loop, disk fill, output flood, slow compile | Limits table; one run at a time; VM capped | Docker VM startup itself uses RAM |
+| Persistence | Background processes | `--rm`, kill on timeout, fresh container per run, startup sweep; Job Object kill-on-close | None known |
+| Supply chain | Tampered or changed image or runtime | Digest pinning, `--pull never`, preflight checks; runtime sha256 | Trust in the official images and publishers at review time |
 | Hidden-test leakage | Tests copied into prompts or repair feedback | Separate store; only the grader reads them; canary test | Model memorization of public problems (use original variants) |
-| Benchmark gaming | Code that reads test files or prints "OK" | Hidden tests staged only for grading; grader checks results structurally (results file written by the launcher, not by stdout text) | Weak test design; review the tests |
+| Benchmark gaming | Code that reads test files or prints "OK" | Hidden tests staged only for grading; results judged by comparing outputs, not by trusting stdout claims | Weak test design; review the tests |
 | Unintended execution | Model or document text triggering a run | Execution only from the benchmark harness or `/run` + confirmation; tools with `EXECUTE` risk require approval | User approving without reading (show the code first) |
 | Unapproved edits | Writing results back to the workspace | Edits only via diff + explicit approval under `LOCAL_WRITE` | User approving a bad diff |
 
 ## Hidden benchmark tests
 
+- Problems are **language-neutral**: each defines a stdin/stdout format, and
+  every test is an input with its expected output. The same hidden tests then
+  grade every language without a test harness per language.
 - Each problem has a prompt, **visible** examples (may be shown to the model),
   and **hidden** tests (never shown).
 - Hidden tests live in their own file tree (for example
@@ -262,8 +366,8 @@ code; user-supplied code run via `/run`.
   model request (fake client) and asserts the canary never appears.
 - Problems are split into development and holdout, as in the retrieval work;
   defaults and prompts are tuned on development only.
-- Problems use only standard-library modules that work under WASI (the
-  stage-1 trial records which do).
+- Results are reported per language. A 4B model is expected to be weaker
+  outside Python and JavaScript; the benchmark shows by how much.
 
 ## Staged implementation
 
@@ -273,149 +377,146 @@ engineering-log entry in the existing format, and a separate commit.
 ### Stage 0: baseline and benchmark design (no execution)
 
 - Re-run `kiki eval-chat` and save a receipt.
-- Write about 40 original Python problems (10 easy, 20 medium, 10 hard) with
-  visible examples and hidden tests; split 15 development / 25 holdout.
-  Original wording and variants reduce memorization.
+- Write about 40 original language-neutral problems (10 easy, 20 medium, 10
+  hard) with visible examples and hidden stdin/stdout tests; split 15
+  development / 25 holdout.
 - Review the tests themselves (do they test the stated behavior?).
 
-### Stage 1: dependency, runtime, trial run, preflight
+### Stage 1: setup and backend trial
 
-- Add `wasmtime` (exact version) to `pyproject.toml` (checkpoint 1).
-- `kiki sandbox setup`: download the pinned CPython WASI build, verify its
-  sha256, unpack it, compile and cache the module (checkpoint 2).
-- `kiki sandbox doctor`: package version, runtime sha256, cache, Job Object.
-- Trial run, recorded in the log: cold and warm startup, worker peak memory,
-  hello world, and a first check that the memory limit, the epoch deadline,
-  and read-only grants actually hold. Record which stdlib modules import.
-- **Go/no-go:** if warm startup exceeds 2 s, worker memory exceeds 768 MiB, or
-  any limit does not hold, stop and report before stage 2. Docker is the
-  fallback design.
+- Docker: `.wslconfig` cap (checkpoint 3); pull the Python, gcc, and
+  Temurin images by digest (checkpoint 4).
+- WebAssembly: add `wasmtime` (checkpoint 1); download the CPython WASI
+  runtime (checkpoint 2).
+- `kiki sandbox doctor` for both backends; every missing piece produces a
+  refusal with the fix.
+- The [backend trial](#backend-decision) with Fusion 360 and similar
+  applications closed, one job at a time. Report the numbers and a proposed
+  decision (checkpoint 6). If the WebAssembly backend is dropped, remove
+  `wasmtime` again.
 
-### Stage 2: the runner
+### Stage 2: the runner, Python first
 
-- `RunSpec`, runtime allowlist, staging, worker, Job Object, output caps,
-  timeout, cleanup, single-run lock.
-- Adversarial suite (see test plan) must pass before stage 3 (checkpoint 3).
+- `RunSpec`, runtime allowlist, staging, the chosen backend for Python,
+  output caps, timeouts, cleanup, single-run lock.
+- Adversarial suite (see test plan) must pass before stage 3 (checkpoint 5).
 
-### Stage 3: benchmark baseline
+### Stage 3: benchmark baseline (Python)
 
 - Generate once per problem with the current model; grade with hidden tests.
 - Report pass@1 by difficulty and split, latency, limit hits.
 
 ### Stage 4: generate-test-repair loop
 
-- At most 2 repairs, fed only by visible-test failures (trimmed tracebacks,
-  bounded length).
+- At most 2 repairs, fed only by visible-test failures (trimmed errors and
+  compiler messages, bounded length).
 - Report the pass-rate change on holdout, extra latency, and any regressions
   (passing code made worse by a repair).
 
 ### Stage 5: terminal workflow
 
-- `/run`: show the code and the limits, ask for confirmation, run a temporary
-  copy, show the result. Registered as a tool with `EXECUTE` policy so the
-  registry enforces approval.
+- `/run`: show the code, language, and limits, ask for confirmation, run a
+  temporary copy, show the result. Registered as a tool with `EXECUTE` policy
+  so the registry enforces approval.
 - `/apply` (separate sub-stage): diff preview, explicit approval, write under
   `LOCAL_WRITE` to a workspace chosen with the folder browser.
 
-### Stage 6 (optional): coding model comparison
+### Stage 6: more languages, in waves
+
+Each wave: pin and pull images (checkpoint 4), add allowlist entries, run the
+adversarial suite for the new runtimes, add a per-language benchmark row.
+
+1. JavaScript and TypeScript.
+2. C and C++.
+3. Go, Rust, and Java.
+
+### Stage 7 (optional): coding model comparison
 
 - Compare `qwen3:4b-instruct` with a coding-tuned or larger model (for example
-  `qwen2.5-coder:7b` or `qwen3:8b`) on the holdout, measuring pass rate,
-  latency, and memory alongside Ollama's other models.
+  `qwen2.5-coder:7b` or `qwen3:8b`) on the holdout across languages, measuring
+  pass rate, latency, and memory alongside Ollama's other models.
 
 ## Test plan
 
-**Unit tests (no runtime needed):**
+**Unit tests (no Docker or runtime needed):**
 
-- The wasmtime configuration grants exactly `/lib` and `/input`, both
-  read-only, with the memory limit and epoch deadline set; a golden
-  comparison fails if a grant is added or a limit removed.
-- The worker argv is fixed; no `shell=True` anywhere in the sandbox package
-  (an AST check).
-- Unknown runtime, unpinned runtime, or wrong sha256 is rejected.
-- Model text containing argument- or path-like strings (`--dir C:\`,
-  `; rm -rf`, `../../`) ends up only inside staged files.
+- The Docker argv builder produces exactly the required flags per language
+  class, in a golden-file comparison; adding or removing a security flag fails
+  the test. The same for the wasmtime grants and limits.
+- No `shell=True` anywhere in the sandbox package (an AST check).
+- Unknown language, image tag without a digest, or extra mounts are rejected.
+- Model text containing flag-like strings (`--privileged`, `-v C:\:/x`,
+  `; rm -rf`, `-fplugin=`) ends up only inside staged files.
 - Staging enforces size and count limits and refuses symlinks and paths that
   escape the staging dir.
-- Cleanup runs on success, failure, timeout, and exception (fake worker).
+- Cleanup runs on success, failure, timeout, and exception (fake runner).
 - Output caps and truncation flags.
 - Hidden-test canary never appears in any captured model request.
-- Preflight refuses in each failure mode, and chat still works when it does.
+- Preflight refuses in each failure mode (fake `docker` responses, missing
+  runtime), and chat still works when it does.
 
-**Integration tests (runtime required; skipped with a clear reason otherwise):**
+**Integration tests (backend required; skipped with a clear reason otherwise),
+for every enabled language:**
 
-- Hello world runs; exit codes propagate; a visible test passes and fails as
-  expected.
-- `import socket; socket.create_connection(("1.1.1.1", 53))` fails.
-- `open("C:/Windows/win.ini")`, listing `/`, and reading outside `/input` and
-  `/lib` fail.
-- Writing to `/input`, `/lib`, `/tmp`, or `/` fails.
-- `os.fork`, `subprocess.run`, and `threading.Thread(...).start()` fail.
-- `os.environ` contains only the allowlist.
-- A memory bomb is stopped at the guest limit and reported; `while True: pass`
-  is stopped at the deadline and reported; deep recursion is reported as a
-  crash, not a hang.
-- Printing 100 MiB is truncated and the worker is killed.
-- Killing Kiki mid-run ends the worker (Job Object kill-on-close).
-- After every test, no worker process and no `kiki-run-*` dir remain.
-- Host memory, sampled during the adversarial suite, stays within the Job
-  Object cap.
+- Hello world compiles and runs; exit codes propagate; a visible test passes
+  and fails as expected.
+- Network attempts fail (TCP connect and DNS).
+- Reading host paths fails; writing to `/`, `/usr`, or `/input` fails; writing
+  past the `/work` cap fails.
+- Not root; no capabilities; `NoNewPrivs: 1` (Docker).
+- A fork bomb is contained by the PID limit; a memory bomb is killed and
+  reported; an infinite loop is killed at the deadline and reported; a
+  compile that never finishes (for example a template or macro explosion) is
+  killed at the compile deadline.
+- Printing 100 MiB is truncated and the run is killed.
+- After every test, no container labeled `kiki.sandbox=1`, no worker process,
+  and no staging dir remain.
+- Host memory, sampled during the adversarial suite, stays within the caps.
 
-**Evaluations:** benchmark receipts (stage 3, stage 4, stage 6) with git
-commit, model digests, `wasmtime` version, runtime sha256, limits,
-per-problem results, latency, and peak worker memory.
+**Evaluations:** backend-trial receipt (stage 1) and benchmark receipts
+(stages 3, 4, 6, 7) with git commit, model digests, image digests or runtime
+sha256, limits, per-problem and per-language results, latency, and peak host
+memory.
 
 ## Human-review checkpoints
 
 Stop and ask before:
 
-1. Adding `wasmtime` to `pyproject.toml`. Approved in principle on October
-   29; confirm the exact version at install time.
+1. Adding `wasmtime` to `pyproject.toml` (approved in principle on October 29;
+   confirm the exact version).
 2. Downloading the CPython WASI runtime. Confirm the version and sha256.
-3. Running the adversarial integration suite for the first time (it
-   deliberately stresses limits on this machine; close Fusion 360 and similar
-   applications first).
-4. Enabling `/run` in the terminal.
-5. Enabling `/apply` or any other path that writes to the user's files.
-6. Downloading a coding model (stage 6).
-7. Adding a writable directory, third-party packages, another language, or
-   the Docker backend.
-8. Relaxing any limit or grant, or adding any network access.
-9. Any adversarial test failing, the stage-1 go/no-go failing, or any sign
-   that hidden tests reached the model. Stop work until reviewed.
+3. Creating or editing `%USERPROFILE%\.wslconfig`, or restarting WSL or
+   Docker Desktop.
+4. Pulling any Docker image. Show the image, digest, and size; images for
+   compiled languages are large (hundreds of MB to over 1 GB each).
+5. Running the adversarial integration suite for the first time for each
+   backend or language wave (close Fusion 360 and similar applications first).
+6. The backend decision after the stage-1 trial.
+7. Enabling `/run` in the terminal.
+8. Enabling `/apply` or any other path that writes to the user's files.
+9. Downloading a coding model (stage 7).
+10. Adding packages, network access, writable host paths, or another
+    language beyond the allowlist; relaxing any limit or security flag.
+11. Any adversarial test failing, or any sign that hidden tests reached the
+    model. Stop work until reviewed.
 
 ## Completion criteria
 
-1. Every requirement under [Sandbox specification](#sandbox-specification) is
-   implemented and covered by a unit test, and the adversarial suite passes.
-2. A missing or unverified runtime means no execution, with an actionable
-   message, while the rest of Kiki keeps working.
+1. Every requirement under [Docker specification](#docker-specification) (and
+   [WebAssembly specification](#webassembly-specification-if-kept-for-python),
+   if kept) is implemented and covered by a unit test, and the adversarial
+   suite passes for every enabled language.
+2. An unavailable backend means no execution, with an actionable message,
+   while the rest of Kiki keeps working.
 3. The benchmark exists with hidden tests that are provably absent from model
    context.
-4. Baseline and repair-loop pass rates are recorded with receipts.
+4. Baseline and repair-loop pass rates are recorded per language with
+   receipts.
 5. `/run` executes only temporary copies after confirmation; persistent edits
    require an approved diff.
-6. Documentation records limits, defaults, rejected alternatives, known
-   gaps, and measured tradeoffs. `THIRD_PARTY_NOTICES.md` lists `wasmtime`
-   (Apache-2.0 WITH LLVM-exception) and the CPython runtime (PSF License).
-
-## Deferred: Docker backend
-
-Not part of this milestone. If packages, other languages, or code needing
-threads or subprocesses are wanted later, add a second runner behind the same
-`RunSpec` interface using Docker, after checkpoint 7. The hardening agreed on
-October 29 still applies:
-
-- `--rm --network none --read-only`, size-capped tmpfs mounts (`noexec`), and
-  `/input` as a read-only bind of the staging copy.
-- `--user 10001:10001 --cap-drop ALL --security-opt no-new-privileges`.
-- `--pids-limit 64 --memory 512m --memory-swap 512m --cpus 1`, plus `nofile`,
-  `fsize`, and `nproc` ulimits.
-- `--log-driver none --ipc none --pull never`.
-- An image pinned by digest (candidate read October 29: `python:3.12-slim`,
-  index `sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159`).
-- An argv built from typed fields, and the Docker VM capped through
-  `%USERPROFILE%\.wslconfig` (2 GiB, 2 processors, swap 0) before first use.
+6. Documentation records limits, defaults, the backend decision with its
+   measurements, rejected alternatives, known gaps, and measured tradeoffs.
+   `THIRD_PARTY_NOTICES.md` lists `wasmtime` and the CPython runtime if used.
 
 ## Implementation log format
 
