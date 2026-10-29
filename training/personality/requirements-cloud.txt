@@ -1,0 +1,10 @@
+# Install a CUDA-compatible PyTorch build first if the RunPod image does not
+# already provide one. Record exact resolved versions with pip freeze.
+transformers>=4.57,<6
+trl>=0.23,<2
+peft>=0.17,<1
+datasets>=3.6,<5
+accelerate>=1.10,<2
+bitsandbytes>=0.46,<1
+safetensors>=0.5,<1
+sentencepiece>=0.2,<1
