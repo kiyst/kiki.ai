@@ -1,0 +1,22 @@
+{
+  "name": "kiki-personality-v1-pilot-500",
+  "status": "approved_for_pilot_training",
+  "base_model": "Qwen/Qwen3-4B-Instruct-2507",
+  "format": "conversational_jsonl",
+  "training_objective": "supervised_fine_tuning",
+  "loss_scope": "assistant_messages_only",
+  "chat_template": "base_model_native",
+  "add_generation_prompt_during_training": false,
+  "dataset_file": "kiki_personality_v1.review.jsonl",
+  "review_sheet": "kiki_personality_v1.review.md",
+  "record_count": 500,
+  "human_seed_cleaned_count": 42,
+  "synthetic_curated_count": 458,
+  "multi_turn_count": 110,
+  "holdout_created": false,
+  "holdout_policy": "Create next from novel intents and scenarios with no paraphrase overlap; never mix it into training.",
+  "provenance_values": [
+    "human_seed_cleaned",
+    "synthetic_curated"
+  ]
+}
