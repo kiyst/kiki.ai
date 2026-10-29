@@ -33,6 +33,7 @@ from .personality import PRESETS, PersonaFile, PersonalitySettings, personality_
 from .rerank import build_reranker
 from .retrieval import SearchResult, TextIndex
 from .resilience import KikiError, safe_error
+from .run_command import run_command
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .settings import RetrievalSettings
 from .self_knowledge import COMMAND_HELP, capabilities_text, self_knowledge_prompt
@@ -45,6 +46,7 @@ INTERACTIVE_COMMANDS = (
     "/retry",
     "/copy",
     "/sources",
+    "/run",
     "/history",
     "/save",
     "/new",
@@ -725,8 +727,17 @@ def _handle_command(
             show_all = rest.casefold() == "all"
             render_sources(console, previous.sources, None if show_all else previous.answer)
         return False, None
+    if name == "/run":
+        previous = session.last_outcomes[session.mode]
+        run_command(
+            console,
+            answer=previous.answer if previous else None,
+            mode=session.mode,
+            argument=_path_argument(rest) if rest else None,
+        )
+        return False, None
     if name == "/history":
-        recent = [turn for turn in session.turns if turn["mode"] == session.mode][-10:]
+        recent =[turn for turn in session.turns if turn["mode"] == session.mode][-10:]
         if not recent:
             console.print("[yellow]This conversation has no messages yet.[/yellow]")
             return False, None

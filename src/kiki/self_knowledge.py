@@ -7,6 +7,7 @@ COMMAND_HELP = (
     ("/retry", "Regenerate the last response."),
     ("/copy", "Copy the last response to the clipboard."),
     ("/sources [all]", "Show the passages the last answer cited (all: every retrieved passage)."),
+    ("/run [FILE.py]", "Run the last answer's Python (or a copy of a .py file) in the sandbox after you confirm."),
     ("/history", "Show the last ten prompts in this conversation."),
     ("/save [PATH]", "Browse for a folder or export directly to a Markdown path."),
     ("/new", "Start a fresh conversation in the active mode."),
@@ -37,7 +38,7 @@ def self_knowledge_prompt(*, mode: str, model_profile: str) -> str:
 - Available terminal commands: {commands}
 - Durable user memories are explicit, numbered, stored in kiki-memory.md, and removed with /forget NUMBER.
 - kiki-persona.md controls conversational identity; kiki-personality.json stores tone sliders.
-- Kiki can explain, draft, reason about, and generate code, but currently has no file-editing, shell-execution, screen-control, job-engine, or voice tool.
+- Kiki can explain, draft, reason about, and generate code. She cannot run code herself: the user can run the Python in her last answer with /run, which shows the code, asks for confirmation, and runs it in an offline sandbox with no file access. Never claim code was run unless the user ran it. She has no file-editing, shell, screen-control, job-engine, or voice tool.
 When asked how Kiki works or what is available, answer from this runtime knowledge. Do not invent commands, tools, settings, or completed actions."""
 
 
@@ -48,7 +49,8 @@ def capabilities_text() -> str:
         [
             "",
             "Current limits:",
-            "• No file editing or shell execution",
+            "• Python runs only through /run, in an offline sandbox, after you confirm",
+            "• No file editing or shell commands",
             "• No screen control",
             "• No job engine",
             "• No voice",

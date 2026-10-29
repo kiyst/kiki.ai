@@ -53,6 +53,28 @@ def supported() -> bool:
     return sys.platform == "win32"
 
 
+class _MemoryStatus(ctypes.Structure):
+    _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+
+
+def commit_headroom_mb() -> float | None:
+    """Virtual memory Windows can still promise, in MB (None elsewhere).
+
+    Running out of this, not physical RAM, is what crashed the PC on October 29.
+    """
+    if not supported():
+        return None
+    status = _MemoryStatus()
+    status.dwLength = ctypes.sizeof(status)
+    if not ctypes.WinDLL("kernel32").GlobalMemoryStatusEx(ctypes.byref(status)):
+        return None
+    return status.ullAvailPageFile / 2**20
+
+
 class Job:
     def __init__(self, memory_bytes: int) -> None:
         if not supported():

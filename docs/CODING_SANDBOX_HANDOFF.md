@@ -500,6 +500,11 @@ original problems below remain the plan for a contamination-free holdout.
 - `/run`: show the code, language, and limits, ask for confirmation, run a
   temporary copy, show the result. Registered as a tool with `EXECUTE` policy
   so the registry enforces approval.
+- **Done (October 29), checkpoint 7 approved:** `/run` and `/run FILE.py` in
+  `src/kiki/run_command.py`. A slash command only (the model has no tool for
+  it), preview with limits, `[y/N]` confirmation under the `EXECUTE` policy,
+  a warning when the answer came from RAG, a memory-headroom refusal before
+  each run, and plain-language results. 15 tests.
 - `/apply` (separate sub-stage): diff preview, explicit approval, write under
   `LOCAL_WRITE` to a workspace chosen with the folder browser.
 

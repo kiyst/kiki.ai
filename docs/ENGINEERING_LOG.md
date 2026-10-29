@@ -719,3 +719,31 @@ Also found while the benchmarks ran: Ollama 0.40.12's runner grew from
 every 40 problems. The C: drive has 27.7 GB free, which limits how far
 Windows can grow the page file; together these explain the memory-guard
 stops and likely the October 29 crash.
+
+## Coding sandbox milestone, stage 5: `/run` and sortedcontainers
+
+```text
+Date: 2026-10-29
+Stage: 5 (terminal workflow, /run only) and checkpoint 10 (one package)
+Commit before change: 693533c
+Files changed: src/kiki/run_command.py (new), terminal.py, self_knowledge.py,
+        src/kiki/sandbox/ (packages grant, memory-headroom refusal),
+        tests/test_run_command.py (new), tests/test_sandbox.py, README.md,
+        THIRD_PARTY_NOTICES.md, docs/CODING_SANDBOX_HANDOFF.md
+Behavior changed: `/run` runs the last answer's Python, `/run FILE.py` a
+        copy of a file, after a preview and [y/N] confirmation. The sandbox
+        refuses to start when Windows cannot promise worker memory plus
+        512 MB. sortedcontainers 2.4.0 is importable, read-only, from
+        /packages. Kiki's self-description says how /run works and that she
+        cannot run code herself.
+Tests/evaluations run: pytest 227 passed (16 new), including a real
+        end-to-end /run and a read-only check on /packages; `kiki sandbox
+        setup` and `doctor` on this PC.
+Result: users can run Kiki's Python safely; the model has no path to
+        trigger execution.
+Known bugs: none found. /apply (persistent edits) is not built.
+Decision or proposal: the benchmark keeps grading in its own trial
+        environment until LeetCode finishes, then answers that import
+        sortedcontainers are regraded with it.
+Human review needed: /apply design, when wanted (checkpoint 8).
+```

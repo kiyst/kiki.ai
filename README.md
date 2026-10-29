@@ -50,8 +50,8 @@ RAG you > What does Paine say about hereditary succession?
 ## What Kiki can do
 
 - **Talk.** Plain conversation, writing help, and code: explaining, writing,
-  reviewing, and debugging. She writes code but does not run it yet; a safe
-  way to run Python is in development ([Running code](#running-code-in-development)).
+  reviewing, and debugging. You can run the Python she writes in an offline
+  sandbox with `/run` ([Running code](#running-code)).
 - **Answer from your documents.** Point her at a folder of text, Markdown, or
   PDF files. Answers cite the document and line or page they came from.
 - **Know when to stop.** Questions the documents cannot answer get "Evidence is
@@ -161,6 +161,7 @@ kiki --database .kiki\history.sqlite3 run
 | `/chat [message]` | Ordinary conversation |
 | `/rag [question]` | Answer from your indexed documents |
 | `/sources` | Show the last answer's sources again |
+| `/run [FILE.py]` | Run the last answer's Python (or a copy of a file) in the sandbox, after you confirm |
 | `/retry` | Ask again for a fresh answer |
 | `/copy` | Copy the last answer to the clipboard |
 | `/history` | Your last ten prompts in this mode |
@@ -202,19 +203,23 @@ kiki weather "Boston, Massachusetts"
 kiki --json rag "Why is the judiciary the least dangerous branch?"
 ```
 
-### Running code (in development)
+### Running code
 
-You cannot run code from chat yet. The sandbox itself is built and tested;
-`/run` comes after it is reviewed. You can already prepare and check it:
+Kiki can run the Python she writes, in a locked-down sandbox, when you ask.
+Set it up once:
 
 ```powershell
-kiki sandbox setup       # one time: download (about 14 MB), verify, prepare
+kiki sandbox setup       # download (about 14 MB), verify, prepare
 kiki sandbox doctor      # check every piece and run a test program
 ```
 
+Then, in a conversation, type `/run` to run the Python in Kiki's last answer,
+or `/run C:\path\to\script.py` to run a copy of a file. Kiki shows the code and
+the limits and runs it only if you answer `y`; the output appears below.
+
 What to expect:
 
-- **Python first, no Docker needed.** Python will run in a WebAssembly sandbox
+- **Python, no Docker needed.** Python runs in a WebAssembly sandbox
   (`wasmtime`), a small add-on of about 25 MB with no background service. In a
   trial on a 16 GB PC with everyday apps open, each run took about a third to
   two-thirds of a second and 57–78 MB of memory.
@@ -223,8 +228,9 @@ What to expect:
   256 MB of memory, or after 1 MB of output. All of this was tested in the
   trial.
 - **You stay in charge.** Code runs only when you type `/run` and confirm, and
-  it runs on a temporary copy. Changes to your real files will always be shown
-  as a diff and need your approval.
+  it runs on a temporary copy. Kiki cannot start a run herself. Editing your
+  real files is not available yet; when it is, every change will be shown as a
+  diff and need your approval.
 - **Limits.** Standard library plus `sortedcontainers` (which LeetCode's own
   Python provides); no other packages and no internet. No
   threads or subprocesses, and `zlib`, `sqlite3`, `multiprocessing`, `ssl`,
@@ -373,7 +379,7 @@ src/kiki/
   sandbox/           Python code sandbox (WebAssembly): runner, limits, setup
 evals/               question sets for retrieval, answers, behavior, and code
 docs/                design notes, the engineering log, development notes
-tests/               211 automated tests, no network or models required
+tests/               227 automated tests, no network or models required
 ```
 
 ## Development
@@ -405,7 +411,7 @@ Roughly in priority order (details in the
 [development notes](docs/DEVELOPMENT_NOTES.md)):
 
 1. **Run Python safely** (in progress). The WebAssembly sandbox described in
-   [Running code](#running-code-in-development), a coding benchmark with
+   [Running code](#running-code) (sandbox and `/run` done), a coding benchmark with
    hidden tests, and a loop in which Kiki fixes her own failing code.
 2. **Quote checking.** Anything in quotation marks must appear word for word
    in a retrieved passage.

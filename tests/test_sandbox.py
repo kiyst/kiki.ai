@@ -153,6 +153,16 @@ def test_missing_runtime_fails_closed_with_the_fix(tmp_path: Path) -> None:
     assert "kiki sandbox setup" in str(caught.value)
 
 
+def test_low_memory_refuses_before_running(monkeypatch: pytest.MonkeyPatch) -> None:
+    from kiki.sandbox import jobs, runner as runner_module
+
+    monkeypatch.setattr(runner_module.preflight, "require", lambda paths: {})
+    monkeypatch.setattr(jobs, "commit_headroom_mb", lambda: 300.0)
+    with pytest.raises(KikiError, match="Not enough free memory") as caught:
+        SandboxRunner().run({"main.py": "print(1)"})
+    assert caught.value.retryable
+
+
 def test_wrong_wasmtime_version_fails(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(preflight.metadata, "version", lambda name: "1.0.0")
     check = next(c for c in preflight.checks(RuntimePaths(tmp_path)) if c.name == "wasmtime")

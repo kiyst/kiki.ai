@@ -16,7 +16,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from . import preflight, staging
+from ..resilience import ErrorCode, KikiError
+from . import jobs, preflight, staging
 from .jobs import Job
 from .limits import RunLimits
 from .runtime import RuntimePaths, default_home
@@ -24,6 +25,8 @@ from .runtime import RuntimePaths, default_home
 # One run at a time per Kiki process: the PC's memory is the binding limit.
 _LOCK = threading.Lock()
 BACKSTOP_S = 15.0
+# Room left for everything else after a worst-case run.
+SAFETY_MARGIN_MB = 512
 
 
 @dataclass(frozen=True)
@@ -58,6 +61,16 @@ class SandboxRunner:
         limits = limits or self.limits
         staging.validate(files, entry, limits)
         manifest = preflight.require(self.paths)
+        headroom = jobs.commit_headroom_mb()
+        needed = limits.worker_memory_mib + SAFETY_MARGIN_MB
+        if headroom is not None and headroom < needed:
+            raise KikiError(
+                f"Not enough free memory to run code safely: {headroom / 1024:.1f} GB "
+                f"available, {needed / 1024:.1f} GB needed. Close some applications "
+                "and try again.",
+                code=ErrorCode.SERVICE_UNAVAILABLE,
+                retryable=True,
+            )
         with _LOCK:
             folder = staging.stage(files, entry, limits)
             try:
