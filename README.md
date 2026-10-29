@@ -243,8 +243,8 @@ shows the active values.
 | Flag | Environment | Default | Purpose |
 | --- | --- | --- | --- |
 | `--candidates N` | `KIKI_RAG_CANDIDATES` | 20 | Passages gathered before reranking (1–100) |
-| `--passages N` | `KIKI_RAG_PASSAGES` | 5 | Passages given to the answer model (1–20) |
-| `--reranker NAME` | `KIKI_RAG_RERANKER` | `grader` | `grader` (main model scores each passage 0–3) or `none` |
+| `--passages N` | `KIKI_RAG_PASSAGES` | 8 | Passages given to the answer model (1–20) |
+| `--reranker NAME` | `KIKI_RAG_RERANKER` | `grader` | `grader` (main model scores each passage 0–3), `none`, or experimental `qwen3-reranker` (see the engineering log) |
 | `--rerank-model NAME` | `KIKI_RAG_RERANK_MODEL` | main model | Model used by the reranker |
 | `--rerank-batch-size N` | `KIKI_RAG_RERANK_BATCH` | 4 | Cap on parallel reranker requests |
 | `--rerank-timeout S` | `KIKI_RAG_RERANK_TIMEOUT` | 90 | Seconds per reranker request before falling back to search order |

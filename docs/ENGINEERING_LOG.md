@@ -352,3 +352,46 @@ Human review needed: yes - the model was downloaded before the review rule
         was set, has been verified broken, and any working alternative needs
         a new download or runtime.
 ```
+
+## RAG pipeline milestone, stage 3: candidate and context experiments
+
+```text
+Date: 2026-10-29
+Stage: 3 (controlled experiments; one setting changed per run)
+Commit before change: d26afeb
+Files changed: src/kiki/settings.py (default passages 5 -> 8), README.md,
+        tests/test_settings.py, evals/receipts/rag-milestone/04-*, 05-*
+Behavior changed: the answer model now receives 8 passages instead of 5,
+        within the unchanged 7,000-character evidence budget (each passage's
+        focused window shrinks from up to 1,400 to about 875 characters).
+        eval-retrieval scores top-8 by default now; pass --limit 5 to compare
+        with earlier receipts.
+Tests/evaluations run: eval-retrieval holdout (29 cases) for candidates
+        20/32/50 at 5 passages and 20 at 8 passages; eval-rag --with-model
+        (18 cases) at 5 and 8 passages; pytest 143 passed.
+Result (grader reranker, holdout 29):
+        | Candidates | Passages | Full | Any | Hit@1 | MRR   | Query time |
+        | 20         | 5        | 25   | 26  | 19    | 0.757 | 6.9 s      |
+        | 32         | 5        | 26   | 27  | 18    | 0.716 | 10.1 s     |
+        | 50         | 5        | 25   | 26  | 16    | 0.668 | 15.6 s     |
+        | 20         | 8        | 26   | 26  | 19    | 0.757 | 6.5 s      |
+        | none (20/8 hybrid)  | 8        | 20   | 20  | 10    | 0.456 | 0.7 s      |
+        Per-case: 32 and 50 both rescue beard_trusts but lose top-1 on
+        new_revenue_bills; 50 also loses top-1 on new_officials_swarm and
+        blind_independent_powers and drops new_time_to_part from the top 5.
+        8 passages adds compare_preamble_grievances (a long-standing miss).
+        Answers (15 answerable + 3 unsupported): 5 passages 14/15 answered
+        with valid passage citations (abstained on compare_preamble_grievances),
+        3/3 abstained; 8 passages 15/15 and 3/3. Generation 8.1 s -> 9.6 s.
+        Reranking memory is unchanged (same model); GPU peak stays ~6.9 GB.
+Known bugs: a larger pool hurts the 0-3 grader - more distractors tie at
+        the top grade and ties fall back to fused order. A finer-grained
+        reranker would be needed to benefit from 32-50 candidates.
+Decision or proposal: default 20 candidates / 8 passages. Rejected 32
+        (+1 full, -1 hit@1, +46% latency) and 50 (no recall gain, -3 hit@1,
+        +126% latency). Caveat: the 8-passage gain is one case of 29 for
+        retrieval and one of 15 for answers - direction, not proof - but no
+        metric regressed. The 4K context did not prevent a fair 5-vs-8
+        comparison because both runs share the same evidence budget.
+Human review needed: no.
+```

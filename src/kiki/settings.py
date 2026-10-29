@@ -43,8 +43,8 @@ class SettingsError(ValueError):
 class RetrievalSettings:
     # First-stage pool handed to the reranker (fused lexical + semantic).
     candidates: int = 20
-    # Passages given to the answer model.
-    passages: int = 5
+    # Passages given to the answer model (8 chosen in stage 3; was 5).
+    passages: int = 8
     # grader | qwen3-reranker | none (fused order); see RERANKERS.
     reranker: str = "grader"
     # Empty means the answer model for grader, DEFAULT_QWEN3_RERANKER otherwise.

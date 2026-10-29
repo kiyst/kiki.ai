@@ -20,7 +20,7 @@ def test_defaults_reproduce_the_measured_pipeline() -> None:
     assert settings == RetrievalSettings()
     assert settings.describe("qwen3:4b-instruct") == {
         "candidates": 20,
-        "passages": 5,
+        "passages": 8,
         "reranker": "grader",
         "rerank_model": "qwen3:4b-instruct",
         "rerank_batch_size": 4,
