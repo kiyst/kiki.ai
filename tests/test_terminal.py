@@ -242,3 +242,24 @@ def test_help_and_capabilities_keep_bracketed_arguments(tmp_path) -> None:
 
     for usage in ("/chat [message]", "/model [auto|fast|smart|max]", "/persona [show|reset]"):
         assert rendered.count(usage) == 2
+
+
+def test_save_keeps_windows_backslashes_and_quoted_spaces(tmp_path) -> None:
+    console = Console(record=True, width=200)
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    folder = tmp_path / "My Notes"
+    folder.mkdir()
+    windows_path = str(folder / "chat.md").replace("/", "\\")
+
+    _handle_command(console, session, f'/save "{windows_path}"')
+
+    assert (folder / "chat.md").is_file()
+
+
+def test_remember_keeps_text_verbatim(tmp_path, monkeypatch) -> None:
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    monkeypatch.setattr(session.memory, "path", tmp_path / "kiki-memory.md")
+
+    _handle_command(Console(record=True), session, "/remember Use C:\work for scratch files")
+
+    assert session.memory.notes() == ["Use C:\work for scratch files"]

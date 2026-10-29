@@ -144,3 +144,10 @@ citations 14/15; unsupported abstentions 3/3.
   abstentions (for example `beard_suffrage`); read answers before trusting it.
 - Semantic search scans every vector in Python on each query (~0.4 s for 2,569
   chunks). An in-memory vector cache or numpy would be the next speedup.
+- In a live session, "Compare Hamilton's view of the judiciary with what the
+  Declaration says about judges" abstained: hybrid fusion ranked the
+  Declaration's signature chunk above its "Judges dependent on his Will"
+  grievance, and because the Declaration was already present the named-document
+  slot did not apply. In-document search alone ranks the grievance first.
+- Small-model context bleed: a follow-up RAG answer repeated a caveat from the
+  previous turn ("does not directly address judicial views"). `/new` clears it.

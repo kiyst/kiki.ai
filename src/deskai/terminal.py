@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shlex
 import re
 from datetime import datetime
 from pathlib import Path
@@ -545,13 +544,11 @@ def _prompt_text(session: TerminalSession) -> str:
 def _handle_command(
     console: Console, session: TerminalSession, command: str
 ) -> tuple[bool, str | None]:
-    try:
-        parts = shlex.split(command)
-    except ValueError as exc:
-        console.print(f"[red]Invalid command:[/red] {exc}")
-        return False, None
+    # Plain whitespace splitting: POSIX shlex treats backslashes as escapes and
+    # would turn C:\Users\me\notes.md into C:Usersmenotes.md.
+    parts = command.split()
     name = parts[0].casefold()
-    rest = " ".join(parts[1:]).strip()
+    rest = command.strip()[len(parts[0]) :].strip()
     if name in {"/quit", "/exit"}:
         console.print("[dim]Session closed.[/dim]")
         return True, None
@@ -689,7 +686,7 @@ def _handle_command(
         console.print(table)
         return False, None
     if name == "/save":
-        selected = Path(rest) if rest else _browse_for_save(console, session)
+        selected = _path_argument(rest) if rest else _browse_for_save(console, session)
         if selected is None:
             console.print("[dim]Save cancelled.[/dim]")
             return False, None
@@ -715,7 +712,7 @@ def _handle_command(
             session.set_database(selected)
             console.print(f"RAG database changed to [cyan]{session.database.resolve()}[/cyan].")
         else:
-            session.set_database(Path(rest))
+            session.set_database(_path_argument(rest))
             console.print(f"RAG database changed to [cyan]{session.database.resolve()}[/cyan].")
         return False, None
     if name == "/status":
@@ -900,6 +897,14 @@ def _browse_path(
                 return selected
             continue
         console.print("[yellow]Unknown browser command.[/yellow]")
+
+
+def _path_argument(text: str) -> Path:
+    """A typed path, allowing surrounding quotes for paths that contain spaces."""
+    text = text.strip()
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
+        text = text[1:-1]
+    return Path(text)
 
 
 def _markdown_path(path: Path) -> Path:
