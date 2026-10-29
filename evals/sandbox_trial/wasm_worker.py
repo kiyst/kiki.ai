@@ -32,7 +32,7 @@ def main() -> None:
     config.epoch_interruption = True
     # functools.cache recursion goes through C frames; the 512 KiB default
     # traps at ~500 levels. 2 MiB (wasmtime's async-stack ceiling) allows
-    # ~3,000. It needs a host thread with a larger native stack (below).
+    # ~1,200 per call. It needs a host thread with a larger native stack (below).
     config.max_wasm_stack = WASM_STACK
     engine = wt.Engine(config)
     cache = spec["cache"]

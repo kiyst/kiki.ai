@@ -20,7 +20,7 @@ into Kiki yet; see [CODING_SANDBOX_HANDOFF.md](../../docs/CODING_SANDBOX_HANDOFF
 ## Setup
 
 ```powershell
-python -m pip install -e ".[sandbox]"     # wasmtime 50.0.1
+python -m pip install -e .               # includes wasmtime 50.0.1
 ```
 
 Then put these under `%LOCALAPPDATA%\kiki\` (sources and checksums are in
@@ -76,8 +76,8 @@ validated problems.
   Python.
 - Every escape and exhaustion attempt was blocked or stopped (receipt:
   `../receipts/sandbox-trial/wasm-trial.json`).
-- Memoized recursion (`@functools.cache`) crashed at about 500 levels with
+- Memoized recursion (`@functools.cache`) crashed below 500 levels with
   wasmtime's default stack. A 2 MB stack on a 16 MB host thread raises that to
-  about 3,000, which most LeetCode solutions need.
+  about 1,200 levels in a single call. Plain recursion works past 100,000.
 - 32-bit WebAssembly rejects some very large integer sizes that 64-bit Python
   accepts.

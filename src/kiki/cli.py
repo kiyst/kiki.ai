@@ -149,6 +149,16 @@ def _parser() -> argparse.ArgumentParser:
         "doctor", help="Check Ollama models, index integrity, and provider readiness"
     )
 
+    sandbox = commands.add_parser(
+        "sandbox", help="Set up or check the Python code sandbox (WebAssembly)"
+    )
+    sandbox.add_argument(
+        "action",
+        choices=("setup", "doctor"),
+        help="setup: download (about 14 MB), verify, and prepare the pinned runtime; "
+        "doctor: check it and run a test program",
+    )
+
     evaluate = commands.add_parser(
         "eval-rag", help="Run the fixed lexical/hybrid RAG evaluation"
     )
@@ -305,7 +315,32 @@ def _hybrid(
     )
 
 
+def _sandbox(action: str) -> dict[str, Any]:
+    from .sandbox import SandboxRunner
+    from .sandbox.preflight import checks
+    from .sandbox.runtime import RuntimePaths, default_home
+    from .sandbox.setup import setup
+
+    paths = RuntimePaths(default_home())
+    if action == "setup":
+        return setup(paths)
+    report: dict[str, Any] = {
+        check.name: ("ok: " if check.ok else "FAIL: ") + check.detail
+        + (f" ({check.fix})" if check.fix else "")
+        for check in checks(paths)
+    }
+    if all(value.startswith("ok") for value in report.values()):
+        result = SandboxRunner(paths.home).run({"main.py": 'print("hello from the sandbox")'})
+        report["test run"] = (
+            f"ok: {result.stdout.strip()!r} in {result.duration_s} s, {result.peak_memory_mb} MB"
+            if result.ok else f"FAIL: {result.crashed or result.stderr[-200:]}"
+        )
+    return report
+
+
 def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
+    if arguments.command == "sandbox":
+        return _sandbox(arguments.action), "mapping"
     settings = _retrieval_settings(arguments)
     index = TextIndex(arguments.database)
     if arguments.command == "doctor":

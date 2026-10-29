@@ -178,6 +178,7 @@ emit()
 
 
 MIN_HEADROOM_GB = 1.0
+UNLOAD_EVERY = 40
 
 
 def commit_headroom_gb() -> float:
@@ -373,6 +374,11 @@ def main() -> None:
             if identifier in done:
                 rows.append(done[identifier])
                 continue
+            generated = sum(1 for r in rows if r["id"] not in done)
+            if generated and generated % UNLOAD_EVERY == 0:
+                # Ollama 0.40.12's runner leaks ~35 MB of commit per request
+                # (4.4 GB -> 11.3 GB over ~250 requests); unloading resets it.
+                client.post("/api/generate", json={"model": MODEL, "keep_alive": 0})
             headroom = commit_headroom_gb()
             if headroom < MIN_HEADROOM_GB:
                 print(f"STOPPED: only {headroom:.1f} GB of commit headroom left "
@@ -393,7 +399,11 @@ def main() -> None:
             print(f"[{number}/{len(problems)}] {identifier}: {status} "
                   f"gen {generation['generate_s']}s grade {outcome.get('grade_s')}s", flush=True)
 
+    if not rows:
+        print("No problems finished; receipt not written.", flush=True)
+        sys.exit(2)
     summary = summarize(arguments.benchmark, rows)
+    summary["complete"] = len(rows) == len(problems)
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True,
                             text=True, cwd=ROOT).stdout.strip()
     tags = httpx.get("http://127.0.0.1:11434/api/tags", timeout=30).json().get("models", [])

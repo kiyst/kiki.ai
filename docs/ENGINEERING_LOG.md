@@ -673,10 +673,49 @@ Known bugs: harness bugs found and fixed by the self-test: MBPP+ tuples and
         complex numbers arrived as lists and strings (now restored with
         EvalPlus's own code); "not None" oracle compared match objects
         instead of booleans. Sandbox limits found: @cache recursion trapped
-        at ~500 levels (fixed to ~3,000); 32-bit size overflow on very large
+        below 500 levels (now ~1,200 per call; an earlier
+        "~3,000" figure was mis-measured, see the sandbox-into-Kiki entry); 32-bit size overflow on very large
         ints; one WebAssembly float difference; no sortedcontainers.
 Decision or proposal: bundle sortedcontainers (pure Python, Apache-2.0,
         pinned, read-only) because LeetCode's own environment provides it;
         awaiting approval and the count of model answers that import it.
 Human review needed: the sortedcontainers proposal (checkpoint 10).
 ```
+
+## Coding sandbox milestone, stage 2: the sandbox inside Kiki
+
+```text
+Date: 2026-10-29
+Stage: 1 (remaining) and 2 (runner), per docs/CODING_SANDBOX_HANDOFF.md
+Commit before change: 770adc8
+Files changed: src/kiki/sandbox/ (new: runtime, limits, staging, jobs, wasi,
+        worker, runner, preflight, setup), src/kiki/cli.py (`kiki sandbox
+        setup|doctor`), pyproject.toml (wasmtime required), tests/
+        test_sandbox.py (new), README.md, THIRD_PARTY_NOTICES.md, docs
+Behavior changed: `kiki sandbox setup` prepares the pinned runtime and
+        records checksums; `kiki sandbox doctor` checks it and runs a test
+        program. Nothing in chat can execute code yet.
+Tests/evaluations run: pytest 211 passed (28 new). Real setup on this PC
+        reused the trial's verified archive (no download); doctor test run
+        0.71 s, 78 MB.
+Result: the trial's design now lives in Kiki, with three changes:
+        the compiled runtime is checksum-verified before every run (wasmtime
+        deserialization skips validation); leftover-folder cleanup only
+        touches folders older than 15 minutes, so it cannot delete a run in
+        progress; the launcher puts /input on sys.path so multi-file
+        programs can import each other.
+Known bugs: correction. The trial's "~3,000 levels" for memoized recursion
+        was mis-measured (cached calls at rising depths each descended at
+        most 1,000 new levels). Measured per call: 1,200 passes, 1,500 traps;
+        the 512 KiB default traps below 500. Plain recursion passes 100,000.
+        Docs corrected.
+Decision or proposal: `/run` (checkpoint 7) is next once reviewed.
+Human review needed: checkpoint 7 (enable /run); sortedcontainers proposal.
+```
+
+Also found while the benchmarks ran: Ollama 0.40.12's runner grew from
+4.4 GB to 11.3 GB of committed memory over about 250 requests (working set
+3.2 GB), and unloading it returned 6 GB. The benchmark now unloads the model
+every 40 problems. The C: drive has 27.7 GB free, which limits how far
+Windows can grow the page file; together these explain the memory-guard
+stops and likely the October 29 crash.

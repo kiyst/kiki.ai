@@ -351,7 +351,8 @@ The active backend. Validated in the trial; the implementation in
   keyed by wasmtime version and runtime sha256, and rebuilt if either differs.
 - `max_wasm_stack` is 2 MiB (wasmtime's async-stack ceiling), run on a host
   thread with a 16 MiB native stack. The 512 KiB default trapped
-  `@functools.cache` recursion at about 500 levels; 2 MiB allows about 3,000.
+  `@functools.cache` recursion below 500 levels; 2 MiB allows about 1,200 in a
+  single call (measured; 1,500 fails). Plain recursion is unaffected (100,000+).
 - Wall time is a single epoch tick fired by a timer at the deadline (not many
   small ticks; Windows timer granularity makes those drift).
 - Output is captured with `stdout_custom`/`stderr_custom` callbacks that keep
@@ -457,9 +458,9 @@ original problems below remain the plan for a contamination-free holdout.
 - **Done for WebAssembly (October 29):** `wasmtime` 50.0.1 installed as the
   `sandbox` extra, CPython 3.14.9 for WASI downloaded and verified, trial run
   and passed ([Trial results](#trial-results)).
-- **Remaining:** `kiki sandbox setup` (download, verify sha256, unpack,
-  compile cache) and `kiki sandbox doctor`; every missing piece produces a
-  refusal with the fix.
+- **Done (October 29):** `kiki sandbox setup` (download, verify sha256,
+  unpack safely, compile, record checksums in a manifest) and
+  `kiki sandbox doctor`; every missing piece produces a refusal with the fix.
 - **Paused:** the Docker half (images, Docker trial). `%USERPROFILE%\.wslconfig`
   was created with the 2 GB / 2 processor / no-swap cap and left in place
   as a guard; delete it to undo.
@@ -469,6 +470,13 @@ original problems below remain the plan for a contamination-free holdout.
 - `RunSpec`, runtime allowlist, staging, the WebAssembly backend, output
   caps, timeouts, cleanup, single-run lock. Promote `wasmtime` from the
   `sandbox` extra to a required dependency.
+- **Done (October 29):** `src/kiki/sandbox/` (`runtime`, `limits`,
+  `staging`, `jobs`, `wasi`, `worker`, `runner`, `preflight`, `setup`);
+  `wasmtime` is required. 28 tests in `tests/test_sandbox.py`: unit tests for
+  every guard, plus integration tests (host files, writes, network,
+  processes, environment, time, memory, output, recursion, cleanup) that run
+  when the runtime is installed. Not reachable from chat; `/run` is
+  checkpoint 7.
 - Adversarial suite (see test plan) must pass before stage 3 (checkpoint 5).
 
 ### Stage 3: benchmark baseline (Python)

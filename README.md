@@ -204,12 +204,20 @@ kiki --json rag "Why is the judiciary the least dangerous branch?"
 
 ### Running code (in development)
 
-Kiki cannot run code yet. This is what is coming, so you know what to expect:
+You cannot run code from chat yet. The sandbox itself is built and tested;
+`/run` comes after it is reviewed. You can already prepare and check it:
+
+```powershell
+kiki sandbox setup       # one time: download (about 14 MB), verify, prepare
+kiki sandbox doctor      # check every piece and run a test program
+```
+
+What to expect:
 
 - **Python first, no Docker needed.** Python will run in a WebAssembly sandbox
   (`wasmtime`), a small add-on of about 25 MB with no background service. In a
-  trial on a 16 GB PC with everyday apps open, each run took about a third of
-  a second and 57–73 MB of memory.
+  trial on a 16 GB PC with everyday apps open, each run took about a third to
+  two-thirds of a second and 57–78 MB of memory.
 - **The code is boxed in.** It cannot see your files, use the network, start
   other programs, or write anywhere. It is stopped after 10 seconds, at
   256 MB of memory, or after 1 MB of output. All of this was tested in the
@@ -219,9 +227,10 @@ Kiki cannot run code yet. This is what is coming, so you know what to expect:
   as a diff and need your approval.
 - **Limits.** Standard library only (no `pip` packages, no internet), no
   threads or subprocesses, and `zlib`, `sqlite3`, `multiprocessing`, `ssl`,
-  and `ctypes` are unavailable. Code runs about 2× slower than normal Python,
-  memoized recursion goes about 3,000 levels deep, and some very large
-  integer sizes overflow because WebAssembly is 32-bit.
+  and `ctypes` are unavailable. Code runs about 2× slower than normal Python.
+  Memoized (`@cache`) recursion goes about 1,200 levels deep; plain recursion
+  is fine past 100,000. Some very large integer sizes overflow because
+  WebAssembly is 32-bit.
 - **Measured, not assumed.** Kiki's code is being scored on standard coding
   benchmarks (HumanEval+, MBPP+, and recent LeetCode Medium/Hard problems),
   graded inside this sandbox. See
@@ -360,9 +369,10 @@ src/kiki/
   permissions.py     tool risk levels
   memory.py          opt-in notes
   personality.py     persona file and tone settings
+  sandbox/           Python code sandbox (WebAssembly): runner, limits, setup
 evals/               question sets for retrieval, answers, behavior, and code
 docs/                design notes, the engineering log, development notes
-tests/               183 automated tests, no network or models required
+tests/               211 automated tests, no network or models required
 ```
 
 ## Development
@@ -375,16 +385,9 @@ kiki --database .kiki\history.sqlite3 eval-behavior    # refusals, tone, scope
 kiki --database .kiki\history.sqlite3 eval-chat        # coding questions
 ```
 
-The code sandbox trial is separate and optional:
-
-```powershell
-python -m pip install -e ".[sandbox]"    # wasmtime
-cd evals\sandbox_trial; python wasm_trial.py
-```
-
-It needs the CPython WASI runtime listed in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), unpacked under
-`%LOCALAPPDATA%\kiki\wasi-python\3.14.9\runtime`.
+The sandbox's integration tests are skipped until `kiki sandbox setup` has
+run. Benchmarks and the original trial live in
+[evals/sandbox_trial/](evals/sandbox_trial/README.md).
 
 Evaluation results are written to the ignored `evals/results/` folder.
 Decisions, bugs, and trade-offs are recorded in

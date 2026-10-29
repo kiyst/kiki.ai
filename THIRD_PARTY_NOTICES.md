@@ -40,14 +40,15 @@ vendored by this repository:
 | `qwen3:4b` | `359d7dd4bcda` | Apache 2.0 | Earlier thinking build, retained locally |
 | `qwen3-embedding:0.6b` | `ac6da0dfba84` | Apache 2.0 | Local document/query embeddings |
 
-## Code sandbox runtime (trial)
+## Code sandbox runtime
 
-Used by the WebAssembly sandbox trial in `evals/sandbox_trial/`. Neither is
-vendored by this repository.
+Used by `src/kiki/sandbox/` and the trial in `evals/sandbox_trial/`. Neither is
+vendored by this repository; `kiki sandbox setup` downloads and verifies the
+runtime.
 
 | Component | Version | Source | License |
 | --- | --- | --- | --- |
-| `wasmtime` (Python package) | 50.0.1 | [PyPI](https://pypi.org/project/wasmtime/), installed with `pip install -e ".[sandbox]"` | Apache-2.0 WITH LLVM-exception |
+| `wasmtime` (Python package) | 50.0.1 | [PyPI](https://pypi.org/project/wasmtime/), a required dependency (`pyproject.toml`) | Apache-2.0 WITH LLVM-exception |
 | CPython for WASI | 3.14.9 (`wasi_sdk-24`) | [brettcannon/cpython-wasi-build](https://github.com/brettcannon/cpython-wasi-build/releases/tag/v3.14.9), zip sha256 `8de7834105edef8db8a13299e2587cf8945021dd8764f2691d83bbc25129dfa2`, unpacked under `%LOCALAPPDATA%\kiki\wasi-python\` | PSF License |
 
 ## Coding benchmarks
