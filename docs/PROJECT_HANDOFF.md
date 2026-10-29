@@ -247,7 +247,7 @@ environments, `.git`, hidden system data, and configurable private locations.
 ### Phase 4: formats and metadata
 
 - Plain-text source/configuration formats.
-- DOCX and HTML.
+- DOCX and HTML (done October 29, 2026; paragraphs cited).
 - Image metadata followed by local vision indexing.
 - Audio metadata followed by opt-in transcription.
 - Video metadata followed by opt-in transcription/keyframes.

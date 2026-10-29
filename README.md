@@ -52,8 +52,9 @@ RAG you > What does Paine say about hereditary succession?
 - **Talk.** Plain conversation, writing help, and code: explaining, writing,
   reviewing, and debugging. You can run the Python she writes in an offline
   sandbox with `/run` ([Running code](#running-code)).
-- **Answer from your documents.** Point her at a folder of text, Markdown, or
-  PDF files. Answers cite the document and line or page they came from.
+- **Answer from your documents.** Point her at a folder of text, Markdown, PDF,
+  Word (`.docx`), or saved web pages (`.html`). Answers cite the document and
+  the lines, page, or paragraphs they came from.
 - **Find a file you lost track of.** `/find kestrel budget march` ranks every
   file in your indexed folders, including spreadsheets, images, and other files
   she cannot read, by name, folder, type, title, and contents
@@ -307,7 +308,17 @@ kiki --database .kiki\notes.sqlite3 embed
 kiki --database .kiki\notes.sqlite3 run
 ```
 
-- Text and Markdown cite line numbers; PDFs cite pages.
+- Text and Markdown cite line numbers; PDFs cite pages; Word documents and web
+  pages cite paragraphs.
+- Readable formats: `.txt`, `.md`, `.pdf`, `.docx`, `.html`/`.htm`, and code or
+  config files (`.py`, `.js`, `.ts`, `.json`, `.toml`, `.yaml`). Everything else
+  is still found by name with `/find`.
+- Word: body text, tables, and the document title are read; deleted tracked
+  changes, comments, headers, and footers are not. Old `.doc` files and
+  password-protected documents are reported and skipped.
+- Web pages: the visible text and `<title>` are read; scripts and styles are
+  ignored. Pages saved from apps that draw everything with JavaScript have
+  little or no text to read.
 - Encrypted, broken, or image-only PDFs are reported and skipped. There is no
   OCR yet.
 - Re-running `index` only processes files that changed and removes deleted ones.
@@ -415,6 +426,7 @@ src/kiki/
   cli.py             one-off commands and evaluations
   model_client.py    the answer loop, citation checks, evidence trimming
   retrieval.py       document index, file catalog, keyword search, migrations
+  documents.py       Word and web page text (standard library only)
   finding.py         /find: whole-file ranking, filters, confidence
   semantic.py        meaning-based search and hybrid merging
   rerank.py          the passage grading step

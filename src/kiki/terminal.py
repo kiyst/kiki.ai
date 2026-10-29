@@ -1139,11 +1139,7 @@ def _handle_personality(
 
 
 def _result_location(result: SearchResult) -> str:
-    label = "page" if result.location_kind == "page" else "lines"
-    span = str(result.start_location)
-    if result.end_location != result.start_location:
-        span += f"-{result.end_location}"
-    return f"{label} {span} · source {result.source_id}"
+    return f"{result.location_label} · source {result.source_id}"
 
 
 def _citation_location(citation: str) -> str:

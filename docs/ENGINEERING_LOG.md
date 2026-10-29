@@ -827,3 +827,37 @@ Known limits: the generator was written alongside the ranker, so the perfect
 Decision or proposal: stage 2 (/summarize NUMBER) next.
 Human review needed: try /find on a real folder; stage 3 (model tool).
 ```
+
+## Formats: Word (.docx) and web pages (.html)
+
+```text
+Date: 2026-10-29
+Stage: Phase 4, first item (requested ahead of file-finding stage 2)
+Commit before change: dc5fe2e
+Files changed: src/kiki/documents.py (new), extraction.py (dispatch,
+        per-format versions, shared line chunker, titles), retrieval.py
+        (one location_label for page/paragraph/line), model_client.py,
+        terminal.py, tests/test_documents.py (new), README.md, docs
+Behavior changed: `kiki index` reads .docx (body text and tables; title
+        from the document properties, else a Title or Heading 1 paragraph)
+        and .html/.htm (visible text; title from <title>, else the first
+        <h1>). Passages cite "paragraphs N-M". Standard library only: no new
+        dependency. A .docx body over 64 MB inflated is refused (zip bomb);
+        old .doc, password-protected, and damaged files are reported and
+        skipped, as unreadable PDFs already were.
+Tests/evaluations run: pytest 259 passed (8 new, on .docx files built the
+        way Word stores them: runs, tabs, tables, tracked deletions).
+        Real files on this PC (40: 37 HTML, 2 Word, 1 .htm; only counts
+        printed): 37 read; the 3 with no text are app pages that render
+        with JavaScript, and a 3 MB saved page yielded 152 characters for
+        the same reason. Largest page: 1.1 MB in 0.63 s.
+Result: Word documents and saved web pages are searchable, citable, and
+        found by contents and title in /find.
+Known limits: headers, footers, footnotes, comments, and text boxes in
+        Word are not read; JavaScript-rendered pages have little text; an
+        HTML page with no text loses its <title> for /find (it is
+        catalogued by name only).
+Decision or proposal: file-finding stage 2 (/summarize NUMBER) next.
+        Image metadata, OCR, and transcription need review first (new
+        dependencies or models).
+```

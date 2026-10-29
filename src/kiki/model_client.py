@@ -8,6 +8,7 @@ from time import sleep
 from typing import Any, Protocol
 
 from .resilience import KikiError, ErrorCode
+from .retrieval import location_label
 from .tools import ToolRegistry
 
 
@@ -535,11 +536,7 @@ def _model_visible_source(item: dict[str, Any], excerpt: str) -> dict[str, Any]:
         visible["document"] = f"{title} ({filename})" if title else filename
     if item.get("start_location") is not None:
         start, end = item["start_location"], item.get("end_location", item["start_location"])
-        if item.get("location_kind") == "page":
-            label = "page" if end == start else "pages"
-        else:
-            label = "lines"
-        visible["location"] = f"{label} {start}" + (f"-{end}" if end != start else "")
+        visible["location"] = location_label(str(item.get("location_kind")), start, end)
     visible["excerpt"] = excerpt
     return visible
 

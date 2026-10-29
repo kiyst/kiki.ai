@@ -12,11 +12,15 @@ TEXT_EXTENSIONS = {
     ".txt", ".md", ".markdown", ".py", ".js", ".ts", ".tsx",
     ".jsx", ".json", ".toml", ".yaml", ".yml",
 }
-SUPPORTED_EXTENSIONS = TEXT_EXTENSIONS | {".pdf"}
+DOCX_EXTENSIONS = {".docx"}
+HTML_EXTENSIONS = {".html", ".htm"}
+SUPPORTED_EXTENSIONS = TEXT_EXTENSIONS | DOCX_EXTENSIONS | HTML_EXTENSIONS | {".pdf"}
 EXTRACTION_VERSION = "paragraph-v3"
-# Versioned separately so a PDF chunking change re-extracts only PDFs; text
-# files keep their source IDs and embeddings.
+# Versioned separately so a change to one format re-extracts only that format;
+# other files keep their source IDs and embeddings.
 PDF_EXTRACTION_VERSION = "pdf-continuous-v1"
+DOCX_EXTRACTION_VERSION = "docx-v1"
+HTML_EXTRACTION_VERSION = "html-v1"
 # Roughly what the RAG evidence budget shows the model per result, so retrieved
 # chunks are seen whole and embeddings stay focused on one passage.
 TEXT_CHUNK_CHARACTERS = 1_400
@@ -35,13 +39,40 @@ class ExtractionError(Exception):
 
 
 def extraction_version(path: Path) -> str:
-    return PDF_EXTRACTION_VERSION if path.suffix.lower() == ".pdf" else EXTRACTION_VERSION
+    suffix = path.suffix.lower()
+    if suffix == ".pdf":
+        return PDF_EXTRACTION_VERSION
+    if suffix in DOCX_EXTENSIONS:
+        return DOCX_EXTRACTION_VERSION
+    if suffix in HTML_EXTENSIONS:
+        return HTML_EXTRACTION_VERSION
+    return EXTRACTION_VERSION
 
 
 def extract_chunks(path: Path) -> list[ExtractedChunk]:
-    if path.suffix.lower() == ".pdf":
+    suffix = path.suffix.lower()
+    if suffix == ".pdf":
         return list(_extract_pdf(path))
+    if suffix in DOCX_EXTENSIONS | HTML_EXTENSIONS:
+        return list(_extract_document(path))
     return list(_extract_text(path))
+
+
+def _read_document(path: Path) -> tuple[str | None, list[str]]:
+    from .documents import DocumentError, read_docx, read_html
+
+    try:
+        return read_docx(path) if path.suffix.lower() in DOCX_EXTENSIONS else read_html(path)
+    except DocumentError as exc:
+        raise ExtractionError(str(exc)) from exc
+
+
+def _extract_document(path: Path) -> Iterable[ExtractedChunk]:
+    """Word and HTML passages cite paragraph numbers: one paragraph per line."""
+    _, paragraphs = _read_document(path)
+    if not paragraphs:
+        raise ExtractionError("document has no text")
+    return _chunk_lines(paragraphs, "paragraph")
 
 
 def _extract_text(path: Path) -> Iterable[ExtractedChunk]:
@@ -49,7 +80,10 @@ def _extract_text(path: Path) -> Iterable[ExtractedChunk]:
         text = path.read_text(encoding="utf-8")
     except UnicodeError as exc:
         raise ExtractionError("file is not valid UTF-8 text") from exc
-    lines = _without_gutenberg_boilerplate(text.splitlines())
+    return _chunk_lines(_without_gutenberg_boilerplate(text.splitlines()), "line")
+
+
+def _chunk_lines(lines: list[str], kind: str) -> Iterable[ExtractedChunk]:
     blocks = list(_paragraph_blocks(lines, min(2_400, TEXT_CHUNK_CHARACTERS)))
     max_characters = TEXT_CHUNK_CHARACTERS
     current: list[tuple[int, int, str]] = []
@@ -57,7 +91,7 @@ def _extract_text(path: Path) -> Iterable[ExtractedChunk]:
     for block in blocks:
         added_size = len(block[2]) + (2 if current else 0)
         if current and current_size + added_size > max_characters:
-            yield _text_chunk(current)
+            yield _text_chunk(current, kind)
             # Preserve one paragraph of context without repeatedly mixing
             # unrelated sections or front matter into short passages.
             overlap = current[-1]
@@ -66,11 +100,17 @@ def _extract_text(path: Path) -> Iterable[ExtractedChunk]:
         current.append(block)
         current_size += len(block[2]) + (2 if len(current) > 1 else 0)
     if current:
-        yield _text_chunk(current)
+        yield _text_chunk(current, kind)
 
 
 def document_title(path: Path) -> str | None:
-    """Human title for citations: Gutenberg Title/Author, else a Markdown H1."""
+    """Human title for citations: Gutenberg Title/Author, a Markdown H1, a Word
+    document's title property or Title/Heading 1, or an HTML <title>/<h1>."""
+    if path.suffix.lower() in DOCX_EXTENSIONS | HTML_EXTENSIONS:
+        try:
+            return _read_document(path)[0]
+        except (ExtractionError, OSError):
+            return None
     if path.suffix.lower() not in TEXT_EXTENSIONS:
         return None
     try:
@@ -159,9 +199,9 @@ def _paragraph_blocks(lines: list[str], max_characters: int = 2_400) -> Iterable
         selected = []
 
 
-def _text_chunk(blocks: list[tuple[int, int, str]]) -> ExtractedChunk:
+def _text_chunk(blocks: list[tuple[int, int, str]], kind: str = "line") -> ExtractedChunk:
     return ExtractedChunk(
-        "line",
+        kind,
         blocks[0][0],
         blocks[-1][1],
         "\n\n".join(block[2] for block in blocks),

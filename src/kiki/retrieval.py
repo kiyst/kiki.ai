@@ -49,14 +49,7 @@ class SearchResult:
 
     @property
     def location_label(self) -> str:
-        if self.location_kind == "page":
-            label = "page" if self.end_location == self.start_location else "pages"
-        else:
-            label = "lines"
-        location = str(self.start_location)
-        if self.end_location != self.start_location:
-            location += f"-{self.end_location}"
-        return f"{label} {location}"
+        return location_label(self.location_kind, self.start_location, self.end_location)
 
     @property
     def citation(self) -> str:
@@ -64,6 +57,15 @@ class SearchResult:
 
     def to_dict(self) -> dict[str, object]:
         return {**asdict(self), "passage_id": self.passage_id, "citation": self.citation}
+
+
+def location_label(kind: str, start: int, end: int) -> str:
+    """"page 4", "pages 4-5", "paragraphs 12-18", or "lines 10-22"."""
+    if kind in {"page", "paragraph"}:
+        label = kind if end == start else f"{kind}s"
+    else:
+        label = "lines"
+    return f"{label} {start}" + (f"-{end}" if end != start else "")
 
 
 def passage_identifier(source_id: str, location_kind: str, start: int, end: int) -> str:
