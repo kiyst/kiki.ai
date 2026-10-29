@@ -395,3 +395,47 @@ Decision or proposal: default 20 candidates / 8 passages. Rejected 32
         comparison because both runs share the same evidence budget.
 Human review needed: no.
 ```
+
+## RAG pipeline milestone, stage 4: PDF passages across page breaks
+
+```text
+Date: 2026-10-29
+Stage: 4 (PDF chunk continuity)
+Commit before change: 5d0addb (developed on branch rag-stage4-pdf from d26afeb)
+Files changed: src/kiki/pdf_chunking.py (new), extraction.py, retrieval.py,
+        retrieval_evals.py, THIRD_PARTY_NOTICES.md, tests/test_pdf_chunking.py
+Behavior changed: PDFs are chunked as one document-order paragraph stream to
+        the text budget (1,400 characters) with one-paragraph overlap. A
+        sentence or paragraph cut by a page break is joined (de-hyphenated);
+        each passage stores start and end page, and split pieces report only
+        the pages they contain. Repeated running headers/footers and bare page
+        numbers are stripped (never emptying a page). Blank, image-only, and
+        unreadable pages are skipped; a PDF with no text still reports the OCR
+        limitation. PDF extraction has its own version (pdf-continuous-v1), so
+        existing PDFs are re-extracted the next time their folder is indexed,
+        while text files keep their source IDs and embeddings.
+Tests/evaluations run: pytest 157 passed (14 new, with generated PDF fixtures:
+        sentence split across pages, paragraph split across pages, hyphenation,
+        repeated headers/footers, blank page, image-only page, malformed PDF,
+        partially readable PDF, budget and page-order invariants). Old vs new
+        extraction over test-data/pdf-samples (35 PDFs). Fresh re-index of the
+        history corpus with the new code.
+Result: pdf-samples - same 7 failures as before (1 encrypted, 5 no text,
+        1 unreadable), no crashes; passages 282 -> 310, 73 now span two pages,
+        maximum passage 3,953 -> 1,398 characters (now within budget).
+        History corpus: identical identity 2161829777560d6b and all 2,569
+        passages byte-identical, so holdout retrieval results are unchanged by
+        construction; the holdout eval was not re-run for this stage.
+Known bugs: no labeled PDF retrieval set exists yet, so PDF retrieval quality
+        is unmeasured. Heuristics (header detection, continuation joining) are
+        tuned on synthetic fixtures; unusual layouts (multi-column, tables)
+        may join or split imperfectly. A continuation that starts with a
+        capital letter is deliberately not joined.
+Decision or proposal: adapted from Zotero RAG (rhenryliu/zotero-rag a9f308d,
+        rag/chunking.py chunk_document and _hard_split, MIT); notice and full
+        license text in THIRD_PARTY_NOTICES.md. Changed: overlap keeps whole
+        paragraphs with their own pages (upstream mis-attributes the carried
+        tail), plus joining, page maps, and header removal.
+Human review needed: no (re-extraction of PDFs happens only when the user
+        re-indexes a folder; nothing is rebuilt automatically).
+```
