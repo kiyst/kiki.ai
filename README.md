@@ -244,7 +244,8 @@ shows the active values.
 | --- | --- | --- | --- |
 | `--candidates N` | `KIKI_RAG_CANDIDATES` | 20 | Passages gathered before reranking (1–100) |
 | `--passages N` | `KIKI_RAG_PASSAGES` | 8 | Passages given to the answer model (1–20) |
-| `--reranker NAME` | `KIKI_RAG_RERANKER` | `grader` | `grader` (main model scores each passage 0–3), `none`, or experimental `qwen3-reranker` (see the engineering log) |
+| `--reranker NAME` | `KIKI_RAG_RERANKER` | `grader` | `grader` (main model scores each passage 0–3), `none`, or the experimental `llama-cpp` / `qwen3-reranker` (see the engineering log) |
+| `--rerank-url URL` | `KIKI_RAG_RERANK_URL` | `http://127.0.0.1:8081` | Local llama.cpp reranking server for `llama-cpp`; must be on this machine |
 | `--rerank-model NAME` | `KIKI_RAG_RERANK_MODEL` | main model | Model used by the reranker |
 | `--rerank-batch-size N` | `KIKI_RAG_RERANK_BATCH` | 4 | Cap on parallel reranker requests |
 | `--rerank-timeout S` | `KIKI_RAG_RERANK_TIMEOUT` | 90 | Seconds per reranker request before falling back to search order |
@@ -285,8 +286,9 @@ has a receipt in [evals/receipts/](evals/receipts/rag-milestone/).
   rather than left to the model.
 - **Some passages are never found.** In 3 of 29 held-out questions the right
   passage still misses the eight shown to the model.
-- **No dedicated reranker yet.** The Qwen3-Reranker build tried so far does not
-  work on this Ollama version; the main model keeps doing the grading.
+- **No better reranker yet.** A dedicated Qwen3 reranker now runs through
+  llama.cpp, but it scored slightly lower than the main model's grading and was
+  slower or memory-hungry on this PC, so grading stays the default.
 
 The full picture, including suggestions and constraints, is in
 [docs/DEVELOPMENT_NOTES.md](docs/DEVELOPMENT_NOTES.md).

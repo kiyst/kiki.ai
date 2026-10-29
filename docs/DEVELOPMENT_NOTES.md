@@ -40,10 +40,14 @@ made things worse with the current grader, so they were not adopted.
 
 Still open:
 
-- **A working dedicated reranker.** It would be faster than the main model
-  grading every passage, and its scores would let the retry step know when to
-  fire. Every route needs your approval: a different download of the same
-  model, a separate runtime (llama.cpp), or a large Python install (PyTorch).
+- **The dedicated reranker didn't win.** A second download didn't work in
+  Ollama either, so it now runs through llama.cpp (`--reranker llama-cpp`).
+  It works, but scored 25 of 29 against the grader's 26, put the right passage
+  first less often, and was slower on the CPU and memory-hungry on the GPU.
+  Grading stays the default.
+- **Memory on this PC is tight.** Running two evaluations at once beside
+  Ollama and Fusion 360 exhausted memory and forced a restart on October 29.
+  Long evaluations now run one at a time.
 - **Three held-out questions** still miss: Beard on trusts, the Federalist on
   the Articles' weaknesses, and the Federalist on Senate tyranny.
 - **No PDF test questions yet**, so PDF answer quality is unmeasured.
