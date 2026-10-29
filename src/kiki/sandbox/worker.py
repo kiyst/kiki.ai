@@ -82,7 +82,8 @@ def run(spec: dict[str, Any]) -> dict[str, Any]:
     wasi = wt.WasiConfig()
     wasi.argv = GUEST_ARGV
     wasi.env = GUEST_ENV
-    for host, guest, writable in grants(Path(spec["lib"]), Path(spec["staging"])):
+    for host, guest, writable in grants(Path(spec["lib"]), Path(spec["staging"]),
+                                        Path(spec["packages"])):
         wasi.preopen_dir(host, guest, writable)
     wasi.stdout_custom = sink.writer("stdout")
     wasi.stderr_custom = sink.writer("stderr")

@@ -225,7 +225,8 @@ What to expect:
 - **You stay in charge.** Code runs only when you type `/run` and confirm, and
   it runs on a temporary copy. Changes to your real files will always be shown
   as a diff and need your approval.
-- **Limits.** Standard library only (no `pip` packages, no internet), no
+- **Limits.** Standard library plus `sortedcontainers` (which LeetCode's own
+  Python provides); no other packages and no internet. No
   threads or subprocesses, and `zlib`, `sqlite3`, `multiprocessing`, `ssl`,
   and `ctypes` are unavailable. Code runs about 2× slower than normal Python.
   Memoized (`@cache`) recursion goes about 1,200 levels deep; plain recursion

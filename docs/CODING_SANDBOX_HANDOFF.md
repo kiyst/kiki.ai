@@ -477,6 +477,10 @@ original problems below remain the plan for a contamination-free holdout.
   processes, environment, time, memory, output, recursion, cleanup) that run
   when the runtime is installed. Not reachable from chat; `/run` is
   checkpoint 7.
+- **Approved and done (October 29), checkpoint 10:** `sortedcontainers`
+  2.4.0, pinned by wheel checksum, unpacked by setup into a read-only
+  `/packages` folder (a third read-only grant), tree checksum verified by
+  preflight. Pure Python, no dependencies. Further packages need a new yes.
 - Adversarial suite (see test plan) must pass before stage 3 (checkpoint 5).
 
 ### Stage 3: benchmark baseline (Python)

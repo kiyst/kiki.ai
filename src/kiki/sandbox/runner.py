@@ -70,6 +70,7 @@ class SandboxRunner:
             "compiled": str(self.paths.compiled),
             "compiled_sha256": manifest["compiled_sha256"],
             "lib": str(self.paths.lib),
+            "packages": str(self.paths.packages),
             "staging": str(folder),
             "memory_bytes": limits.memory_mib * 2**20,
             "timeout_s": limits.timeout_s,

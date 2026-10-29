@@ -11,7 +11,7 @@ from typing import Any
 from ..resilience import ErrorCode, KikiError
 from . import jobs
 from .runtime import PYTHON, WASMTIME_VERSION, RuntimePaths
-from .wasi import sha256_file
+from .wasi import sha256_file, tree_sha256
 
 SETUP_HINT = "Run `kiki sandbox setup`."
 
@@ -62,6 +62,11 @@ def checks(paths: RuntimePaths, *, verify_hashes: bool = True) -> list[Check]:
             results.append(Check(name, False, "checksum does not match the manifest", SETUP_HINT))
         else:
             results.append(Check(name, True, "present" + (", checksum verified" if verify_hashes else "")))
+    packages_ok = paths.packages.is_dir() and (
+        not verify_hashes or tree_sha256(paths.packages) == manifest.get("packages_sha256"))
+    names = ", ".join(f"{name} {info['version']}" for name, info in manifest.get("packages", {}).items())
+    results.append(Check("packages", packages_ok, names or "none",
+                         "" if packages_ok else SETUP_HINT))
     library = paths.lib / f"python{'.'.join(PYTHON.version.split('.')[:2])}"
     results.append(Check("standard library", library.is_dir(), str(library),
                          "" if library.is_dir() else SETUP_HINT))

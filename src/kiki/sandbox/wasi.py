@@ -20,9 +20,22 @@ GUEST_ARGV = ["python", "-I", "-B", "-X", "utf8", "/input/kiki_launcher.py"]
 GUEST_ENV = [["PYTHONDONTWRITEBYTECODE", "1"], ["PYTHONUNBUFFERED", "1"]]
 
 
-def grants(lib: Path, staging: Path) -> list[tuple[str, str, bool]]:
-    """Host folder, guest path, writable. The only two; both read-only."""
-    return [(str(lib), "/lib", False), (str(staging), "/input", False)]
+def grants(lib: Path, staging: Path, packages: Path) -> list[tuple[str, str, bool]]:
+    """Host folder, guest path, writable. The only three; all read-only."""
+    return [
+        (str(lib), "/lib", False),
+        (str(staging), "/input", False),
+        (str(packages), "/packages", False),
+    ]
+
+
+def tree_sha256(root: Path) -> str:
+    """One checksum over every file's relative path and contents."""
+    digest = hashlib.sha256()
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        digest.update(path.relative_to(root).as_posix().encode() + b"\0")
+        digest.update(sha256_file(path).encode() + b"\n")
+    return digest.hexdigest()
 
 
 def engine_config() -> Any:

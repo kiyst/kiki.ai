@@ -20,7 +20,7 @@ import pytest
 from kiki.resilience import ErrorCode, KikiError
 from kiki.sandbox import RunLimits, SandboxRunner, preflight, staging
 from kiki.sandbox.runner import interpret
-from kiki.sandbox.runtime import PythonRuntime, RuntimePaths, default_home
+from kiki.sandbox.runtime import Package, PythonRuntime, RuntimePaths, default_home
 from kiki.sandbox.setup import SetupError, setup
 from kiki.sandbox.wasi import grants
 from kiki.sandbox.worker import OutputSink, run as worker_run, trap_reason
@@ -63,7 +63,7 @@ def test_stage_writes_files_and_launcher_then_removes() -> None:
     try:
         assert (folder / "main.py").read_text(encoding="utf-8") == "print('hi')"
         launcher = (folder / staging.LAUNCHER_NAME).read_text(encoding="utf-8")
-        assert "'main.py'" in launcher and 'sys.path.insert(0, "/input")' in launcher
+        assert "'main.py'" in launcher and '["/input", "/packages"]' in launcher
     finally:
         staging.remove(folder)
     assert not folder.exists()
@@ -83,10 +83,11 @@ def test_sweep_skips_recent_folders(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 
 # --- fixed configuration ------------------------------------------------------
 
-def test_guest_sees_only_two_read_only_folders(tmp_path: Path) -> None:
-    assert grants(tmp_path / "lib", tmp_path / "run") == [
+def test_guest_sees_only_three_read_only_folders(tmp_path: Path) -> None:
+    assert grants(tmp_path / "lib", tmp_path / "run", tmp_path / "pkg") == [
         (str(tmp_path / "lib"), "/lib", False),
         (str(tmp_path / "run"), "/input", False),
+        (str(tmp_path / "pkg"), "/packages", False),
     ]
 
 
@@ -169,10 +170,22 @@ def _fake_runtime(tmp_path: Path, members: dict[str, bytes]) -> tuple[PythonRunt
     return runtime, data
 
 
-def _fetcher(data: bytes):
+def _fetcher(data: bytes, extra: dict[str, bytes] | None = None):
     def fetch(url: str, target: Path) -> None:
-        target.write_bytes(data)
+        target.write_bytes((extra or {}).get(url, data))
     return fetch
+
+
+def _fake_package() -> tuple[Package, bytes]:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as wheel:
+        wheel.writestr("sortedcontainers/__init__.py", "from .sortedlist import SortedList\n")
+        wheel.writestr("sortedcontainers/sortedlist.py", "class SortedList(list):\n    pass\n")
+        wheel.writestr("sortedcontainers-2.4.0.dist-info/METADATA", "Name: sortedcontainers")
+    data = buffer.getvalue()
+    url = "https://example.invalid/sortedcontainers-2.4.0-py2.py3-none-any.whl"
+    return Package("sortedcontainers", "2.4.0", url, hashlib.sha256(data).hexdigest(),
+                   "sortedcontainers"), data
 
 
 def _fake_compile(wasm: Path, target: Path) -> None:
@@ -183,14 +196,22 @@ def test_setup_verifies_installs_and_satisfies_preflight(tmp_path: Path) -> None
     runtime, data = _fake_runtime(tmp_path, {
         "python.wasm": b"\0asm fake", "lib/python3.14/os.py": b"", "LICENSE": b"PSF"})
     paths = RuntimePaths(tmp_path / "home")
+    package, wheel = _fake_package()
+    fetch = _fetcher(data, {package.url: wheel})
 
-    report = setup(paths, runtime, fetch=_fetcher(data), compile_wasm=_fake_compile)
+    report = setup(paths, runtime, fetch=fetch, compile_wasm=_fake_compile, packages=(package,))
 
     assert report["downloaded"] and not report["reused_unpacked_runtime"]
+    assert report["packages"] == {"sortedcontainers": {"version": "2.4.0",
+                                                       "wheel_sha256": package.wheel_sha256}}
+    assert sorted(p.name for p in paths.packages.iterdir()) == ["sortedcontainers"]
     assert all(check.ok for check in preflight.checks(paths)), preflight.checks(paths)
-    again = setup(paths, runtime, fetch=_fetcher(b"unused"), compile_wasm=_fake_compile)
+    again = setup(paths, runtime, fetch=_fetcher(b"unused"), compile_wasm=_fake_compile,
+                  packages=(package,))
     assert not again["downloaded"] and again["reused_unpacked_runtime"]
 
+    (paths.packages / "sortedcontainers" / "sortedlist.py").write_text("import os  # changed")
+    assert not next(c for c in preflight.checks(paths) if c.name == "packages").ok
     paths.compiled.write_bytes(b"tampered")
     assert not all(check.ok for check in preflight.checks(paths))
 
@@ -199,7 +220,8 @@ def test_setup_rejects_a_checksum_mismatch(tmp_path: Path) -> None:
     runtime, _ = _fake_runtime(tmp_path, {"python.wasm": b"x", "lib/a.py": b""})
     paths = RuntimePaths(tmp_path / "home")
     with pytest.raises(SetupError, match="does not match"):
-        setup(paths, runtime, fetch=_fetcher(b"something else"), compile_wasm=_fake_compile)
+        setup(paths, runtime, fetch=_fetcher(b"something else"), compile_wasm=_fake_compile,
+              packages=())
     assert not paths.archive.exists() and not paths.root.exists()
 
 
@@ -207,7 +229,7 @@ def test_setup_rejects_unsafe_archive_paths(tmp_path: Path) -> None:
     runtime, data = _fake_runtime(tmp_path, {"python.wasm": b"x", "../escape.txt": b"!"})
     paths = RuntimePaths(tmp_path / "home")
     with pytest.raises(SetupError, match="Unsafe path"):
-        setup(paths, runtime, fetch=_fetcher(data), compile_wasm=_fake_compile)
+        setup(paths, runtime, fetch=_fetcher(data), compile_wasm=_fake_compile, packages=())
     assert not (tmp_path / "escape.txt").exists()
 
 
@@ -271,6 +293,15 @@ def test_time_memory_and_output_limits(runner: SandboxRunner) -> None:
 
     flood = runner.run({"main.py": "while True:\n    print('x' * 1000)"})
     assert flood.output_killed and flood.output_truncated and len(flood.stdout) <= 64 * 1024
+
+
+@integration
+def test_allowlisted_package_imports_and_is_read_only(runner: SandboxRunner) -> None:
+    code = _probe("open('/packages/sortedcontainers/x.py', 'w').write('x')") + (
+        "\nfrom sortedcontainers import SortedList\nprint(list(SortedList([3, 1, 2])))")
+    result = runner.run({"main.py": code})
+    assert result.ok, result.stderr
+    assert "blocked" in result.stdout and "[1, 2, 3]" in result.stdout
 
 
 @integration

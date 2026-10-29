@@ -29,6 +29,34 @@ PYTHON = PythonRuntime(
 
 
 @dataclass(frozen=True)
+class Package:
+    """A pure-Python package offered to sandboxed code, read-only."""
+
+    name: str
+    version: str
+    url: str
+    wheel_sha256: str
+    top_level: str
+
+
+# Allowlist. Pure Python only (nothing to compile), no dependencies. LeetCode's
+# Python environment provides sortedcontainers, so solutions often import it.
+PACKAGES: tuple[Package, ...] = (
+    Package(
+        name="sortedcontainers",
+        version="2.4.0",
+        url=(
+            "https://files.pythonhosted.org/packages/32/46/"
+            "9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/"
+            "sortedcontainers-2.4.0-py2.py3-none-any.whl"
+        ),
+        wheel_sha256="a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0",
+        top_level="sortedcontainers",
+    ),
+)
+
+
+@dataclass(frozen=True)
 class RuntimePaths:
     home: Path
 
@@ -55,6 +83,14 @@ class RuntimePaths:
     @property
     def manifest(self) -> Path:
         return self.home / "manifest.json"
+
+    @property
+    def packages(self) -> Path:
+        return self.home / "packages"
+
+    @property
+    def wheels(self) -> Path:
+        return self.home / "wheels"
 
 
 def default_home(runtime: PythonRuntime = PYTHON) -> Path:

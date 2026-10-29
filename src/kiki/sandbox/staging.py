@@ -17,7 +17,7 @@ LAUNCHER_NAME = "kiki_launcher.py"
 _NAME = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}$")
 
 LAUNCHER = """import runpy, sys
-sys.path.insert(0, "/input")
+sys.path[0:0] = ["/input", "/packages"]
 sys.argv = [{entry!r}]
 runpy.run_path("/input/" + {entry!r}, run_name="__main__")
 """

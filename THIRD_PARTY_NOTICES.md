@@ -49,6 +49,7 @@ runtime.
 | Component | Version | Source | License |
 | --- | --- | --- | --- |
 | `wasmtime` (Python package) | 50.0.1 | [PyPI](https://pypi.org/project/wasmtime/), a required dependency (`pyproject.toml`) | Apache-2.0 WITH LLVM-exception |
+| `sortedcontainers` (offered to sandboxed code) | 2.4.0 | [PyPI wheel](https://pypi.org/project/sortedcontainers/2.4.0/), sha256 `a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0`, unpacked read-only by `kiki sandbox setup` | Apache-2.0 |
 | CPython for WASI | 3.14.9 (`wasi_sdk-24`) | [brettcannon/cpython-wasi-build](https://github.com/brettcannon/cpython-wasi-build/releases/tag/v3.14.9), zip sha256 `8de7834105edef8db8a13299e2587cf8945021dd8764f2691d83bbc25129dfa2`, unpacked under `%LOCALAPPDATA%\kiki\wasi-python\` | PSF License |
 
 ## Coding benchmarks
