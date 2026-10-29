@@ -54,6 +54,10 @@ RAG you > What does Paine say about hereditary succession?
   sandbox with `/run` ([Running code](#running-code)).
 - **Answer from your documents.** Point her at a folder of text, Markdown, or
   PDF files. Answers cite the document and line or page they came from.
+- **Find a file you lost track of.** `/find kestrel budget march` ranks every
+  file in your indexed folders, including spreadsheets, images, and other files
+  she cannot read, by name, folder, type, title, and contents
+  ([Finding files](#finding-files)).
 - **Know when to stop.** Questions the documents cannot answer get "Evidence is
   insufficient" instead of a guess.
 - **Check the weather.** Live conditions from Open-Meteo, with a follow-up
@@ -161,6 +165,7 @@ kiki --database .kiki\history.sqlite3 run
 | `/chat [message]` | Ordinary conversation |
 | `/rag [question]` | Answer from your indexed documents |
 | `/sources` | Show the last answer's sources again |
+| `/find WORDS` | Find whole files in your indexed folders; `/find` alone shows the last list again |
 | `/run [FILE.py]` | Run the last answer's Python (or a copy of a file) in the sandbox, after you confirm |
 | `/workspace [PATH\|browse]` | Choose the folder `/apply` may write into (this session only) |
 | `/apply FILE` | Save the last answer's code to a file in the workspace, after you approve the diff |
@@ -201,9 +206,44 @@ output scriptable:
 kiki chat "Explain mercantilism in plain language."
 kiki rag "What does Paine say about hereditary monarchy?" --debug
 kiki hybrid-search "Which problems should never get another try?"
+kiki find "tax scan 2024 ext:pdf"
 kiki weather "Boston, Massachusetts"
 kiki --json rag "Why is the judiciary the least dangerous branch?"
 ```
+
+### Finding files
+
+When you know a file exists but not where, describe it:
+
+```text
+/find the kestrel budget spreadsheet from march
+/find tax scan in:Taxes after:2024
+/find ext:pdf larger:10MB
+```
+
+Kiki shows up to three candidates, each with how sure she is, why it matched
+("name: kestrel, budget; folder: taxes"), its folder, date, and size, and the
+full path on its own line so you can copy it. Where your terminal supports it,
+the file name is a clickable link.
+
+- **Every file counts, not just documents.** `kiki index FOLDER` also
+  catalogues spreadsheets, images, archives, and other files she cannot read.
+  Those are found by name, folder, and type, and are marked as such. Tool
+  folders such as `.git`, `node_modules`, and virtual environments are skipped.
+- **Confidence means something.** *Likely* appears only on the first result,
+  when it explains nearly the whole description, mostly through its name,
+  title, or folder, and clearly beats the next file. Otherwise you see
+  *Possible* or *Weak match*, and a hint to narrow the search.
+- **Filters:** `ext:pdf` (or `ext:xlsx,csv`), `in:FOLDER`, `name:WORD`,
+  `after:` and `before:` (`2025`, `2025-03`, `2025-03-15`, or `7d`, `4w`, `6m`,
+  `1y`), `larger:` and `smaller:` (`500KB`, `10MB`).
+- **Never stale.** A file deleted since indexing is never shown; Kiki tells you
+  how many were skipped. A file changed since indexing is marked.
+- **Read-only.** Finding never opens, moves, or changes anything. It loads no
+  model, so it is quick (under 0.1 s on the test folders) and light on memory.
+
+Indexes made before this feature know only their readable files until you run
+`kiki index` on the folder again.
 
 ### Running code
 
@@ -374,7 +414,8 @@ src/kiki/
   terminal.py        the interactive Kiki session and slash commands
   cli.py             one-off commands and evaluations
   model_client.py    the answer loop, citation checks, evidence trimming
-  retrieval.py       document index, keyword search, migrations
+  retrieval.py       document index, file catalog, keyword search, migrations
+  finding.py         /find: whole-file ranking, filters, confidence
   semantic.py        meaning-based search and hybrid merging
   rerank.py          the passage grading step
   extraction.py      turning files into citable passages
@@ -416,17 +457,20 @@ helpful thing to send.
 Roughly in priority order (details in the
 [development notes](docs/DEVELOPMENT_NOTES.md)):
 
-1. **Run Python safely** (in progress). The WebAssembly sandbox described in
-   [Running code](#running-code) (sandbox and `/run` done), a coding benchmark with
-   hidden tests, and a loop in which Kiki fixes her own failing code.
-2. **Quote checking.** Anything in quotation marks must appear word for word
+1. **Find files** (in progress). `/find` is done ([Finding files](#finding-files));
+   next, `/summarize NUMBER` for a found file, then letting Kiki search for
+   files herself when you ask in plain conversation.
+2. **Run Python safely** (paused). The sandbox, `/run`, and `/apply` are done.
+   Left: finishing the LeetCode and MBPP+ benchmarks, and a loop in which Kiki
+   fixes her own failing code.
+3. **Quote checking.** Anything in quotation marks must appear word for word
    in a retrieved passage.
-3. **Claim checking.** Confirm each sentence is supported by the passage it
+4. **Claim checking.** Confirm each sentence is supported by the passage it
    cites, and flag or remove the rest.
-4. **Rule checks in code.** When you say "don't include X", verify the answer
+5. **Rule checks in code.** When you say "don't include X", verify the answer
    instead of trusting the model.
-5. **One regression gate** that runs every evaluation before a change lands.
-6. **Try a larger model** for better instruction-following, within the GPU's
+6. **One regression gate** that runs every evaluation before a change lands.
+7. **Try a larger model** for better instruction-following, within the GPU's
    8 GB.
 
 Paused for a future, optional addition: running JavaScript/TypeScript, C/C++,

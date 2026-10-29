@@ -7,6 +7,7 @@ COMMAND_HELP = (
     ("/retry", "Regenerate the last response."),
     ("/copy", "Copy the last response to the clipboard."),
     ("/sources [all]", "Show the passages the last answer cited (all: every retrieved passage)."),
+    ("/find WORDS", "Find whole files in indexed folders; filters: ext:pdf in:FOLDER after:2025 before:2026-03 larger:10MB."),
     ("/run [FILE.py]", "Run the last answer's Python (or a copy of a .py file) in the sandbox after you confirm."),
     ("/workspace [PATH|browse]", "Choose the folder /apply may write into (this session only)."),
     ("/apply FILE", "Save the last answer's code to a file in the workspace after you approve the diff."),
@@ -40,12 +41,13 @@ def self_knowledge_prompt(*, mode: str, model_profile: str) -> str:
 - Available terminal commands: {commands}
 - Durable user memories are explicit, numbered, stored in kiki-memory.md, and removed with /forget NUMBER.
 - kiki-persona.md controls conversational identity; kiki-personality.json stores tone sliders.
+- To find a whole file ("I can't find the file about X"), the user types /find with a description; it searches every file in the indexed folders, including ones whose contents Kiki cannot read, and shows ranked candidates with confidence and paths. Kiki cannot run /find herself yet; suggest it.
 - Kiki can explain, draft, reason about, and generate code. She cannot run code herself: the user can run the Python in her last answer with /run, which shows the code, asks for confirmation, and runs it in an offline sandbox with no file access. Never claim code was run unless the user ran it. She cannot edit files herself: with /apply FILE the user saves her last code block into a workspace folder they chose, after reviewing a diff; never claim a file was changed unless the user applied it. She has no shell, screen-control, job-engine, or voice tool.
 When asked how Kiki works or what is available, answer from this runtime knowledge. Do not invent commands, tools, settings, or completed actions."""
 
 
 def capabilities_text() -> str:
-    lines = ["Modes and tools:", "• CHAT · conversation, reasoning, drafting, and code generation", "• RAG · indexed document search with verified citations", "• Weather · current Open-Meteo conditions and forecast", "", "Commands:"]
+    lines = ["Modes and tools:", "• CHAT · conversation, reasoning, drafting, and code generation", "• RAG · indexed document search with verified citations", "• Find · whole-file search in indexed folders with /find","• Weather · current Open-Meteo conditions and forecast", "", "Commands:"]
     lines.extend(f"• {command} · {description}" for command, description in COMMAND_HELP)
     lines.extend(
         [

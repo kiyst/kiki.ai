@@ -376,8 +376,31 @@ threat model, limits, staged plan, and review checkpoints, in
 [CODING_SANDBOX_HANDOFF.md](CODING_SANDBOX_HANDOFF.md). Scope: Python in a
 WebAssembly sandbox (`wasmtime`), which passed its trial on October 29. Docker
 and other languages are paused for a future, optional addition. Kiki targets
-16 GB machines with everyday apps open. The trial harness exists; the runner
-itself is not implemented yet.
+16 GB machines with everyday apps open. The runner, `/run`, `/workspace`, and
+`/apply` are built (commit `d746cc7`).
+
+### Paused on October 29, 2026: coding loose ends
+
+The milestone is paused, not finished. Pick these up in order:
+
+1. **Fix the page file, then finish the benchmarks.** Windows shrank the
+   system-managed page file (commit limit 38.8 GB -> 32.9 GB), so the
+   benchmark's memory guard halts runs. Recommended: a fixed page file
+   (24576-32768 MB on C:) and a restart; the user has deferred the restart.
+   Then resume, one at a time:
+   `python evals/sandbox_trial/coding_benchmark.py leetcode --style kiki`
+   (4 of 180 done), then `mbpp --style kiki` (not started). Both resume.
+2. **Analyse what is already run.** HumanEval+ bare-prompt results are
+   complete but not compared with the Kiki-prompt run (82.9% base, 79.3%
+   plus). After LeetCode, regrade answers that import `sortedcontainers`.
+3. **Commit the receipts** in `evals/receipts/coding-benchmarks/`
+   (`humaneval-kiki.json`, `humaneval-bare.json`, `leetcode-kiki.json` are
+   untracked; the LeetCode one is partial) with an engineering-log entry.
+4. **Build the generate-test-repair loop** (stage 4 of
+   [CODING_SANDBOX_HANDOFF.md](CODING_SANDBOX_HANDOFF.md)), judged against
+   the finished benchmarks.
+5. **Look into Ollama 0.40.12's runner memory growth** (about 35 MB per
+   request; unloading resets it) and whether a newer release fixes it.
 
 ## Human-review checkpoints
 

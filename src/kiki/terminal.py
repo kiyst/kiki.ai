@@ -25,6 +25,7 @@ from .model_client import (
 )
 from .capabilities import Capability, route_prompt
 from .diagnostics import build_diagnostics, diagnostics_markdown
+from .finding import FileFinder, FindError, FindResult, format_size
 from .input_editor import create_chat_input
 from .memory import MemoryStore, SensitiveMemoryError
 from .models import PROFILES, ModelRouter, ModelSelection
@@ -47,6 +48,7 @@ INTERACTIVE_COMMANDS = (
     "/retry",
     "/copy",
     "/sources",
+    "/find",
     "/run",
     "/workspace",
     "/apply",
@@ -104,6 +106,8 @@ class TerminalSession:
         self.turns: list[dict[str, Any]] = []
         # Folder /apply may write into; chosen by the user each session, never saved.
         self.workspace: Path | None = None
+        # Candidates from the last /find, kept for follow-ups by number.
+        self.last_find: FindResult | None = None
         self._set_index(database)
 
     def _set_index(self, database: Path) -> None:
@@ -113,6 +117,7 @@ class TerminalSession:
     def set_database(self, database: Path) -> None:
         self._set_index(database)
         self.histories["rag"].clear()
+        self.last_find = None
 
     def retrieval_backend(self) -> tuple[Any, str]:
         if self.index.embedding_count(self.embedding_model):
@@ -530,6 +535,50 @@ def render_search_results(console: Console, results: list[SearchResult]) -> None
         console.print(Panel(result.excerpt, title=heading, border_style="blue"))
 
 
+_CONFIDENCE_STYLES = {"Likely": "green", "Possible": "yellow", "Weak match": "dim", "Matches filters": "cyan"}
+
+
+def render_find_results(console: Console, result: FindResult) -> None:
+    if result.filters:
+        console.print(f"[dim]Filters: {'; '.join(result.filters)}[/dim]")
+    if not result.catalogued:
+        console.print(Panel(
+            "Nothing is catalogued yet. Index a folder first: kiki index FOLDER",
+            border_style="yellow",
+        ))
+        return
+    if not result.candidates:
+        console.print(Panel("No file matches that description.", border_style="yellow"))
+    for candidate in result.candidates:
+        style = _CONFIDENCE_STYLES.get(candidate.confidence, "white")
+        body = Text()
+        body.append(f"{candidate.confidence}", style=f"bold {style}")
+        if candidate.reasons:
+            body.append(f" · {candidate.explanation}")
+        body.append(f"\nFolder: {candidate.folder}  ·  Modified {candidate.modified}"
+                    f"  ·  {format_size(candidate.size)}")
+        if candidate.title:
+            body.append(f"\nTitle: {candidate.title}")
+        if not candidate.searchable:
+            body.append("\nContents not readable by Kiki: found by name, folder, and type only.",
+                        style="dim")
+        if candidate.changed_since_indexing:
+            body.append("\nChanged since it was indexed; run kiki index to refresh.", style="dim")
+        heading = Text(f"{candidate.number}. {candidate.name}",
+                       style=f"link {Path(candidate.path).as_uri()}")
+        console.print(Panel(body, title=heading, title_align="left", border_style=style))
+        # Plain line, never wrapped, so the path can be copied as-is.
+        console.print(candidate.path, soft_wrap=True, markup=False, highlight=False)
+    if result.missing_skipped:
+        console.print(
+            f"[yellow]{result.missing_skipped} indexed file(s) no longer exist and were skipped. "
+            "Run kiki index on that folder to refresh.[/yellow]"
+        )
+    if len(result.candidates) > 1 and result.candidates[0].confidence != "Likely":
+        console.print("[dim]Not sure which one? Narrow it with in:FOLDER, ext:pdf, "
+                      "after:2025, or more words.[/dim]")
+
+
 def render_weather(console: Console, result: dict[str, Any]) -> None:
     if not result.get("resolved"):
         table = Table(title="Location needs clarification")
@@ -731,6 +780,22 @@ def _handle_command(
         else:
             show_all = rest.casefold() == "all"
             render_sources(console, previous.sources, None if show_all else previous.answer)
+        return False, None
+    if name == "/find":
+        if not rest:
+            if session.last_find and session.last_find.candidates:
+                render_find_results(console, session.last_find)
+            else:
+                console.print("[yellow]Usage: /find WORDS [ext:pdf] [in:FOLDER] [after:2025] "
+                              "[before:2026-03] [larger:10MB][/yellow]")
+            return False, None
+        try:
+            result = FileFinder(session.index).find(rest)
+        except FindError as exc:
+            console.print(f"[yellow]{exc}[/yellow]")
+            return False, None
+        session.last_find = result
+        render_find_results(console, result)
         return False, None
     if name == "/run":
         previous = session.last_outcomes[session.mode]

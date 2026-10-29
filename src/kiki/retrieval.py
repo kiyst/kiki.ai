@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import gc
 import json
+import os
 import re
 import sqlite3
 from contextlib import contextmanager
@@ -11,7 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from time import sleep
 from collections.abc import Collection
-from typing import Iterator
+from typing import Any, Iterator
 
 from .extraction import (
     extraction_version,
@@ -80,8 +81,15 @@ class ChunkForEmbedding:
 class TextIndex:
     """Authoritative manifest plus SQLite FTS retrieval for selected roots."""
 
-    SCHEMA_VERSION = 4
+    SCHEMA_VERSION = 5
     MAX_FILE_BYTES = 25 * 1024 * 1024
+    MAX_CATALOG_FILES = 200_000
+    # Tool and dependency folders that only bury the user's own files.
+    CATALOG_SKIP_DIRS = frozenset({
+        ".git", ".hg", ".svn", "node_modules", "__pycache__", ".venv", "venv",
+        ".tox", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".cache",
+        "$recycle.bin", "system volume information",
+    })
 
     def __init__(self, database: Path) -> None:
         self.database = database.resolve()
@@ -144,11 +152,13 @@ class TextIndex:
                 result = connection.execute("PRAGMA quick_check").fetchone()[0]
                 files = connection.execute("SELECT COUNT(*) FROM files").fetchone()[0]
                 chunks = connection.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]
+                catalogued = connection.execute("SELECT COUNT(*) FROM catalog").fetchone()[0]
             return {
                 "status": "ok" if result == "ok" else "degraded",
                 "integrity": result,
                 "files": int(files),
                 "chunks": int(chunks),
+                "catalogued_files": int(catalogued),
                 "recovery_notice": self.recovery_notice,
             }
         except Exception as exc:
@@ -197,7 +207,7 @@ class TextIndex:
             existing = connection.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='files'"
             ).fetchone()
-            if existing and current not in (2, 3, self.SCHEMA_VERSION):
+            if existing and current not in (2, 3, 4, self.SCHEMA_VERSION):
                 raise RuntimeError(
                     f"Index schema {current} is incompatible with {self.SCHEMA_VERSION}; delete and reindex"
                 )
@@ -236,10 +246,33 @@ class TextIndex:
                     dimensions INTEGER NOT NULL,
                     vector BLOB NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS catalog (
+                    path TEXT PRIMARY KEY,
+                    root TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    extension TEXT NOT NULL,
+                    size INTEGER NOT NULL,
+                    modified_ns INTEGER NOT NULL,
+                    searchable INTEGER NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS catalog_root ON catalog(root);
                 """
             )
             if existing and current < 4:
                 self._rebuild_stemmed_fts(connection)
+            if existing and current < 5:
+                # Schema 5 catalogs every file for /find. Until the next
+                # `kiki index`, an older index knows only its readable files.
+                connection.executemany(
+                    "INSERT OR IGNORE INTO catalog VALUES (?, ?, ?, ?, ?, ?, 1)",
+                    [
+                        (row["path"], row["root"], Path(row["path"]).name,
+                         Path(row["path"]).suffix.casefold(), row["size"], row["modified_ns"])
+                        for row in connection.execute(
+                            "SELECT path, root, size, modified_ns FROM files"
+                        ).fetchall()
+                    ],
+                )
             columns = {row["name"] for row in connection.execute("PRAGMA table_info(files)")}
             if "title" not in columns:
                 # Titles let citations and queries refer to "the Beard history"
@@ -320,9 +353,77 @@ class TextIndex:
             for row in stale:
                 self._delete_source(connection, row["source_id"])
             counts["removed"] = len(stale)
+            counts["catalogued"] = self._catalog_root(connection, root, issues)
         self._record_roots()
         self.backup()
         return {**counts, "issues": issues}
+
+    def _catalog_root(
+        self, connection: sqlite3.Connection, root: Path, issues: list[dict[str, str]]
+    ) -> int:
+        """Record every file under the root, readable or not, for /find."""
+        searchable = {
+            row["path"]
+            for row in connection.execute("SELECT path FROM files WHERE root = ?", (str(root),))
+        }
+        entries: list[tuple[object, ...]] = []
+        for folder, subfolders, names in os.walk(root, onerror=lambda error: None):
+            subfolders[:] = [
+                name for name in subfolders
+                if name.casefold() not in self.CATALOG_SKIP_DIRS
+                and not _is_link(os.path.join(folder, name))
+            ]
+            for name in names:
+                path = Path(folder, name)
+                try:
+                    if path.is_symlink():
+                        continue
+                    stat = path.stat()
+                except OSError:
+                    continue
+                entries.append((
+                    str(path), str(root), name, path.suffix.casefold(), stat.st_size,
+                    stat.st_mtime_ns, int(str(path) in searchable),
+                ))
+            if len(entries) >= self.MAX_CATALOG_FILES:
+                issues.append({
+                    "path": str(root),
+                    "reason": f"catalog stopped at {self.MAX_CATALOG_FILES:,} files",
+                })
+                break
+        connection.execute("DELETE FROM catalog WHERE root = ?", (str(root),))
+        connection.executemany(
+            "INSERT OR REPLACE INTO catalog VALUES (?, ?, ?, ?, ?, ?, ?)", entries
+        )
+        return len(entries)
+
+    def catalog_entries(self) -> list[dict[str, Any]]:
+        """Every catalogued file, with its title when its contents were read."""
+        with self._session() as connection:
+            rows = connection.execute(
+                """
+                SELECT c.path, c.root, c.name, c.extension, c.size, c.modified_ns,
+                       c.searchable, f.title, f.source_id
+                FROM catalog AS c LEFT JOIN files AS f ON f.path = c.path
+                """
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def content_matches(self, terms: list[str], limit: int = 20_000) -> dict[str, dict[str, float]]:
+        """For each term, the paths whose extracted text contains it and their
+        best BM25 relevance (higher is better). Terms are stemmed like search."""
+        matches: dict[str, dict[str, float]] = {}
+        with self._session() as connection:
+            for term in terms:
+                best: dict[str, float] = {}
+                for row in connection.execute(
+                    "SELECT path, bm25(chunks_fts) AS rank FROM chunks_fts "
+                    "WHERE chunks_fts MATCH ? LIMIT ?",
+                    (f'"{term}"', limit),
+                ):
+                    best[row["path"]] = max(best.get(row["path"], 0.0), -float(row["rank"]))
+                matches[term] = best
+        return matches
 
     def _replace_file(self, connection: sqlite3.Connection, root: Path, path: Path) -> bool:
         data = path.read_bytes()
@@ -525,6 +626,11 @@ _STOP_WORDS = {
     "its", "of", "on", "or", "that", "the", "their", "this", "to", "was",
     "were", "what", "when", "where", "which", "who", "why", "with", "would",
 }
+
+
+def _is_link(path: str) -> bool:
+    """Symlinks and Windows junctions, which could lead outside the root."""
+    return os.path.islink(path) or getattr(os.path, "isjunction", lambda _: False)(path)
 
 
 def _query_tokens(query: str) -> list[str]:

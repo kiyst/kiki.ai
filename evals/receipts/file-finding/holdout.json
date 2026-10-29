@@ -1,0 +1,67 @@
+{
+  "seeds": [
+    101,
+    102,
+    103,
+    104,
+    105
+  ],
+  "cases": 115,
+  "recall@1": 1.0,
+  "recall@3": 1.0,
+  "by_kind": {
+    "contents": {
+      "cases": 25,
+      "recall@1": 1.0,
+      "recall@3": 1.0
+    },
+    "dated": {
+      "cases": 5,
+      "recall@1": 1.0,
+      "recall@3": 1.0
+    },
+    "folder": {
+      "cases": 15,
+      "recall@1": 1.0,
+      "recall@3": 1.0
+    },
+    "name": {
+      "cases": 30,
+      "recall@1": 1.0,
+      "recall@3": 1.0
+    },
+    "noisy": {
+      "cases": 5,
+      "recall@1": 1.0,
+      "recall@3": 1.0
+    },
+    "title": {
+      "cases": 15,
+      "recall@1": 1.0,
+      "recall@3": 1.0
+    }
+  },
+  "top_label_precision": {
+    "Likely": {
+      "shown": 65,
+      "correct": 65,
+      "precision": 1.0
+    },
+    "Possible": {
+      "shown": 40,
+      "correct": 30,
+      "precision": 0.75
+    }
+  },
+  "absent_with_likely": 0,
+  "ambiguous_with_likely": 0,
+  "stale_returned": 0,
+  "dependency_returned": 0,
+  "invalid_paths": 0,
+  "slowest_seconds": 0.0515,
+  "failures": [],
+  "label_counts": {
+    "Likely": 65,
+    "Possible": 40
+  }
+}

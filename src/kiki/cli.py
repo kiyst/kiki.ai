@@ -14,6 +14,7 @@ from rich.table import Table
 from .behavior_evals import load_behavior_cases, run_behavior_evaluation
 from .coding_evals import load_coding_cases, run_coding_evaluation
 from .evals import load_cases, run_evaluation
+from .finding import FileFinder
 from .model_client import (
     CHAT_SYSTEM_PROMPT,
     RAG_SYSTEM_PROMPT,
@@ -36,6 +37,7 @@ from .settings import RERANKERS, RetrievalSettings
 from .terminal import (
     TerminalSession,
     render_mapping,
+    render_find_results,
     render_outcome,
     render_search_results,
     render_weather,
@@ -117,6 +119,18 @@ def _parser() -> argparse.ArgumentParser:
     search = commands.add_parser("search", help="Search indexed files by exact terms")
     search.add_argument("query")
     search.add_argument("--limit", type=int, default=5)
+
+    find = commands.add_parser(
+        "find", help="Find whole files by name, folder, type, title, or contents"
+    )
+    find.add_argument("query", help="Words plus optional filters such as ext:pdf in:Taxes after:2025")
+    find.add_argument("--limit", type=int, default=3)
+
+    find_eval = commands.add_parser(
+        "eval-find", help="Score /find on generated folders (development or holdout seeds)"
+    )
+    find_eval.add_argument("--split", choices=("development", "holdout"), default="development")
+    find_eval.add_argument("--output", type=Path, help="Optional JSON receipt path")
 
     embed = commands.add_parser("embed", help="Generate missing local semantic vectors")
     embed.add_argument("--model", default=DEFAULT_EMBEDDING_MODEL)
@@ -341,6 +355,19 @@ def _sandbox(action: str) -> dict[str, Any]:
 def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
     if arguments.command == "sandbox":
         return _sandbox(arguments.action), "mapping"
+    if arguments.command == "eval-find":
+        from .find_evals import DEVELOPMENT_SEEDS, HOLDOUT_SEEDS, run_find_eval
+
+        report = run_find_eval(
+            DEVELOPMENT_SEEDS if arguments.split == "development" else HOLDOUT_SEEDS
+        )
+        if arguments.output:
+            arguments.output.parent.mkdir(parents=True, exist_ok=True)
+            arguments.output.write_text(json.dumps(report, indent=2), encoding="utf-8")
+        report = {key: value for key, value in report.items() if key != "failures"} | {
+            "failures": len(report["failures"])
+        }
+        return report, "mapping"
     settings = _retrieval_settings(arguments)
     index = TextIndex(arguments.database)
     if arguments.command == "doctor":
@@ -349,6 +376,8 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
         return index.index_root(arguments.root), "mapping"
     if arguments.command == "search":
         return index.search(arguments.query, arguments.limit), "search"
+    if arguments.command == "find":
+        return FileFinder(index).find(arguments.query, arguments.limit), "find"
     if arguments.command == "embed":
         semantic = SemanticIndex(index, OllamaEmbeddingClient(), arguments.model)
         return semantic.embed_pending(arguments.batch_size), "mapping"
@@ -599,6 +628,8 @@ def _run_eval(
 
 
 def _json_safe(output: Any) -> Any:
+    if hasattr(output, "to_dict"):
+        return output.to_dict()
     if isinstance(output, list) and (not output or hasattr(output[0], "to_dict")):
         return [item.to_dict() for item in output]
     if isinstance(output, dict) and "_outcome" in output:
@@ -611,6 +642,8 @@ def _render(
 ) -> None:
     if kind == "search":
         render_search_results(console, output)
+    elif kind == "find":
+        render_find_results(console, output)
     elif kind == "weather":
         render_weather(console, output)
     elif kind == "outcome":

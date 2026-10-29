@@ -777,3 +777,53 @@ Observation: Windows shrank the page file after an earlier spike (commit
 Human review needed: none for this stage. Next capability: the
         generate-test-repair loop (stage 4), measured on the benchmarks.
 ```
+
+## Coding sandbox milestone: paused
+
+```text
+Date: 2026-10-29
+Decision: the user paused the coding milestone to avoid a restart for now.
+        The loose ends (page-file fix and benchmark resume, HumanEval+ bare
+        analysis, receipts, the repair loop, Ollama's memory growth) are
+        listed in docs/PROJECT_HANDOFF.md under "Paused on October 29, 2026".
+```
+
+## File finding milestone, stage 1: catalog, ranking, `/find`
+
+```text
+Date: 2026-10-29
+Stage: 1 of docs/FILE_FINDING_HANDOFF.md
+Commit before change: d746cc7
+Files changed: src/kiki/retrieval.py (schema 5: catalog table, backfill,
+        catalog_entries, content_matches), src/kiki/finding.py (new),
+        src/kiki/find_evals.py (new), terminal.py (/find), cli.py (kiki find,
+        kiki eval-find), self_knowledge.py, tests/test_finding.py (new),
+        README.md, docs
+Behavior changed: `kiki index` also catalogues every file under the root,
+        readable or not, skipping tool folders (.git, node_modules, virtual
+        environments, caches) and links. /find ranks whole files by which
+        query words their name, title, folder, type, and contents explain,
+        weighted by rarity, and shows up to three with a confidence label,
+        the reasons, and a copyable path. Missing files are never shown.
+Tests/evaluations run: pytest 251 passed (11 new). kiki eval-find:
+        development seeds 1-3 (69 cases) and holdout seeds 101-105 (115
+        cases): recall@1 1.0, recall@3 1.0; Likely correct 65/65 on holdout,
+        Possible 30/40; no Likely on ambiguous or absent questions; 0 deleted,
+        dependency-folder, or invalid paths returned; slowest query 0.09 s.
+Result: stage 1 works on generated folders and on Kiki's own evals/ and
+        docs/ folders (83 files).
+Known bugs: the first labelling scored each file alone. On the real
+        folders it put a contents-only "Likely" below two "Possible" files
+        and labelled three files Likely at once; the generated folders never
+        showed this. Fixed: only the first result can be Likely, it must be
+        explained mostly by name, title, or folder and lead the next result
+        by 0.1, and labels never rise down the list. The holdout seeds were
+        rerun after this fix (it came from the real folder, not the holdout).
+Known limits: the generator was written alongside the ranker, so the perfect
+        scores show the mechanics work, not that real questions will.
+        Matching is lexical: "costs" does not find "budget". A file found
+        only through its contents is at most Possible. Needs a real personal
+        folder to judge.
+Decision or proposal: stage 2 (/summarize NUMBER) next.
+Human review needed: try /find on a real folder; stage 3 (model tool).
+```
