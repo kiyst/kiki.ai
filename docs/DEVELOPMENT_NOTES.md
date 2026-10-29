@@ -5,7 +5,7 @@ works, what does not, and what should happen next. For the detailed technical
 record (decisions, rejected alternatives, bug tables), see
 [ENGINEERING_LOG.md](ENGINEERING_LOG.md).
 
-*Last updated: October 28, 2026.*
+*Last updated: October 29, 2026.*
 
 ## The short version
 
@@ -16,7 +16,41 @@ biggest open problem is trust. A cited answer is not always a faithful one,
 because the small model sometimes adds outside knowledge or credits the wrong
 book.
 
-## What changed in this round
+## October 29: retrieval pipeline milestone
+
+Worked through [RAG_PIPELINE_HANDOFF.md](RAG_PIPELINE_HANDOFF.md) one stage
+at a time, measuring after each. Details and receipts are in the
+[engineering log](ENGINEERING_LOG.md) and `evals/receipts/rag-milestone/`.
+
+| Stage | What changed | Result |
+| --- | --- | --- |
+| Baseline | Froze and re-ran the old measurements | Reproduced exactly (11 of 14) |
+| Test set | Added 15 held-out questions written from randomly picked passages | 29 held-out questions now |
+| 1. Settings | Pool size, passage count, reranker, timeouts, and evidence budget are settings, shown in `/diagnostics` | Identical results at defaults |
+| 2. Dedicated reranker | Added a Qwen3-Reranker option behind a switch | **Blocked:** the installed model build outputs noise on this Ollama version; Kiki falls back safely |
+| 3. Experiments | Tried 20/32/50 candidates and 5/8 passages | Now 20 candidates, **8 passages**: 26 of 29 held-out, 15 of 15 answers cited |
+| 4. PDFs | Passages can run across page breaks and keep their page numbers; headers, footers, blank and scanned pages handled | Passages within budget; text library unchanged |
+| 5. Citations | Answers cite the exact passage, not the whole book | Every citation resolves to the text Kiki was shown |
+| 6. Retry | One automatic retry with reworded searches when evidence looks weak | Off by default: never triggered in testing |
+
+What this means in practice: Kiki now sees eight focused passages instead of
+five, which fixed the comparison question she used to give up on, and her
+citations point at a specific passage you can check. Bigger candidate pools
+made things worse with the current grader, so they were not adopted.
+
+Still open:
+
+- **A working dedicated reranker.** It would be faster than the main model
+  grading every passage, and its scores would let the retry step know when to
+  fire. Every route needs your approval: a different download of the same
+  model, a separate runtime (llama.cpp), or a large Python install (PyTorch).
+- **Three held-out questions** still miss: Beard on trusts, the Federalist on
+  the Articles' weaknesses, and the Federalist on Senate tyranny.
+- **No PDF test questions yet**, so PDF answer quality is unmeasured.
+- **Citations prove where, not whether.** A cited passage is real and was
+  shown to the model, but nothing yet checks that it supports the sentence.
+
+## Earlier: what changed in the previous round
 
 ### Everyday fixes
 

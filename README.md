@@ -253,22 +253,25 @@ shows the active values.
 
 ## How well it works
 
-Measured on October 28, 2026, on a GTX 1080 with the default models. The test
-sets are small, so read these as direction rather than precision.
+Measured on October 29, 2026, on a GTX 1080 with the default models. The test
+sets are small, so read these as direction rather than precision. Every number
+has a receipt in [evals/receipts/](evals/receipts/rag-milestone/).
 
-**Finding the right passage** (`kiki eval-retrieval`, 14 held-out questions
-written before tuning):
+**Finding the right passage** (`kiki eval-retrieval`, 29 held-out questions:
+14 written before tuning plus 15 drawn blind from random passages):
 
 | | Keyword search | Hybrid search | Hybrid + grading |
 | --- | --- | --- | --- |
-| Answering passage ranked first | 1 | 4 | **8** |
-| All needed passages in the top five | 5 | 6 | **11** |
+| Answering passage ranked first | 7 | 11 | **19** |
+| All needed passages shown to the model (top 8) | — | 20 | **26** |
+| All needed passages in the top five | 12 | 17 | 25 |
 
 **Answering questions** (`kiki eval-rag --with-model`, 18 questions):
 
-- 15 of 15 answerable questions answered with valid citations
+- 15 of 15 answerable questions answered, each citing the specific passages it
+  used (every citation resolves to the exact text the model was shown)
 - 3 of 3 unanswerable questions correctly declined
-- About **15 seconds** per document answer (about 9 with `--no-rerank`)
+- About **17 seconds** per document answer (about 10 with `--no-rerank`)
 
 **Known weak spots**, in plain terms:
 
@@ -280,8 +283,10 @@ written before tuning):
   *without* showing an attack string, the 4B model showed one anyway, across
   three prompt rewrites. Anything that must hold is being moved into code
   rather than left to the model.
-- **Some passages are never found.** In 2 of 14 held-out questions the right
-  passage was not among the top 20 candidates.
+- **Some passages are never found.** In 3 of 29 held-out questions the right
+  passage still misses the eight shown to the model.
+- **No dedicated reranker yet.** The Qwen3-Reranker build tried so far does not
+  work on this Ollama version; the main model keeps doing the grading.
 
 The full picture, including suggestions and constraints, is in
 [docs/DEVELOPMENT_NOTES.md](docs/DEVELOPMENT_NOTES.md).
