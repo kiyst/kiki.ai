@@ -1086,3 +1086,52 @@ Known limits: wrong claims with no names or numbers pass. The heappushpop
         heap"; the function returns the item without pushing), which no
         word check can catch.
 ```
+
+## Personality QLoRA: cloud smoke test, full training, and blind holdout
+
+```text
+Date: 2026-10-29
+Stage: first Kiki personality adapter training run
+Commit before change: 753d4cf
+Hardware: one RunPod RTX 3090 (23.56 GiB VRAM), CUDA 13.2, BF16.
+Files changed: training/personality/train_qlora.py and this log. Model
+        artifacts and generated evaluations are intentionally excluded from
+        Git because they are binary/generated deliverables.
+Behavior changed: the trainer now supports both the older TRL
+        warmup_ratio argument and the TRL 1.x warmup_steps replacement. The
+        run receipt records packages from sys.executable, so it cannot
+        accidentally freeze the system Python instead of the training venv.
+Failure and solution: the RunPod system Python correctly refused global pip
+        writes under PEP 668, so training used an isolated .venv. The first
+        smoke attempt then stopped before training because the floating
+        dependency range resolved TRL 1.17.0, where SFTConfig no longer
+        accepts warmup_ratio. The compatibility patch maps the same 5%
+        fraction to warmup_steps=0.05 on the new API. Five targeted local
+        tests passed before retrying.
+Tests/evaluations run: 500-record dataset validation passed; the 60-case
+        holdout validation passed with no normalized prompt overlap; cloud
+        preflight passed; the capped five-step smoke run completed in 7.97
+        seconds without OOM; the full three-epoch run completed in 871.21
+        seconds (189 optimizer steps), mean training loss 2.2877. Final
+        batches were commonly 1.2-1.7 versus roughly 6 at initialization.
+        The final adapter is 64 MB and targets q/k/v/o/gate/up/down
+        projections with rank 16 and alpha 32. Sixty base and sixty adapter
+        holdout responses were generated with the same prompt, seed, and
+        decoding settings; the randomized review has 60 cases and no empty
+        responses.
+Artifacts: local kiki-personality-v1-adapter.tar.gz SHA-256
+        d2467bbe402b466788887ff77f387e2f6ec17038f4cf63c99157e126f04fa948;
+        local kiki-personality-eval.tar.gz SHA-256
+        d6770f31ff005399e9851a4dce4586fe6e783d3e946e048a2fd27390b6834072.
+Known limits: falling training loss proves optimization, not that the voice is
+        better or that general capability was preserved. Package ranges are
+        still broad; run_config.json preserves the exact resolved stack, but
+        a reproducible lock should be committed after the blind result is
+        accepted. No adapter should be integrated into Kiki or converted to
+        GGUF until the blind review is scored.
+Decision or proposal: complete the blind A/B review, reveal and score labels,
+        compare category regressions, then either accept epoch 3, compare the
+        saved epoch-2 checkpoint, or revise the dataset and retrain.
+Human review needed: personality-training-results/eval/blind_review.json.
+        Keep blind_key.json unopened until winners and notes are filled.
+```
