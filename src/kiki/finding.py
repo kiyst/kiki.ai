@@ -165,11 +165,15 @@ def parse_query(text: str, *, now: datetime | None = None) -> tuple[str, FindFil
 
 
 def _parse_date(value: str, now: datetime) -> datetime:
-    relative = re.fullmatch(r"(\d+)([dwmy])", value.casefold())
+    relative = re.fullmatch(r"(\d{1,6})([dwmy])", value.casefold())
     if relative:
         amount, unit = int(relative.group(1)), relative.group(2)
         days = amount * {"d": 1, "w": 7, "m": 30, "y": 365}[unit]
-        return now - timedelta(days=days)
+        try:
+            return now - timedelta(days=days)
+        except OverflowError:
+            # "after:999999y" reaches before year 1; nothing is that old anyway.
+            return datetime(1970, 1, 1, tzinfo=UTC)
     for pattern in ("%Y-%m-%d", "%Y-%m", "%Y"):
         try:
             return datetime.strptime(value, pattern).replace(tzinfo=UTC)
@@ -181,7 +185,7 @@ def _parse_date(value: str, now: datetime) -> datetime:
 
 
 def _parse_size(value: str) -> int:
-    match = re.fullmatch(r"(\d+(?:\.\d+)?)\s*(b|kb|mb|gb)?", value.casefold())
+    match = re.fullmatch(r"(\d{1,12}(?:\.\d{1,6})?)\s*(b|kb|mb|gb)?", value.casefold())
     if not match:
         raise FindError(f"Could not read the size {value!r}. Use a number such as 500KB or 10MB.")
     return int(float(match.group(1)) * _SIZE_UNITS[match.group(2) or "b"])

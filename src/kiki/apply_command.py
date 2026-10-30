@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Callable
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
@@ -135,7 +136,8 @@ def apply_command(
     read: Callable[[str], str] | None = None,
 ) -> Path | None:
     """Show the diff, ask, and write. Returns the written path, or None."""
-    read = read or console.input
+    # Prompts are plain text: markup off, so [y/N] and file names show as typed.
+    read = read or (lambda prompt: console.input(prompt, markup=False))
     if workspace is None:
         console.print("[yellow]Choose a workspace first:[/yellow] [bold]/workspace PATH[/bold] or "
                       "[bold]/workspace browse[/bold]. Kiki only writes inside it.")
@@ -152,10 +154,10 @@ def apply_command(
         target = resolve_target(workspace, argument)
         change = plan_change(target, code)
     except (ApplyError, OSError) as exc:
-        console.print(f"[yellow]{exc}[/yellow]")
+        console.print(Text(str(exc), style="yellow"))
         return None
     if change.unchanged:
-        console.print(f"[dim]{target} already matches; nothing to apply.[/dim]")
+        console.print(Text(f"{target} already matches; nothing to apply.", style="dim"))
         return None
 
     added, removed = change.counts()
@@ -172,7 +174,7 @@ def apply_command(
     try:
         backup = write_change(change, backups)
     except (ApplyError, OSError) as exc:
-        console.print(Panel(str(exc), title="Could not write", border_style="red"))
+        console.print(Panel(Text(str(exc)), title="Could not write", border_style="red"))
         return None
     message = f"[green]Wrote[/green] {target}"
     if backup:

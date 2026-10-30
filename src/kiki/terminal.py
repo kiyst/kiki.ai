@@ -10,6 +10,7 @@ import httpx
 import pyperclip
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -41,6 +42,7 @@ from .apply_command import apply_command
 from .run_command import run_command
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex, query_instruction
 from .settings import RetrievalSettings
+from .safety import protected_folder_reason
 from .self_knowledge import (
     COMMAND_HELP,
     capabilities_text,
@@ -601,34 +603,44 @@ def run_shell(
             console.print("\n[dim]Session closed.[/dim]")
             return
         prompt = prompt.strip()
-        if not prompt:
-            continue
+        if prompt and run_turn(console, session, prompt):
+            return
+
+
+def run_turn(console: Console, session: TerminalSession, prompt: str) -> bool:
+    """One typed line, command or message, inside the session's error boundary.
+
+    Nothing typed, read, or returned can end the session: any error (a
+    malformed file, odd markup, a provider failure) is reported, and Ctrl+C
+    cancels the current command instead of closing Kiki. Returns True only
+    when the user asked to quit."""
+    try:
         if prompt.startswith("/"):
             should_exit, immediate_prompt = _handle_command(console, session, prompt)
-            if should_exit:
-                return
-            if immediate_prompt is None:
-                continue
+            if should_exit or immediate_prompt is None:
+                return should_exit
             prompt = immediate_prompt
-        try:
-            status = {"rag": "Searching indexed evidence...",
-                      "web": "Reading the passages that fit your question..."}
-            with console.status(status.get(session.mode, "Thinking locally..."), spinner="dots"):
-                outcome, retrieval_mode = session.ask(prompt)
-            render_outcome(
-                console,
-                outcome,
-                mode=session.mode,
-                retrieval_mode=retrieval_mode,
-                debug=session.debug,
-            )
-            if retrieval_mode == "page":
-                _render_web_notes(console, outcome, session.web_meaning_error,
-                          session.web_page.url if session.web_page else "")
-        except Exception as exc:  # terminal boundary: preserve session after provider/model errors
-            error = exc.payload() if isinstance(exc, KikiError) else safe_error(exc)
-            message = f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}"
-            console.print(Panel(message, title="Request failed", border_style="red"))
+        status = {"rag": "Searching indexed evidence...",
+                  "web": "Reading the passages that fit your question..."}
+        with console.status(status.get(session.mode, "Thinking locally..."), spinner="dots"):
+            outcome, retrieval_mode = session.ask(prompt)
+        render_outcome(
+            console,
+            outcome,
+            mode=session.mode,
+            retrieval_mode=retrieval_mode,
+            debug=session.debug,
+        )
+        if retrieval_mode == "page":
+            _render_web_notes(console, outcome, session.web_meaning_error,
+                              session.web_page.url if session.web_page else "")
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Cancelled.[/yellow]")
+    except Exception as exc:  # terminal boundary: preserve the session after any error
+        error = exc.payload() if isinstance(exc, KikiError) else safe_error(exc)
+        message = f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}"
+        console.print(Panel(Text(message), title="Request failed", border_style="red"))
+    return False
 
 
 def render_outcome(
@@ -675,9 +687,9 @@ def render_sources(
     table.add_column("Location", no_wrap=True)
     for source in listed:
         table.add_row(
-            str(source.get("passage_id") or source["source_id"]),
-            _source_name(str(source["path"])),
-            _citation_location(str(source.get("citation") or "")),
+            Text(str(source.get("passage_id") or source["source_id"])),
+            Text(_source_name(str(source["path"]))),
+            Text(_citation_location(str(source.get("citation") or ""))),
         )
     console.print(table)
     uncited = len(sources) - len(listed)
@@ -700,9 +712,9 @@ def render_trace(console: Console, outcome: ChatOutcome, retrieval_mode: str) ->
     for trace in outcome.trace:
         table.add_row(
             str(trace.round),
-            trace.name,
-            ", ".join(f"{key}={value!r}" for key, value in trace.arguments.items()),
-            trace.status,
+            Text(trace.name),
+            Text(", ".join(f"{key}={value!r}" for key, value in trace.arguments.items())),
+            Text(str(trace.status)),
         )
     if not outcome.trace:
         table.add_row("—", "none", "—", "—")
@@ -715,7 +727,7 @@ def render_search_results(console: Console, results: list[SearchResult]) -> None
         return
     for rank, result in enumerate(results, start=1):
         heading = f"{rank}. {Path(result.path).name} · {_result_location(result)}"
-        console.print(Panel(result.excerpt, title=heading, border_style="blue"))
+        console.print(Panel(Text(result.excerpt), title=escape(heading), border_style="blue"))
 
 
 _CONFIDENCE_STYLES = {"Likely": "green", "Possible": "yellow", "Weak match": "dim", "Matches filters": "cyan"}
@@ -723,7 +735,7 @@ _CONFIDENCE_STYLES = {"Likely": "green", "Possible": "yellow", "Weak match": "di
 
 def render_find_results(console: Console, result: FindResult) -> None:
     if result.filters:
-        console.print(f"[dim]Filters: {'; '.join(result.filters)}[/dim]")
+        console.print(f"[dim]Filters: {escape('; '.join(result.filters))}[/dim]")
     if not result.catalogued:
         console.print(Panel(
             "Nothing is catalogued yet. Index a folder first: kiki index FOLDER",
@@ -768,8 +780,8 @@ def render_weather(console: Console, result: dict[str, Any]) -> None:
         table.add_column("Choice")
         table.add_column("Timezone")
         for choice in result.get("choices", []):
-            table.add_row(str(choice.get("label")), str(choice.get("timezone", "")))
-        console.print(Panel(str(result.get("message", "Location not resolved")), border_style="yellow"))
+            table.add_row(Text(str(choice.get("label"))), Text(str(choice.get("timezone", ""))))
+        console.print(Panel(Text(str(result.get("message", "Location not resolved"))), border_style="yellow"))
         if result.get("choices"):
             console.print(table)
         return
@@ -786,7 +798,7 @@ def render_weather(console: Console, result: dict[str, Any]) -> None:
         f"Humidity {current['relative_humidity_percent']}%  ·  "
         f"Wind {current['wind_kmh']} km/h  ·  Precipitation {current['precipitation_mm']} mm"
     )
-    console.print(Panel(summary, title=f"Weather · {location}", border_style="green"))
+    console.print(Panel(summary, title=f"Weather · {escape(str(location))}", border_style="green"))
     table = Table(title=f"Forecast · {result.get('timezone')}")
     table.add_column("Date")
     table.add_column("Conditions")
@@ -802,7 +814,7 @@ def render_weather(console: Console, result: dict[str, Any]) -> None:
             f"{day['precipitation_probability_percent']}% · {day['precipitation_mm']} mm",
         )
     console.print(table)
-    console.print(f"[dim]{result['attribution']} Retrieved {result['retrieved_at']}.[/dim]")
+    console.print(Text(f"{result['attribution']} Retrieved {result['retrieved_at']}.", style="dim"))
 
 
 def render_mapping(console: Console, title: str, payload: dict[str, Any]) -> None:
@@ -810,7 +822,7 @@ def render_mapping(console: Console, title: str, payload: dict[str, Any]) -> Non
     table.add_column("Field", style="cyan")
     table.add_column("Value", overflow="fold")
     for key, value in payload.items():
-        table.add_row(key.replace("_", " ").title(), str(value))
+        table.add_row(key.replace("_", " ").title(), Text(str(value)))
     console.print(table)
 
 
@@ -859,8 +871,8 @@ def _handle_command(
             session.persona.ensure()
             console.print(
                 Panel(
-                    session.persona.load(),
-                    title=f"Editable persona · {session.persona.path}",
+                    Text(session.persona.load()),
+                    title=f"Editable persona · {escape(str(session.persona.path))}",
                     border_style="cyan",
                 )
             )
@@ -869,7 +881,7 @@ def _handle_command(
             message = "Persona reset to Kiki's default."
             if backup:
                 message += f" Previous text saved to {backup}."
-            console.print(f"[green]{message}[/green]")
+            console.print(Text(message, style="green"))
         else:
             console.print("[yellow]Usage: /persona [show|path|reset][/yellow]")
         return False, None
@@ -879,7 +891,7 @@ def _handle_command(
             if notes:
                 console.print(
                     Panel(
-                        "\n".join(f"{number}. {note}" for number, note in notes),
+                        Text("\n".join(f"{number}. {note}" for number, note in notes)),
                         title="Kiki memory · use /forget NUMBER",
                     )
                 )
@@ -890,9 +902,9 @@ def _handle_command(
         elif name == "/remember":
             try:
                 note = session.memory.remember(rest)
-                console.print(f"[green]Remembered:[/green] {note}")
+                console.print(f"[green]Remembered:[/green] {escape(note)}")
             except (SensitiveMemoryError, ValueError) as exc:
-                console.print(f"[yellow]{exc}[/yellow]")
+                console.print(Text(str(exc), style="yellow"))
         else:
             removed = session.memory.forget(rest)
             if removed:
@@ -927,11 +939,11 @@ def _handle_command(
                 pyperclip.copy(report)
                 console.print("[green]Copied privacy-filtered diagnostics.[/green]")
             except pyperclip.PyperclipException as exc:
-                console.print(f"[red]Clipboard unavailable:[/red] {exc}")
+                console.print(f"[red]Clipboard unavailable:[/red] {escape(str(exc))}")
         elif action == "save":
             path = session.database.parent / "kiki-diagnostics.md"
             path.write_text(report, encoding="utf-8")
-            console.print(f"[green]Diagnostics saved to[/green] {path}")
+            console.print(f"[green]Diagnostics saved to[/green] {escape(str(path))}")
         else:
             console.print(Markdown(report))
         return False, None
@@ -956,7 +968,7 @@ def _handle_command(
             pyperclip.copy(previous.answer)
             console.print("[green]Copied the last response.[/green]")
         except pyperclip.PyperclipException as exc:
-            console.print(f"[red]Clipboard unavailable:[/red] {exc}")
+            console.print(f"[red]Clipboard unavailable:[/red] {escape(str(exc))}")
         return False, None
     if name == "/sources":
         previous = session.last_outcomes[session.mode]
@@ -977,14 +989,14 @@ def _handle_command(
         try:
             result = FileFinder(session.index).find(rest)
         except FindError as exc:
-            console.print(f"[yellow]{exc}[/yellow]")
+            console.print(Text(str(exc), style="yellow"))
             return False, None
         session.last_find = result
         render_find_results(console, result)
         return False, None
     if name == "/folders":
         if folders_command(
-            console, session.index, rest, read=console.input,
+            console, session.index, rest, read=lambda prompt: console.input(prompt, markup=False),
             browse=lambda: _browse_path(console, Path.home(), purpose="folder",
                                         default_filename=None),
         ):
@@ -1005,7 +1017,7 @@ def _handle_command(
     if name == "/workspace":
         if not rest:
             console.print(
-                f"Workspace: [cyan]{session.workspace}[/cyan]" if session.workspace else
+                f"Workspace: [cyan]{escape(str(session.workspace))}[/cyan]" if session.workspace else
                 "No workspace chosen. [bold]/workspace PATH[/bold] or [bold]/workspace browse[/bold] "
                 "picks the folder /apply may write into."
             )
@@ -1018,10 +1030,12 @@ def _handle_command(
         if selected is None:
             console.print("[dim]Workspace unchanged.[/dim]")
         elif not selected.is_dir():
-            console.print(f"[yellow]Not a folder:[/yellow] {selected}")
+            console.print(f"[yellow]Not a folder:[/yellow] {escape(str(selected))}")
+        elif refused := protected_folder_reason(selected, writing=True):
+            console.print(Text(f"Kiki won't write into {selected.resolve()}: {refused}.", style="yellow"))
         else:
             session.workspace = selected.resolve()
-            console.print(f"Workspace set to [cyan]{session.workspace}[/cyan]. "
+            console.print(f"Workspace set to [cyan]{escape(str(session.workspace))}[/cyan]. "
                           "/apply writes only inside it, after you approve a diff.")
         return False, None
     if name == "/apply":
@@ -1043,7 +1057,7 @@ def _handle_command(
         table.add_column("#", justify="right", style="dim")
         table.add_column("Prompt", overflow="fold")
         for number, turn in enumerate(recent, start=1):
-            table.add_row(str(number), str(turn["prompt"]))
+            table.add_row(str(number), Text(str(turn["prompt"])))
         console.print(table)
         return False, None
     if name == "/save":
@@ -1052,7 +1066,7 @@ def _handle_command(
             console.print("[dim]Save cancelled.[/dim]")
             return False, None
         path = session.export_transcript(selected)
-        console.print(f"[green]Transcript saved to[/green] {path}")
+        console.print(f"[green]Transcript saved to[/green] {escape(str(path))}")
         return False, None
     if name in {"/clear", "/new"}:
         session.clear_mode()
@@ -1061,7 +1075,7 @@ def _handle_command(
     if name in {"/database", "/db"}:
         if not rest:
             console.print(
-                f"Current database: [cyan]{session.database.resolve()}[/cyan]\n"
+                f"Current database: [cyan]{escape(str(session.database.resolve()))}[/cyan]\n"
                 "Use [bold]/database browse[/bold] to navigate or "
                 "[bold]/database PATH[/bold] to set it directly."
             )
@@ -1071,10 +1085,10 @@ def _handle_command(
                 console.print("[dim]Database selection cancelled.[/dim]")
                 return False, None
             session.set_database(selected)
-            console.print(f"RAG database changed to [cyan]{session.database.resolve()}[/cyan].")
+            console.print(f"RAG database changed to [cyan]{escape(str(session.database.resolve()))}[/cyan].")
         else:
             session.set_database(_path_argument(rest))
-            console.print(f"RAG database changed to [cyan]{session.database.resolve()}[/cyan].")
+            console.print(f"RAG database changed to [cyan]{escape(str(session.database.resolve()))}[/cyan].")
         return False, None
     if name == "/status":
         render_mapping(
@@ -1116,12 +1130,12 @@ def _handle_command(
                 result = session.weather.get_weather(rest)
             render_weather(console, result)
         except Exception as exc:
-            console.print(Panel(str(exc), title="Weather failed", border_style="red"))
+            console.print(Panel(Text(str(exc)), title="Weather failed", border_style="red"))
         return False, None
     if name == "/help":
         _render_help(console)
         return False, None
-    console.print(f"[yellow]Unknown command {parts[0]}.[/yellow] Type /help.")
+    console.print(f"[yellow]Unknown command {escape(parts[0])}.[/yellow] Type /help.")
     return False, None
 
 
@@ -1143,7 +1157,7 @@ def _handle_web(console: Console, session: TerminalSession, command: str, rest: 
             page = session.web_page
             console.print(Text.assemble("Current page: ", (page.title, "cyan"), f" · {page.url}"))
             _enter_web_mode(console, session)
-        console.print(f"[dim]{_WEB_USAGE}\nEvery request is logged in {session.web_log}.[/dim]")
+        console.print(Text(f"{_WEB_USAGE}\nEvery request is logged in {session.web_log}.", style="dim"))
         return
     if rest.casefold() == "clear":
         session.web_page = None
@@ -1193,7 +1207,7 @@ def _handle_web(console: Console, session: TerminalSession, command: str, rest: 
         if not question:
             question, overview = "Give a short overview of this page's main points.", True
     elif session.web_page is None:
-        console.print(f"[yellow]No page yet. {_WEB_USAGE}[/yellow]")
+        console.print(Text(f"No page yet. {_WEB_USAGE}", style="yellow"))
         return
     else:
         question = rest
@@ -1203,7 +1217,7 @@ def _handle_web(console: Console, session: TerminalSession, command: str, rest: 
             outcome = session.ask_web(command, question, overview=overview)
     except Exception as exc:  # terminal boundary: keep the session after model errors
         error = exc.payload() if isinstance(exc, KikiError) else safe_error(exc)
-        console.print(Panel(f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}",
+        console.print(Panel(Text(f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}"),
                             title="Request failed", border_style="red"))
         return
     render_outcome(console, outcome, mode="web", retrieval_mode="page", debug=session.debug)
@@ -1248,7 +1262,7 @@ def _render_web_notes(
                   f"picked from the page {how} to fit her reading space.[/dim]")
     if meaning_error:
         hint = "" if "passages" in meaning_error else "; /doctor checks the embedding model"
-        console.print(f"[dim]Meaning search is off for this page ({_shorten(meaning_error, 80)})"
+        console.print(f"[dim]Meaning search is off for this page ({escape(_shorten(meaning_error, 80))})"
                       f"{hint}.[/dim]")
 
 
@@ -1312,7 +1326,7 @@ def _browse_path(
     input_fn: Callable[[str], str] | None = None,
 ) -> Path | None:
     """Small terminal folder navigator used by save and database selection."""
-    read = input_fn or console.input
+    read = input_fn or (lambda prompt: console.input(prompt, markup=False))
     current = start.expanduser().resolve()
     while True:
         try:
@@ -1332,7 +1346,7 @@ def _browse_path(
                     )
                 )
         except OSError as exc:
-            console.print(f"[red]Cannot read that folder:[/red] {exc}")
+            console.print(f"[red]Cannot read that folder:[/red] {escape(str(exc))}")
             if current.parent == current:
                 # An unreadable root has nowhere left to climb.
                 return None
@@ -1344,7 +1358,7 @@ def _browse_path(
         table.add_column("Name")
         table.add_column("Type", style="dim")
         for number, item in enumerate(children, start=1):
-            table.add_row(str(number), item.name, "folder" if item.is_dir() else "database")
+            table.add_row(str(number), Text(item.name), "folder" if item.is_dir() else "database")
         if not children:
             table.add_row("—", "No matching items", "—")
         console.print(table)
@@ -1404,7 +1418,7 @@ def _browse_path(
                     console.print("[yellow]That name already belongs to a file.[/yellow]")
                     continue
             except OSError as exc:
-                console.print(f"[red]Could not create folder:[/red] {exc}")
+                console.print(f"[red]Could not create folder:[/red] {escape(str(exc))}")
                 continue
             current = created
             continue

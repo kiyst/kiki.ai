@@ -58,7 +58,8 @@ def run_command(
     runner: SandboxRunner | None = None,
 ) -> RunResult | None:
     """Preview, confirm, run, and show the result. Returns None if not run."""
-    read = read or console.input
+    # Prompts are plain text: markup off, so [y/N] and file names show as typed.
+    read = read or (lambda prompt: console.input(prompt, markup=False))
     runner = runner or SandboxRunner()
     limits = runner.limits
     try:
@@ -73,7 +74,7 @@ def run_command(
                 return None
             name, source = "main.py", "the last answer"
     except (StagingError, OSError, UnicodeDecodeError) as exc:
-        console.print(f"[yellow]{exc}[/yellow]")
+        console.print(Text(str(exc), style="yellow"))
         return None
 
     _preview(console, code, source=source, mode=mode, limits=limits)
@@ -86,10 +87,10 @@ def run_command(
         with console.status("Running in the sandbox…", spinner="dots"):
             result = runner.run({name: code}, entry=name)
     except StagingError as exc:
-        console.print(f"[yellow]{exc}[/yellow]")
+        console.print(Text(str(exc), style="yellow"))
         return None
     except KikiError as exc:
-        console.print(Panel(str(exc), title="Could not run", border_style="red"))
+        console.print(Panel(Text(str(exc)), title="Could not run", border_style="red"))
         return None
     render_run_result(console, result, limits)
     return result

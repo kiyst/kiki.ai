@@ -11,7 +11,9 @@ from pathlib import Path
 from typing import Any
 
 from rich.console import Console
+from rich.markup import escape
 from rich.table import Table
+from rich.text import Text
 
 from .retrieval import TextIndex
 
@@ -40,7 +42,7 @@ def folders_command(
             console.print("[dim]No folder added.[/dim]")
             return False
         if not folder.is_dir():
-            console.print(f"[yellow]Not a folder:[/yellow] {folder}")
+            console.print(f"[yellow]Not a folder:[/yellow] {escape(str(folder))}")
             return False
         return _index(console, index, [folder.resolve()])
     if action == "reindex":
@@ -63,7 +65,7 @@ def folders_command(
             console.print("[dim]Kept.[/dim]")
             return False
         forgotten = index.remove_root(Path(chosen["path"]))
-        console.print(f"[green]Forgot {forgotten:,} files from[/green] {chosen['path']}. "
+        console.print(f"[green]Forgot {forgotten:,} files from[/green] {escape(str(chosen['path']))}. "
                       "Nothing on disk changed.")
         return True
     console.print(f"[yellow]{USAGE}[/yellow]")
@@ -85,7 +87,7 @@ def _show(console: Console, roots: list[dict[str, Any]]) -> None:
         when = _when(root["indexed_at"])
         if not root["exists"]:
             when = "[red]folder missing[/red]"
-        table.add_row(str(number), root["path"], f"{root['files']:,}", f"{root['readable']:,}", when)
+        table.add_row(str(number), Text(str(root["path"])), f"{root['files']:,}", f"{root['readable']:,}", when)
     console.print(table)
     console.print("[dim]Kiki does not watch these folders yet: /folders reindex picks up "
                   "new, changed, and deleted files.[/dim]")
@@ -103,7 +105,7 @@ def _index(console: Console, index: TextIndex, folders: list[Path]) -> bool:
     changed = False
     for folder in folders:
         if not folder.is_dir():
-            console.print(f"[yellow]Skipped, folder missing:[/yellow] {folder}")
+            console.print(f"[yellow]Skipped, folder missing:[/yellow] {escape(str(folder))}")
             continue
         try:
             with console.status(f"Scanning {folder}…", spinner="dots") as status:
@@ -114,10 +116,10 @@ def _index(console: Console, index: TextIndex, folders: list[Path]) -> bool:
                     ),
                 )
         except KeyboardInterrupt:
-            console.print(f"[yellow]Cancelled; nothing changed for[/yellow] {folder}.")
+            console.print(f"[yellow]Cancelled; nothing changed for[/yellow] {escape(str(folder))}.")
             continue
         except ValueError as exc:
-            console.print(f"[yellow]{exc}[/yellow]")
+            console.print(Text(str(exc), style="yellow"))
             continue
         changed = True
         _report(console, folder, counts)
@@ -130,17 +132,17 @@ def _report(console: Console, folder: Path, counts: dict[str, Any]) -> None:
              f"{readable:,} readable ({counts['indexed']:,} new or changed)"]
     if counts["removed"]:
         parts.append(f"{counts['removed']:,} gone since last time")
-    console.print(f"[green]Indexed[/green] {folder}: " + ", ".join(parts) + ".")
+    console.print(f"[green]Indexed[/green] {escape(str(folder))}: " + ", ".join(parts) + ".")
     problems = [issue for issue in counts["issues"] if "stopped at" not in issue["reason"]]
     if problems:
         console.print(f"[yellow]{len(problems):,} file(s) could not be read[/yellow] (still findable by name):")
         for issue in problems[:3]:
-            console.print(f"  [dim]{Path(issue['path']).name}: {issue['reason']}[/dim]")
+            console.print(Text(f"  {Path(issue['path']).name}: {issue['reason']}", style="dim"))
         if len(problems) > 3:
             console.print(f"  [dim]…and {len(problems) - 3:,} more[/dim]")
     for issue in counts["issues"]:
         if "stopped at" in issue["reason"]:
-            console.print(f"[yellow]Very large folder: {issue['reason']}; the rest are not "
+            console.print(f"[yellow]Very large folder: {escape(str(issue['reason']))}; the rest are not "
                           "indexed. Removing it and adding the folders you need is better.[/yellow]")
 
 
