@@ -110,6 +110,92 @@ def test_model_selected_tool_result_is_propagated(tmp_path: Path) -> None:
     assert "policy.md" in tool_message["content"]
 
 
+def test_unadapted_planner_runs_tools_before_personality_response(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    (corpus / "policy.md").write_text(
+        "Retry transient failures three times.", encoding="utf-8"
+    )
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(corpus)
+    fake = FakeClient(
+        [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "name": "search_files",
+                                "arguments": {"query": "retry policy"},
+                            }
+                        }
+                    ],
+                }
+            },
+            {"message": {"role": "assistant", "content": "Enough evidence."}},
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "Three attempts. The fourth is optimism, not policy.",
+                }
+            },
+        ]
+    )
+
+    outcome = ToolCallingAssistant(
+        fake,
+        ToolRegistry(index),
+        model="kiki-personality",
+        planner_model="qwen-unadapted",
+    ).ask("What is the retry policy?")
+
+    assert outcome.answer == "Three attempts. The fourth is optimism, not policy."
+    assert [request["model"] for request in fake.requests] == [
+        "qwen-unadapted",
+        "qwen-unadapted",
+        "kiki-personality",
+    ]
+    assert fake.requests[0]["tools"]
+    assert fake.requests[1]["tools"]
+    assert fake.requests[2]["tools"] == []
+
+
+def test_same_planner_and_answer_model_keeps_tool_calling_enabled(tmp_path: Path) -> None:
+    fake = FakeClient(
+        [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "name": "search_files",
+                                "arguments": {"query": "retry"},
+                            }
+                        }
+                    ],
+                }
+            },
+            {"message": {"role": "assistant", "content": "No matching passage."}},
+        ]
+    )
+    registry = ToolRegistry(TextIndex(tmp_path / "index.sqlite3"))
+
+    outcome = ToolCallingAssistant(
+        fake,
+        registry,
+        model="qwen-unadapted",
+        planner_model="qwen-unadapted",
+    ).ask("What is the retry policy?")
+
+    assert outcome.answer == "No matching passage."
+    assert fake.requests[0]["tools"]
+    assert fake.requests[1]["tools"]
+
+
 def test_unknown_model_tool_is_returned_as_error(tmp_path: Path) -> None:
     fake = FakeClient(
         [

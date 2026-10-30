@@ -213,10 +213,12 @@ def test_a20_embeddings_ignore_ollama_host_and_proxies(monkeypatch) -> None:
 # L (sandbox) · OWASP LLM10 (unbounded consumption) · CWE-400: a call blocked
 # outside wasm (time.sleep) is cut off just after the limit, not at the backstop.
 def test_l_sandbox_blocking_call_stops_soon_after_the_limit() -> None:
-    from test_sandbox import _runner_or_skip
+    from test_sandbox import _installed, _runner_or_skip
 
     from kiki.sandbox import RunLimits
 
+    if not _installed():
+        pytest.skip("run `kiki sandbox setup` first")
     runner = _runner_or_skip()
     code = "import time\nprint('before', flush=True)\ntime.sleep(10_000)\nprint('after')\n"
     result = runner.run({"main.py": code}, limits=RunLimits(timeout_s=2))
