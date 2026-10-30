@@ -162,6 +162,7 @@ class ToolCallingAssistant:
         passages: int = 5,
         max_evidence_characters: int = MAX_EVIDENCE_CHARACTERS,
         support_check: bool = False,
+        planner_model: str | None = None,
     ) -> None:
         # support_check: re-ask once when names, numbers, or code details are
         # missing from the evidence, and label an answer that is still wholly
@@ -177,6 +178,7 @@ class ToolCallingAssistant:
         self.system_prompt = system_prompt
         self.passages = passages
         self.max_evidence_characters = max_evidence_characters
+        self.planner_model = planner_model
 
     def ask(
         self, prompt: str, history: list[dict[str, str]] | None = None
@@ -196,6 +198,7 @@ class ToolCallingAssistant:
         reconsidered_abstention = False
         requested_citations = False
         requested_support = False
+        planning = bool(self.planner_model and self.planner_model != self.model)
 
         if self.pre_retrieve:
             arguments = {"query": prompt, "limit": self.passages}
@@ -237,17 +240,28 @@ class ToolCallingAssistant:
             )
 
         for round_number in range(1, self.max_rounds + 1):
+            active_model = self.planner_model if planning else self.model
             response = self.client.chat(
-                model=self.model,
+                model=active_model,
                 messages=list(messages),
-                tools=self.registry.schemas(),
+                tools=(
+                    self.registry.schemas()
+                    if planning or self.planner_model is None
+                    else []
+                ),
                 stream=False,
                 think=False,
                 options={"num_ctx": self.CONTEXT_TOKENS, "temperature": 0},
             )
             message = _message_dict(response)
-            messages.append(message)
             calls = message.get("tool_calls") or []
+            if planning and not calls:
+                # The unadapted model decides whether more tools are needed.
+                # Its prose is discarded so only the personality model writes
+                # the user-visible response.
+                planning = False
+                continue
+            messages.append(message)
             if not calls:
                 answer = _visible_answer(message.get("content") or "")
                 if (

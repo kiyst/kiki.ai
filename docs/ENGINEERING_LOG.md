@@ -1135,3 +1135,44 @@ Decision or proposal: complete the blind A/B review, reveal and score labels,
 Human review needed: personality-training-results/eval/blind_review.json.
         Keep blind_key.json unopened until winners and notes are filled.
 ```
+
+## Personality QLoRA: blind result and split model routing
+
+```text
+Date: 2026-10-29
+Stage: post-training review and integration preparation
+Files changed: src/kiki/models.py, model_client.py, terminal.py,
+        tests/test_models.py, tests/test_model_client.py, README.md, and this log.
+Evaluation result: the human-reviewed personality subset preferred the adapter
+        26 times, the base 8 times, and neither 6 times. The 20 technical
+        abstentions were reviewed separately against their frozen engineering
+        criteria: adapter 11, base 5, neither 4. Combined: adapter 37, base 13,
+        neither 10; among cases with an acceptable side, adapter won 74%.
+Behavior changed: AUTO now selects KIKI_MODEL_PERSONALITY for non-code turns
+        and SMART for code. RAG and /web use the unadapted SMART model to
+        decide and execute validated tool calls, discard its prose, and then
+        use the personality model for the sole user-visible answer. Explicit
+        FAST/SMART/MAX selections remain available. When no personality model
+        is configured, the main model remains the fallback, so this change is
+        backward compatible before installation.
+Tests/evaluations run: 41 routing/model/terminal tests passed. The full suite
+        produced 280 passes and 7 expected skips; two unrelated Rich-output
+        tests failed only because the long worktree pytest path wrapped inside
+        a fixed-width test console, then both passed from a shorter temp path.
+Conversion junction: the adapter was trained against exact base
+        Qwen/Qwen3-4B-Instruct-2507. Ollama 0.40.12 is installed. Ollama 0.34.1
+        moved GGUF conversion and quantization to llama.cpp tooling, and the
+        current import guide accepts prepared full GGUF models rather than a
+        new ADAPTER Modelfile build. See https://github.com/ollama/ollama/releases
+        and https://github.com/ollama/ollama/blob/main/docs/import.mdx.
+Local constraint: C: has about 11.5 GB free, which is not enough for the base
+        weights, merged full-precision model, conversion intermediates, final
+        quantized GGUF, and a safe margin. Do not attempt an in-place local
+        merge under this disk pressure.
+Decision or proposal: perform the PEFT merge and Q4_K_M/Q8_0 conversion on a
+        temporary cloud machine, verify the output there, download only the
+        final GGUF, import it into Ollama as kiki-personality:v1, set
+        KIKI_MODEL_PERSONALITY, and run live split-routing regressions.
+Human review needed: approve another temporary cloud run and choose Q4_K_M
+        (about 2.5 GB, recommended for this PC) or Q8_0 (about 4.3 GB).
+```

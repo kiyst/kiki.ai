@@ -415,7 +415,8 @@ links in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) into
 | `--database PATH` | command line | Which document library to use (default `.kiki/index.sqlite3`) |
 | `--no-rerank` | command line, before the command | Skip the grading step: about 7 s faster, less precise |
 | `--model NAME` | command line | Main generation model (default `qwen3:4b-instruct`) |
-| `KIKI_MODEL_FAST` / `_SMART` / `_MAX` | environment | Models for each profile; `AUTO` uses FAST for chat and SMART for code and documents |
+| `KIKI_MODEL_PERSONALITY` | environment | Personality-tuned model used by `AUTO` for chat, RAG, web answers, and other non-code turns; defaults to the main model until installed |
+| `KIKI_MODEL_FAST` / `_SMART` / `_MAX` | environment | Explicit model profiles; `AUTO` keeps code and RAG/web tool planning on SMART while personality writes non-code answers |
 | `KIKI_FALLBACK_MODEL` | environment | Comma-separated backups if the main model fails |
 | `kiki-persona.md` | next to the library | Kiki's editable persona, reloaded on every reply |
 | `kiki-memory.md` | next to the library | Your saved notes, plain Markdown |
