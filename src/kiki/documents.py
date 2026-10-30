@@ -112,20 +112,38 @@ _BLOCK_TAGS = {
 }
 # Not "head": a page missing </head> would lose its whole body. The title is
 # captured separately and head scripts and styles are skipped anyway.
-_SKIPPED_TAGS = {"script", "style", "noscript", "template", "svg"}
+# Never-displayed or fallback-only content (canvas, iframe, object, media
+# fallback text is shown only when the element can't load).
+_SKIPPED_TAGS = {"script", "style", "noscript", "template", "svg", "canvas", "iframe", "object",
+                 "noembed", "noframes", "audio", "video"}
 # A marked main region shorter than this is probably a stub, not the content.
 MIN_MAIN_CHARACTERS = 500
 # Elements with no closing tag; one marked hidden must not hide the rest of the page.
 _VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
               "param", "source", "track", "wbr"}
-_HIDDEN_STYLE = re.compile(r"display\s*:\s*none|visibility\s*:\s*hidden", re.IGNORECASE)
+# Best effort: inline styles and common utility classes that hide text from a
+# visitor. Stylesheets aren't evaluated, so this can't catch everything; it
+# narrows what a page can slip past the reader (audit A22).
+_HIDDEN_STYLE = re.compile(
+    r"display\s*:\s*none|visibility\s*:\s*(?:hidden|collapse)"
+    r"|font-size\s*:\s*0(?:\.0+)?(?:px|pt|em|rem|%)?\s*(?:;|$|!)"
+    r"|opacity\s*:\s*0(?:\.0+)?\s*(?:;|$|!)"
+    r"|(?:left|top|text-indent|margin-left)\s*:\s*-\d{3,}"
+    r"|clip\s*:\s*rect\(\s*0|clip-path\s*:\s*inset\(\s*50%",
+    re.IGNORECASE,
+)
+_HIDDEN_CLASSES = {"sr-only", "visually-hidden", "screen-reader-text", "hidden", "d-none",
+                   "is-hidden", "invisible", "visuallyhidden"}
 
 
-def _is_hidden(attrs: list[tuple[str, str | None]]) -> bool:
+def _is_hidden(tag: str, attrs: list[tuple[str, str | None]]) -> bool:
     values = {name.casefold(): (value or "") for name, value in attrs}
+    style = re.sub(r"/\*.*?\*/", "", values.get("style", ""), flags=re.DOTALL)
     return ("hidden" in values
             or values.get("aria-hidden", "").casefold() == "true"
-            or bool(_HIDDEN_STYLE.search(values.get("style", ""))))
+            or (tag == "dialog" and "open" not in values)
+            or bool(_HIDDEN_STYLE.search(style))
+            or bool(_HIDDEN_CLASSES & set(values.get("class", "").casefold().split())))
 
 
 class _TextCollector(HTMLParser):
@@ -153,7 +171,7 @@ class _TextCollector(HTMLParser):
             if tag == self._hidden_tag:
                 self._hidden_depth += 1
             return
-        if self._skip_hidden and tag not in _VOID_TAGS and _is_hidden(attrs):
+        if self._skip_hidden and tag not in _VOID_TAGS and _is_hidden(tag, attrs):
             # Text a visitor never sees, a common place to hide instructions
             # meant for AI readers. Nested tags of the same name are counted
             # so the whole element is skipped.
@@ -167,8 +185,10 @@ class _TextCollector(HTMLParser):
             self._flush()
             self._main_tag, self._main_depth = tag, 1
         if tag == "title" and not self._skipping:
-            # Not inside <svg>, whose icons carry their own <title> labels.
-            self._in_title = True
+            # Not inside <svg>, whose icons carry their own <title> labels. Only
+            # the first <title> counts, as in browsers: a second one in the body
+            # isn't shown anywhere, so it was a hidden channel (audit A10).
+            self._in_title = not self.title_parts
         elif tag in _SKIPPED_TAGS:
             self._skipping.append(tag)
         elif tag in _BLOCK_TAGS:
@@ -220,7 +240,10 @@ class _TextCollector(HTMLParser):
 
 
 def read_html(path: Path) -> tuple[str | None, list[str]]:
-    return html_text(path.read_bytes())
+    # Hidden elements are skipped for local pages too: text a visitor can't see
+    # shouldn't become evidence (audit L2).
+    title, paragraphs, _ = html_document(path.read_bytes(), skip_hidden=True)
+    return title, paragraphs
 
 
 def html_text(data: bytes, encoding: str | None = None) -> tuple[str | None, list[str]]:

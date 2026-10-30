@@ -40,13 +40,16 @@ class SearchResult:
     # Which stage produced `score` (e.g. "fused", "grader:qwen3:4b-instruct");
     # scores from different stages are on different scales.
     ranker: str | None = None
+    # Which piece of a span split into several passages (web pages split long
+    # paragraphs); 0 for an unsplit span, which keeps existing IDs unchanged.
+    piece: int = 0
 
     @property
     def passage_id(self) -> str:
         """Stable ID of this passage: the same file content and span always map
         to the same ID, and an edited or re-extracted file gets new ones."""
         return passage_identifier(
-            self.source_id, self.location_kind, self.start_location, self.end_location
+            self.source_id, self.location_kind, self.start_location, self.end_location, self.piece
         )
 
     @property
@@ -70,9 +73,13 @@ def location_label(kind: str, start: int, end: int) -> str:
     return f"{label} {start}" + (f"-{end}" if end != start else "")
 
 
-def passage_identifier(source_id: str, location_kind: str, start: int, end: int) -> str:
-    """Derived from stored fields, so existing indexes need no migration."""
-    digest = hashlib.sha256(f"{source_id}\0{location_kind}\0{start}\0{end}".encode()).hexdigest()
+def passage_identifier(source_id: str, location_kind: str, start: int, end: int, piece: int = 0) -> str:
+    """Derived from stored fields, so existing indexes need no migration.
+
+    Pieces of one split span get distinct IDs; they used to share one, so
+    citations resolved to the wrong piece (audit A9)."""
+    key = f"{source_id}\0{location_kind}\0{start}\0{end}" + (f"\0{piece}" if piece else "")
+    digest = hashlib.sha256(key.encode()).hexdigest()
     return f"p{digest[:11]}"
 
 

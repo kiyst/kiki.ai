@@ -48,6 +48,7 @@ from .self_knowledge import (
     capabilities_text,
     self_help_hints,
     self_knowledge_prompt,
+    state_changing_commands,
     unknown_commands,
 )
 from .tools import ToolRegistry
@@ -204,7 +205,10 @@ class TerminalSession:
         self.last_model_selection = self.model_router.select(self.model_profile, Capability.RAG)
         # The model reads the page with planted instructions removed; the user
         # was shown them when the page was opened.
-        page, removed = without_planted(self.web_page)
+        # Cleaned once per page; follow-up questions reuse it (audit L6).
+        if getattr(self, "_web_cleaned", (None,))[0] is not self.web_page:
+            self._web_cleaned = (self.web_page, *without_planted(self.web_page))
+        _, page, removed = self._web_cleaned
         vectors = self._page_vectors(page)
         search = PageSearch(
             page,
@@ -660,7 +664,8 @@ def render_outcome(
     debug: bool = False,
 ) -> None:
     title = {"rag": "Kiki · RAG", "web": "Kiki · Web"}.get(mode, "Kiki · Chat")
-    console.print(Panel(Markdown(outcome.answer or "_(No response)_"), title=title, border_style="cyan"))
+    console.print(Panel(Markdown(visible_links(outcome.answer) or "_(No response)_"), title=title,
+                        border_style="cyan"))
     invented = unknown_commands(outcome.answer)
     if invented:
         console.print(Text(
@@ -704,6 +709,29 @@ def render_sources(
     if uncited:
         noun = "passage was" if uncited == 1 else "passages were"
         console.print(f"[dim]{uncited} more retrieved {noun} not cited. /sources all lists them.[/dim]")
+
+
+_MARKDOWN_LINK = re.compile(
+    r"(!?)\[([^\]\n]{0,200})\]\(\s*(?:<([^>\n]+)>|([^)\s]+))(?:\s+\"[^\"]*\")?\s*\)")
+
+
+def visible_links(answer: str) -> str:
+    """Markdown with each link's real address shown next to its label.
+
+    Rendered Markdown shows only the label, so "[microsoft.com](http://evil
+    .example)" looked like a Microsoft link (audit A26). Images become a
+    labelled address too; Kiki never loads them."""
+    def show(match: re.Match[str]) -> str:
+        image, label, bracketed, bare = match.groups()
+        url = bracketed or bare
+        if image:
+            return f"[image: {label or 'untitled'}] {url}"
+        if label.strip().rstrip("/").casefold() in {url.rstrip("/").casefold(),
+                                                    re.sub(r"^https?://", "", url).rstrip("/").casefold()}:
+            return url
+        return f"{label} ({url})"
+
+    return _MARKDOWN_LINK.sub(show, answer)
 
 
 def _source_name(path: str) -> str:
@@ -1238,6 +1266,12 @@ def _render_web_notes(
     page_url: str = "",
 ) -> None:
     """Flag unsupported sentences and risky details, and say how much of the page was read."""
+    changing = state_changing_commands(outcome.answer)
+    if changing:
+        console.print(Text(
+            "This answer, written from a web page, suggests a command that changes Kiki's memory, "
+            f"folders, files, or settings ({'; '.join(changing[:2])}). Pages can't give Kiki "
+            "instructions; run it only if it's what you want.", style="yellow"))
     if asks_for_credentials(outcome.answer):
         console.print(Text(
             "Warning: this answer tells you to send or enter a password, code, or payment details. "

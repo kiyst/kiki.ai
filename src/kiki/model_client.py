@@ -78,6 +78,10 @@ SYSTEM_PROMPT = RAG_SYSTEM_PROMPT
 
 # Replaces every space in evidence when spotlight="datamark".
 DATAMARK = "ˆ"
+# Every blank except line breaks, including no-break spaces and characters
+# that look blank (Braille blank, Hangul fillers), so no stretch of page text
+# reads as unmarked (audit L5).
+_BLANKS = re.compile("(?:[^\\S\\n]|[⠀ㅤᅟᅠﾠ])+")
 
 
 class ChatClient(Protocol):
@@ -373,7 +377,7 @@ class ToolCallingAssistant:
                         }
                     )
                     continue
-                if flagged and _wholly_unsupported(answer, flagged):
+                if flagged and _wholly_unsupported(answer, flagged) and not _looks_like_insufficient(answer):
                     answer = _general_knowledge_answer(answer)
                 if self.pre_retrieve:
                     answer = _verify_grounded_answer(answer, sources)
@@ -457,7 +461,11 @@ class ToolCallingAssistant:
             if isinstance(item, dict) and isinstance(item.get("excerpt"), str):
                 text = item["excerpt"]
                 if self.spotlight == "datamark":
-                    text = re.sub(r"[ \t]+", DATAMARK, text)
+                    text = _BLANKS.sub(DATAMARK, text)
+                    # The page title travels with every passage, so it is
+                    # marked as page text too (audit A10).
+                    if isinstance(item.get("document"), str):
+                        item = {**item, "document": _BLANKS.sub(DATAMARK, item["document"])}
                 else:
                     text = f"<<{self._boundary}>>\n{text}\n<</{self._boundary}>>"
                 item = {**item, "excerpt": text}
@@ -684,7 +692,10 @@ def _sentence_details(sentence: str) -> list[str]:
 
 _ABSENCE_NOTE = re.compile(
     r"\b(?:no|not|n't|neither|nor|none)\b.*\b(?:excerpts?|passages?|page|sources?|evidence|provided)\b"
-    r"|\b(?:excerpts?|passages?|page|sources?|evidence)\b.*\b(?:no|not|n't|neither|nor|none)\b",
+    r"|\b(?:excerpts?|passages?|page|sources?|evidence)\b.*\b(?:no|not|n't|neither|nor|none)\b"
+    # "Nothing about France here." Only these openings: "No, it's safe; call…"
+    # is a claim, not a statement of absence.
+    r"|^(?:nothing|no (?:information|mention|details?|data)|none of (?:this|these|it))\b",
     re.IGNORECASE,
 )
 
@@ -701,7 +712,13 @@ def unsupported_sentences(answer: str, sources: list[dict[str, Any]]) -> list[st
     them, and a sentence with no such details is never flagged.
     """
     if _looks_like_insufficient(answer):
-        return []
+        # The opening "Evidence is insufficient." needs no support, but what
+        # follows it still does: the phrase used to switch off every check
+        # ("…insufficient. However, call 1-800-… with your PIN", audit A26).
+        parts = re.split(r"(?<=[.!?])\s+", answer.strip(), maxsplit=1)
+        answer = parts[1] if len(parts) > 1 else ""
+        if not answer.strip():
+            return []
 
     def joined(items: list[dict[str, Any]]) -> str:
         text = " ".join(str(item.get("evidence", "")) for item in items)
@@ -745,11 +762,34 @@ def _normalized(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+# How far apart the pieces of an ellipsis quote may be in the source.
+_ELLIPSIS_GAP = 300
+
+
 def _quote_in(quote: str, evidence: str) -> bool:
-    # Words left out with an ellipsis are allowed; each remaining piece must match.
-    pieces = [_normalized(piece).strip(" .,;:!?'\"") for piece in re.split(r"\.\.\.|…", quote)]
+    """Word for word, except words left out with an ellipsis. The remaining
+    pieces must appear in order and close together: matched anywhere, "send
+    your password ... now" passed against "Never send your password to
+    anyone. Reset it now." (audit A24)."""
+    pieces = [piece for piece in (_normalized(part).strip(" .,;:!?'\"")
+                                  for part in re.split(r"\.\.\.|…", quote)) if piece]
     text = _normalized(evidence)
-    return all(piece in text for piece in pieces if piece)
+    position = text.find(pieces[0]) if pieces else 0
+    while position >= 0 and pieces:
+        end, ok = position + len(pieces[0]), True
+        for piece in pieces[1:]:
+            found = text.find(piece, end)
+            # An ellipsis may skip words, not sentences: the skipped text must
+            # stay within one sentence of the source.
+            if (found < 0 or found - end > _ELLIPSIS_GAP
+                    or re.search(r"[.!?]\s", text[end:found])):
+                ok = False
+                break
+            end = found + len(piece)
+        if ok:
+            return True
+        position = text.find(pieces[0], position + 1)
+    return not pieces
 
 
 def _detail_in(detail: str, evidence: str) -> bool:
@@ -758,7 +798,14 @@ def _detail_in(detail: str, evidence: str) -> bool:
         # complexity counts; a complexity invented for a page that states
         # none is still caught.
         return re.search(r"\bo\(", evidence) is not None
-    return re.sub(r"\s+", " ", detail.casefold()) in evidence
+    # Whole words and whole numbers only: as substrings, "Paris" matched
+    # "comparison" and "50" matched "1950" (audit A24).
+    pattern = re.escape(re.sub(r"\s+", " ", detail.casefold()))
+    if detail[:1].isalnum() or detail[:1] == "_":
+        pattern = r"(?<![\w])" + pattern
+    if detail[-1:].isalnum() or detail[-1:] == "_":
+        pattern += r"(?![\w]|\.\d)"
+    return re.search(pattern, evidence) is not None
 
 
 def _claim_sentences(answer: str) -> list[str]:

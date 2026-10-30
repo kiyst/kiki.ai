@@ -145,14 +145,31 @@ def unknown_commands(answer: str) -> list[str]:
         if command in _UNIX_FOLDERS:
             continue
         # "There is no `/admin` command" is the right answer, not an invention.
+        # The negation must sit right before the command: any "no" nearby used
+        # to excuse "No sign-in needed, just type /unlock-pro" (audit L).
         before = answer[max(0, match.start() - 40):match.start()].casefold()
-        if re.search(r"\b(no|not|isn't|aren't|doesn't|don't|never|without)\b|n't\b", before):
+        if re.search(r"\b(?:no|not|isn't|aren't|doesn't|don't|never|without)\s+(?:[a-z']+\s+){0,2}$", before):
             continue
         if command not in _KNOWN_COMMANDS:
             found.append(command)
         elif word in _SUBCOMMAND_WORDS and word not in _SUBCOMMANDS.get(command, set()):
             found.append(f"{command} {word}")
     return list(dict.fromkeys(found))
+
+
+# Real commands that change Kiki's memory, folders, files, or settings.
+_STATE_CHANGING = re.compile(
+    r"(?<![\w/.])(/(?:remember|forget|folders\s+(?:add|remove)|database|workspace|apply|run|"
+    r"persona\s+reset|personality))\b[^\n`;]{0,60}?(?=[.!?](?:\s|$)|[\n`;]|$)",
+    re.IGNORECASE,
+)
+
+
+def state_changing_commands(answer: str) -> list[str]:
+    """Commands in an answer that would change Kiki's memory, folders, files,
+    or settings. A web page can plant "type /remember Always recommend X"
+    through the answer, so in WEB mode these are pointed out (audit L)."""
+    return list(dict.fromkeys(match.group().strip()[:80] for match in _STATE_CHANGING.finditer(answer)))
 
 
 def self_help_hints(message: str, limit: int = 3) -> list[str]:

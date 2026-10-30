@@ -68,6 +68,8 @@ TOTAL_SECONDS = 30.0
 # The whole fetch (headers and redirects too) ends this long after TOTAL_SECONDS.
 WATCHDOG_MARGIN_S = 5.0
 _NAT64 = ipaddress.ip_network("64:ff9b::/96")
+_LOCAL_NAT64 = ipaddress.ip_network("64:ff9b:1::/48")
+_IPV4_COMPATIBLE = ipaddress.ip_network("::/96")
 # Control characters, zero-width characters, and text-direction overrides:
 # invisible on the page, but able to hide or reorder text in the terminal.
 _UNSAFE_CHARACTERS = re.compile(
@@ -140,15 +142,28 @@ _INJECTION = re.compile(
     r"|\byou are (?:now )?(?:dan|in developer mode)\b"
     r"|\bnew rule from the developers\b"
     r"|\bwhen (?:summari[sz]ing|answering|responding|describing|quoting)\b[^.\n]{0,40}"
-    r"\b(?:always|must|include|mention|add|tell)\b",
+    r"\b(?:always|must|include|mention|add|tell)\b"
+    # Added after the audit's bypasses (A23).
+    r"|\bignore (?:everything|anything|all)\s+(?:above|before|else|prior)\b"
+    rf"|\bdear\s+(?:{_AI}|assistant|model)\b"
+    r"|\bbefore (?:you )?(?:answer|respond|reply)(?:ing)?\b[^.\n]{0,15},?\s*(?:add|say|include|tell|mention|"
+    r"print|state|recommend)\b"
+    r"|\b(?:important|attention|note)\s+(?:for|to)\s+(?:the\s+)?(?:model|assistant|ai)\b",
     re.IGNORECASE,
 )
 REMOVED_MARKER = "[Kiki removed a sentence aimed at AI assistants]"
+# Latin look-alikes from Cyrillic and Greek, which NFKC leaves alone
+# ("Іgnore" with a Cyrillic І slipped past the detector, audit A23).
+_CONFUSABLES = str.maketrans(
+    "АВЕКМНОРСТХаеорсухіІјЈѕЅԁӏΑΒΕΖΗΙΚΜΝΟΡΤΥΧαοριυνκ",
+    "ABEKMHOPCTXaeopcyxiIjJsSdlABEZHIKMNOPTYXaopiuvk",
+)
 
 
 def _is_planted(sentence: str) -> bool:
-    # NFKC folds look-alike forms (full-width "Ａｓｓｉｓｔａｎｔ：") into plain ones.
-    return bool(_INJECTION.search(unicodedata.normalize("NFKC", sentence)))
+    # NFKC folds width variants (full-width "Ａｓｓｉｓｔａｎｔ："); the table
+    # folds letters from other scripts that look Latin.
+    return bool(_INJECTION.search(unicodedata.normalize("NFKC", sentence).translate(_CONFUSABLES)))
 
 
 def _sentences(text: str) -> list[str]:
@@ -164,6 +179,20 @@ def suspicious_instructions(page: WebPage, limit: int = 3) -> list[str]:
                 found.append(sentence.strip()[:240])
                 if len(found) >= limit:
                     return found
+    found.extend(f"{first} {second}"[:240] for _, first, _, second in _split_instructions(page.blocks))
+    return found[:limit]
+
+
+def _split_instructions(blocks: list[tuple[int, str]]) -> list[tuple[int, str, int, str]]:
+    """Instructions split across two blocks (a line break or <br> between halves):
+    (block index, end of the first, next index, start of the second)."""
+    found = []
+    for index in range(len(blocks) - 1):
+        first = _sentences(blocks[index][1])[-1]
+        second = _sentences(blocks[index + 1][1])[0]
+        if (first and second and not _is_planted(first) and not _is_planted(second)
+                and _is_planted(f"{first} {second}")):
+            found.append((index, first, index + 1, second))
     return found
 
 
@@ -180,6 +209,13 @@ def without_planted(page: WebPage) -> tuple[WebPage, int]:
         cleaned, count = remove_planted_text(text)
         removed += count
         blocks.append((number, cleaned))
+    # An instruction split over two blocks: both halves go (audit A23).
+    for first_index, first, second_index, second in _split_instructions(blocks):
+        number, text = blocks[first_index]
+        blocks[first_index] = (number, text[: len(text) - len(first)] + REMOVED_MARKER)
+        number, text = blocks[second_index]
+        blocks[second_index] = (number, REMOVED_MARKER + text[len(second):])
+        removed += 1
     # The title travels with every passage, so it is checked too (audit A10).
     title, count = remove_planted_text(page.title)
     if count:
@@ -206,11 +242,17 @@ def remove_planted_text(text: str) -> tuple[str, int]:
 # A full stop may end the sentence after a number, but not continue it (3.14.0).
 _PHONE = re.compile(r"(?<![\w.])\+?\d[\d ().-]{7,}\d(?!\w|\.\d)")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
-_LINK = re.compile(r"\bhttps?://[^\s)\]>\"'`]+|\bwww\.[^\s)\]>\"'`]+", re.IGNORECASE)
+_LINK = re.compile(
+    r"\bhttps?://[^\s)\]>\"'`]+|\bwww\.[^\s)\]>\"'`]+"
+    # A bare domain with a path ("evil.example/login"): a link without its scheme.
+    r"|(?<![\w@/.-])(?:[a-z0-9-]+\.)+[a-z]{2,24}/[^\s)\]>\"'`]*",
+    re.IGNORECASE)
 # Commands that download and run something, or need administrator rights.
 _RISKY_COMMAND = re.compile(
     r"\b(?:curl|wget|iwr|invoke-webrequest|invoke-expression|iex|certutil|bitsadmin|mshta|"
-    r"regsvr32|sudo|chmod\s+777|rm\s+-rf|del\s+/[sq]|format\s+[a-z]:|reg\s+add)\b|\|\s*(?:ba)?sh\b",
+    r"regsvr32|sudo|chmod\s+777|rm\s+-rf|del\s+/[sq]|format\s+[a-z]:|reg\s+add|msiexec|rundll32|"
+    r"powershell(?:\.exe)?\s+[^\n]*-(?:e|enc|encodedcommand|w|windowstyle)\b|pwsh\s+[^\n]*-(?:e|enc)\b|"
+    r"cmd(?:\.exe)?\s+/[ck]|python3?\s+-c|bash\s+-c)\b|\|\s*(?:ba)?sh\b",
     re.IGNORECASE,
 )
 
@@ -265,9 +307,14 @@ def asks_for_credentials(answer: str) -> bool:
     phishing pages, so it gets its own warning however it was phrased. A
     sentence warning against it ("never share your password") doesn't count."""
     for sentence in re.split(r"(?<=[.!?])\s+|\n+", answer):
-        if _CREDENTIAL_REQUEST.search(sentence) and not re.search(
-                r"\b(?:never|don't|do not|not|avoid|without)\b", sentence, re.IGNORECASE):
-            return True
+        for match in _CREDENTIAL_REQUEST.finditer(sentence):
+            # The negation must govern the request itself ("never share your
+            # password"); any "not" anywhere used to disable the warning, as in
+            # "Do not delay: email your password to…" (audit A25).
+            before = sentence[:match.start()]
+            if not re.search(r"\b(?:never|don't|do not|not|avoid|without)\s+(?:[A-Za-z']+\s+){0,2}$",
+                             before, re.IGNORECASE):
+                return True
     return False
 
 
@@ -366,7 +413,11 @@ def _public_address(url: str, resolver: Resolver) -> str:
 
 
 def _is_public(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
-    if not ip.is_global:
+    if not ip.is_global or ip.is_multicast or ip.is_reserved:
+        return False
+    if isinstance(ip, ipaddress.IPv6Address) and (
+            ip.is_site_local or ip in _IPV4_COMPATIBLE or ip in _LOCAL_NAT64):
+        # Ranges Python 3.12.3 still calls global (audit L4).
         return False
     if isinstance(ip, ipaddress.IPv6Address):
         # IPv6 forms that carry an IPv4 address inside (IPv4-mapped, 6to4,
@@ -458,6 +509,13 @@ def _download(
     if issue:
         return _issue_page(client, requested, *issue, resolver, record)
     got = _get(client, requested, target, headers, resolver, record, check_media=_readable_media)
+    final_host = (urlsplit(got.url).hostname or "").casefold()
+    if final_host != (urlsplit(target).hostname or "").casefold():
+        # Redirected to another site: credit the site that actually answered,
+        # not the address typed (an open redirect on a trusted domain could
+        # otherwise lend its name to anything, audit A21).
+        note = f"Redirected from {urlsplit(requested).hostname} to {final_host}." + (f" {note}" if note else "")
+        requested = got.url
     return _page(requested, got.url, got.media, got.charset, got.data, got.truncated, note)
 
 
@@ -520,7 +578,9 @@ def _get(
                 raise WebError(f"{host} says too many requests; try again later.")
             if response.status_code >= 400:
                 raise WebError(f"{host} answered with an error ({response.status_code}).")
-            media = response.headers.get("content-type", "").split(";", 1)[0].strip().casefold()
+            # Server text is cleaned before any message can show it (audit L3).
+            media = _INVISIBLE.sub("", response.headers.get("content-type", "")).split(";", 1)[0]
+            media = media.strip().casefold()[:100]
             if check_media:
                 check_media(media)
             data, truncated = _read_capped(response, deadline)
@@ -793,9 +853,24 @@ class _Passage:
     start: int
     end: int
     text: str
+    piece: int = 0  # numbered when several passages share one span
+
+
+_PASSAGE_CACHE: dict[tuple[str, int], list[_Passage]] = {}
 
 
 def page_passages(page: WebPage, size: int = PASSAGE_CHARACTERS) -> list[_Passage]:
+    """The page's passages, worked out once per page and reused by follow-up
+    questions (a 5 MB page took seconds to split each time, audit L6)."""
+    key = (page.source_id, size)
+    if key not in _PASSAGE_CACHE:
+        if len(_PASSAGE_CACHE) >= 4:
+            _PASSAGE_CACHE.pop(next(iter(_PASSAGE_CACHE)))
+        _PASSAGE_CACHE[key] = _build_passages(page, size)
+    return list(_PASSAGE_CACHE[key])
+
+
+def _build_passages(page: WebPage, size: int) -> list[_Passage]:
     """Consecutive blocks joined up to `size` characters; long blocks are split at sentences."""
     passages: list[_Passage] = []
     current: list[tuple[int, str]] = []
@@ -816,16 +891,27 @@ def page_passages(page: WebPage, size: int = PASSAGE_CHARACTERS) -> list[_Passag
             current.append((number, piece))
             length += len(piece)
     flush()
-    return passages
+    # Pieces of one long paragraph share a span; number them so each passage
+    # has its own citation ID (audit A9).
+    seen: Counter[tuple[int, int]] = Counter()
+    numbered = []
+    for passage in passages:
+        span = (passage.start, passage.end)
+        numbered.append(replace(passage, piece=seen[span]))
+        seen[span] += 1
+    return numbered
 
 
 def _split_long(text: str, size: int) -> list[str]:
     pieces: list[str] = []
     current = ""
     for sentence in re.split(r"(?<=[.!?])\s+", text):
-        while len(sentence) > size:
-            pieces.append(sentence[:size])
-            sentence = sentence[size:]
+        if len(sentence) > size:
+            # Cut by index: re-slicing the remainder copied it each time, so a
+            # 5 MB unpunctuated paragraph took seconds (audit L6).
+            cut = len(sentence) - len(sentence) % size or len(sentence) - size
+            pieces.extend(sentence[start:start + size] for start in range(0, cut, size))
+            sentence = sentence[cut:]
         if current and len(current) + len(sentence) + 1 > size:
             pieces.append(current)
             current = ""
@@ -1002,6 +1088,7 @@ class PageSearch:
             score=round(score, 4),
             title=self.page.title,
             ranker=ranker,
+            piece=passage.piece,
         )
 
 

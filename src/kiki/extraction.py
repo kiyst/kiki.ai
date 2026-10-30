@@ -19,8 +19,8 @@ EXTRACTION_VERSION = "paragraph-v3"
 # Versioned separately so a change to one format re-extracts only that format;
 # other files keep their source IDs and embeddings.
 PDF_EXTRACTION_VERSION = "pdf-continuous-v1"
-DOCX_EXTRACTION_VERSION = "docx-v1"
-HTML_EXTRACTION_VERSION = "html-v1"
+DOCX_EXTRACTION_VERSION = "docx-v2"  # v2: hidden (w:vanish) text skipped
+HTML_EXTRACTION_VERSION = "html-v2"  # v2: hidden elements skipped
 # Roughly what the RAG evidence budget shows the model per result, so retrieved
 # chunks are seen whole and embeddings stay focused on one passage.
 TEXT_CHUNK_CHARACTERS = 1_400
