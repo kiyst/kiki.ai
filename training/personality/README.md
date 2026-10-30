@@ -12,6 +12,19 @@ adaptation before being frozen for the first training experiment.
 - `manifest.json` — intended model, schema, counts, and approval state.
 - `review_checklist.md` — instructions for the human voice review.
 - `validate_dataset.py` — standard-library structural and quality checks.
+- `pilot_eval.json` — 60 novel, non-training prompts for the pilot comparison.
+- `pilot_system_prompt.txt` — frozen runtime personality prompt used for both
+  baseline and adapter evaluation conditions.
+- `validate_pilot.py` — checks corpus size, evaluation structure, and prompt
+  overlap.
+- `train_qlora.py` — reproducible smoke and full QLoRA entry point.
+- `cloud_preflight.py` — reports CUDA, VRAM, and exact training-library
+  versions before model download or paid training.
+- `run_inference.py`, `build_blind_review.py`, and
+  `score_blind_review.py` — deterministic generation, blinded A/B review, and
+  post-review scoring.
+- `merge_adapter.py` — merges an accepted adapter for later GGUF conversion.
+- `RUNPOD.md` — cloud setup, commands, stop conditions, and artifact handling.
 
 There is intentionally no holdout set in this directory yet. The next step is
 to create a separate evaluation set using new prompts and scenarios rather

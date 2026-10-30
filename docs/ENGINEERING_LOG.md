@@ -243,6 +243,40 @@ Decision or proposal: receipts for this milestone live in evals/receipts/
 Human review needed: none for this stage.
 ```
 
+## Personality QLoRA pilot preparation
+
+```text
+Date: 2026-10-29
+Stage: pre-training preparation; no model download or training run
+Commit before change: 8a8ed28
+Files changed: training/personality (cloud requirements, preflight, novel
+        60-case pilot evaluation, frozen runtime prompt, QLoRA trainer,
+        deterministic inference, blind review builder/scorer, adapter merger,
+        RunPod guide), tests/test_personality_training.py, engineering log
+Behavior changed: none in the Kiki runtime. Training dependencies remain
+        separate from pyproject.toml and normal installation.
+Tests/evaluations run: personality corpus validation (500/500); pilot
+        validation (60/60, no normalized final-prompt overlap); 11 targeted
+        personality tests passed; all cloud entry points compile and parse
+        --help without cloud dependencies.
+Repository-wide test note: 248 passed, 8 skipped, 7 failed in the managed
+        Windows environment. The failures are outside this change: atomic
+        rename is denied under the managed pytest temp directory, and the
+        pre-existing shared venv lacks wasmtime required by the newly merged
+        sandbox. New personality tests all passed.
+Result: the repository is ready for a 24 GB CUDA pod smoke test. The smoke
+        command is capped at five optimizer steps and refuses CPU execution.
+Known limits: CUDA, bitsandbytes, model loading, TRL assistant masks, actual
+        loss, VRAM use, adapter quality, merge, and GGUF conversion remain
+        unverified until the cloud pod exists.
+Decision or proposal: run cloud_preflight.py, validate both datasets, run the
+        five-step smoke test, save artifacts, then stop for review before the
+        full three-epoch run.
+Human review needed: approve the smoke-test logs and verify the blind A/B
+        review after full training. Do not accept the adapter merely for
+        stronger personality if technical or serious responses regress.
+```
+
 Corpus identity `2161829777560d6b` (6 files, 2,569 passages, all embedded);
 Ollama 0.40.12; model digests `qwen3:4b-instruct` 0edcdef34593,
 `qwen3-embedding:0.6b` ac6da0dfba84. Full metadata:
