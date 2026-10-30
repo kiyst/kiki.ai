@@ -7,6 +7,7 @@ images, and external entities are ignored.
 """
 from __future__ import annotations
 
+import codecs
 import re
 import zipfile
 import zlib
@@ -16,6 +17,8 @@ from xml.etree import ElementTree
 
 # A .docx is a zip; refuse an inflated body this large rather than unpack it.
 MAX_DOCX_XML_BYTES = 64 * 1024 * 1024
+# A 500-page report has a few hundred thousand XML elements.
+MAX_DOCX_ELEMENTS = 2_000_000
 
 _W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 _DC_TITLE = "{http://purl.org/dc/elements/1.1/}title"
@@ -46,6 +49,9 @@ def read_docx(path: Path) -> tuple[str | None, list[str]]:
 
     paragraphs: list[str] = []
     heading: str | None = None
+    # A huge element count is a crafted file, not a document (audit A6).
+    if sum(1 for _ in zip(root.iter(), range(MAX_DOCX_ELEMENTS + 1))) > MAX_DOCX_ELEMENTS:
+        raise DocumentError("Word document has too many parts to read")
     for paragraph in root.iter(f"{_W}p"):
         text = _docx_paragraph_text(paragraph)
         if not text:
@@ -66,12 +72,25 @@ def _read_member(archive: zipfile.ZipFile, name: str) -> bytes:
 
 
 def _docx_paragraph_text(paragraph: ElementTree.Element) -> str:
+    """The paragraph's own text, in order, without paragraphs nested inside it
+    (they are read separately) and without hidden text (w:vanish).
+
+    One pass over the paragraph's own nodes: walking every descendant of every
+    paragraph made deliberately nested paragraphs cost the square of their
+    depth, so a 5 KB file stalled indexing (audit A6)."""
     parts: list[str] = []
-    for node in paragraph.iter():
+    stack = list(reversed(list(paragraph)))
+    while stack:
+        node = stack.pop()
+        if node.tag == f"{_W}p":
+            continue
+        if node.tag == f"{_W}r" and node.find(f"{_W}rPr/{_W}vanish") is not None:
+            continue  # hidden text: not visible in Word, so not read (audit L2)
         if node.tag == f"{_W}t" and node.text:
             parts.append(node.text)
         elif node.tag in {f"{_W}tab", f"{_W}br", f"{_W}cr"}:
             parts.append(" ")
+        stack.extend(reversed(list(node)))
     return re.sub(r"\s+", " ", "".join(parts)).strip()
 
 
@@ -220,11 +239,9 @@ def html_document(
     of text there) is read without its menus, sidebars, and footers. With
     `skip_hidden`, elements a visitor can't see are left out."""
     text = None
+    encoding = safe_charset(encoding)
     if encoding:
-        try:
-            text = data.decode(encoding, errors="replace")
-        except LookupError:
-            pass
+        text = data.decode(encoding, errors="replace")
     collector = _TextCollector(skip_hidden=skip_hidden)
     collector.feed(text if text is not None else _decode_html(data))
     collector.close()
@@ -238,17 +255,39 @@ def html_document(
     return title or collector.first_h1, paragraphs, sections
 
 
+# Text encodings real pages use. Any other declared name is ignored: Python
+# also ships codecs like "punycode" whose decoding is super-quadratic, so a
+# page declaring one could stall Kiki for minutes (audit A11).
+_SAFE_CHARSETS = frozenset({
+    "utf-8", "utf-8-sig", "utf-16", "utf-16-le", "utf-16-be", "utf-32", "utf-32-le", "utf-32-be",
+    "ascii", "latin-1", "cp437", "cp850", "cp866", "mac-roman", "koi8-r", "koi8-u",
+    *(f"iso8859-{number}" for number in range(1, 17)),
+    *(f"cp{number}" for number in range(1250, 1259)),
+    "shift_jis", "cp932", "euc_jp", "iso2022_jp", "gb2312", "gbk", "gb18030", "cp936",
+    "big5", "big5hkscs", "cp950", "euc_kr", "cp949", "iso2022_kr", "tis-620", "cp874",
+})
+
+
+def safe_charset(name: str | None) -> str | None:
+    """The codec for a declared charset if it is one real pages use, else None."""
+    if not name:
+        return None
+    try:
+        codec = codecs.lookup(name.strip()).name
+    except (LookupError, ValueError):
+        return None
+    return codec if codec in _SAFE_CHARSETS else None
+
+
 def _decode_html(data: bytes) -> str:
     if data.startswith(b"\xef\xbb\xbf"):
         return data[3:].decode("utf-8", errors="replace")
     if data.startswith((b"\xff\xfe", b"\xfe\xff")):
         return data.decode("utf-16", errors="replace")
     declared = re.search(rb"""<meta[^>]+charset=["']?([\w-]+)""", data[:4096], re.I)
-    if declared:
-        try:
-            return data.decode(declared.group(1).decode("ascii"), errors="replace")
-        except LookupError:
-            pass
+    encoding = safe_charset(declared.group(1).decode("ascii")) if declared else None
+    if encoding:
+        return data.decode(encoding, errors="replace")
     try:
         return data.decode("utf-8")
     except UnicodeDecodeError:

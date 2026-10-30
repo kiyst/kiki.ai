@@ -19,6 +19,7 @@ import math
 import os
 import re
 import socket
+import threading
 import time
 import zlib
 from bisect import bisect_right
@@ -33,9 +34,15 @@ from urllib.parse import parse_qsl, quote, unquote, urlencode, urljoin, urlsplit
 
 import httpx
 
-from .documents import html_document
+from .documents import html_document, safe_charset
+from .extraction import ExtractionError
+from .isolation import parse_html_isolated
 from .retrieval import SearchResult
 from .safety import offline_mode
+
+# Pages up to this size parse in-process (the slowest known input takes under
+# a second); larger ones go to a limited child process.
+IN_PROCESS_HTML_BYTES = 32 * 1024
 
 MAX_PAGE_BYTES = 5 * 1024 * 1024
 MAX_REDIRECTS = 5
@@ -58,6 +65,8 @@ Resolver = Callable[[str, int], list[str]]
 
 # Whole download, including a server that sends one byte at a time.
 TOTAL_SECONDS = 30.0
+# The whole fetch (headers and redirects too) ends this long after TOTAL_SECONDS.
+WATCHDOG_MARGIN_S = 5.0
 _NAT64 = ipaddress.ip_network("64:ff9b::/96")
 # Control characters, zero-width characters, and text-direction overrides:
 # invisible on the page, but able to hide or reorder text in the terminal.
@@ -385,24 +394,42 @@ def fetch_page(
     client = client or httpx.Client(timeout=TIMEOUT_SECONDS)
     record: dict[str, object] = {"time": datetime.now(UTC).isoformat(timespec="seconds"),
                                  "requested": _redacted(requested)}
+    # One deadline for the whole fetch, connection, headers, and redirects
+    # included: a server dripping headers a byte at a time stayed under each
+    # read timeout for hours (audit A28). Closing the client ends the request.
+    done, expired = threading.Event(), threading.Event()
+
+    def watchdog() -> None:
+        if not done.wait(TOTAL_SECONDS + WATCHDOG_MARGIN_S):
+            expired.set()
+            client.close()
+
+    threading.Thread(target=watchdog, daemon=True).start()
+    host = urlsplit(target).hostname
     try:
         page = _download(client, requested, target, headers, note, resolver, record)
         record.update(status="ok", bytes=page.size)
         return page
     except WebError as exc:
-        record.update(status="refused or failed", reason=str(exc))
+        record.update(status="refused or failed", reason=_redacted_text(str(exc)))
         raise
-    except httpx.TimeoutException as exc:
-        record.update(status="timeout")
-        raise WebError(f"{urlsplit(target).hostname} took too long to answer.") from exc
-    except httpx.HTTPError as exc:
-        record.update(status="network error", reason=type(exc).__name__)
-        raise WebError(f"Couldn't reach {urlsplit(target).hostname}: {type(exc).__name__}.") from exc
-    except (httpx.InvalidURL, ValueError, UnicodeError, RecursionError) as exc:
-        # Addresses and responses that the parsers reject, reported rather than crashing.
-        record.update(status="refused or failed", reason=type(exc).__name__)
-        raise WebError(f"Kiki couldn't use that address or response ({type(exc).__name__}).") from exc
+    except Exception as exc:
+        if expired.is_set():
+            record.update(status="timeout")
+            raise WebError(f"{host} took longer than {TOTAL_SECONDS:.0f} s; Kiki stopped waiting.") from exc
+        if isinstance(exc, httpx.TimeoutException):
+            record.update(status="timeout")
+            raise WebError(f"{host} took too long to answer.") from exc
+        if isinstance(exc, httpx.HTTPError):
+            record.update(status="network error", reason=type(exc).__name__)
+            raise WebError(f"Couldn't reach {host}: {type(exc).__name__}.") from exc
+        if isinstance(exc, (httpx.InvalidURL, ValueError, UnicodeError, RecursionError)):
+            # Addresses and responses that the parsers reject, reported rather than crashing.
+            record.update(status="refused or failed", reason=type(exc).__name__)
+            raise WebError(f"Kiki couldn't use that address or response ({type(exc).__name__}).") from exc
+        raise
     finally:
+        done.set()
         if owned:
             client.close()
         if log is not None:
@@ -482,7 +509,7 @@ def _get(
             record["http_status"] = response.status_code
             host = parts.hostname
             if response.status_code == 404:
-                raise WebError(f"That page doesn't exist (404): {requested}")
+                raise WebError(f"That page doesn't exist (404): {_redacted(requested)}")
             if host == "api.github.com" and response.headers.get("x-ratelimit-remaining") == "0":
                 raise WebError("GitHub's limit for readers who aren't signed in (60 requests an "
                                "hour) is used up; try again later.")
@@ -635,8 +662,18 @@ def _page(
 ) -> WebPage:
     fallback_title = unquote(urlsplit(requested).path.rstrip("/").rsplit("/", 1)[-1]).replace("_", " ")
     sections: list[int] = []
+    charset = safe_charset(charset)
     if media in _HTML_TYPES:
-        title, paragraphs, headings = html_document(data, charset, main_only=True, skip_hidden=True)
+        if len(data) > IN_PROCESS_HTML_BYTES:
+            # Large pages are parsed in a limited child process: crafted HTML
+            # can make Python 3.12's parser run for hours (audit A5).
+            try:
+                title, paragraphs, headings = parse_html_isolated(
+                    data, charset, main_only=True, skip_hidden=True)
+            except ExtractionError as exc:
+                raise WebError(f"Kiki stopped reading this page: it {exc}.") from exc
+        else:
+            title, paragraphs, headings = html_document(data, charset, main_only=True, skip_hidden=True)
         wikipedia = "wikipedia.org" in (urlsplit(fetched_from).hostname or "")
         blocks = []
         for index, text in enumerate(paragraphs):
@@ -653,10 +690,7 @@ def _page(
                 sections.append(len(blocks))
         kind = "paragraph"
     else:
-        try:
-            text = data.decode(charset or "utf-8", errors="replace")
-        except LookupError:  # a made-up charset name
-            text = data.decode("utf-8", errors="replace")
+        text = data.decode(charset or "utf-8", errors="replace")
         lines = [_INVISIBLE.sub("", line) for line in text.splitlines()]
         blocks = [(number, line.rstrip()) for number, line in enumerate(lines, start=1)
                   if line.strip()]
@@ -692,20 +726,39 @@ def _text_sections(lines: list[str]) -> list[int]:
     return starts
 
 
+# A path segment that looks like a key: long, letters and digits mixed, no dots
+# (Slack webhooks, bot tokens, signed share links).
+_TOKEN_SEGMENT = re.compile(r"^(?=[^.]*\d)(?=[^.]*[A-Za-z])[A-Za-z0-9_:-]{20,}$")
+
+
 def secret_parameters(url: str) -> list[str]:
-    """Names of query parameters that look like tokens or passwords."""
-    return [name for name, _ in parse_qsl(urlsplit(url).query, keep_blank_values=True)
-            if _SECRET_PARAMETER.search(name)]
+    """Where the address seems to carry a password or token: query names, the
+    fragment, or a key-like path segment."""
+    parts = urlsplit(url)
+    found = [name for name, _ in parse_qsl(parts.query, keep_blank_values=True)
+             if _SECRET_PARAMETER.search(name)]
+    if any(_SECRET_PARAMETER.search(name) for name, _ in parse_qsl(parts.fragment, keep_blank_values=True)):
+        found.append("#fragment")
+    if any(_TOKEN_SEGMENT.match(segment) for segment in parts.path.split("/")):
+        found.append("a key-like part of the path")
+    return found
 
 
 def _redacted(url: str) -> str:
-    """The address with secret-looking query values replaced, for the log."""
+    """The address with secret-looking values replaced, for the log and messages."""
     parts = urlsplit(url)
-    if not parts.query:
-        return url
-    pairs = [(name, "REDACTED" if _SECRET_PARAMETER.search(name) else value)
-             for name, value in parse_qsl(parts.query, keep_blank_values=True)]
-    return parts._replace(query=urlencode(pairs)).geturl()
+    path = "/".join("REDACTED" if _TOKEN_SEGMENT.match(segment) else segment
+                    for segment in parts.path.split("/"))
+    query = urlencode([(name, "REDACTED" if _SECRET_PARAMETER.search(name) else value)
+                       for name, value in parse_qsl(parts.query, keep_blank_values=True)])
+    # Fragments never reach the server, so a logged one is only a leak.
+    return parts._replace(path=path, query=query if parts.query else "",
+                          fragment="REDACTED" if parts.fragment else "").geturl()
+
+
+def _redacted_text(text: str) -> str:
+    """Text with every address in it redacted."""
+    return re.sub(r"https?://\S+", lambda match: _redacted(match.group()), text)
 
 
 def _append_log(path: Path, record: dict[str, object]) -> None:

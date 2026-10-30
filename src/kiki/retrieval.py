@@ -23,6 +23,7 @@ from .extraction import (
     extract_chunks,
 )
 from .resilience import KikiError, ErrorCode
+from .isolation import IsolatedParser
 from .safety import protected_folder_reason
 
 
@@ -339,7 +340,8 @@ class TextIndex:
         files = self._walk(root, issues)
         readable = [(path, size) for path, size, _ in files if path.suffix.lower() in SUPPORTED_EXTENSIONS]
         counts["skipped"] = len(files) - len(readable)
-        with self._session() as connection:
+        parser = IsolatedParser()
+        with parser, self._session() as connection:
             self._claim_root(connection, root)
             for done, (path, size) in enumerate(readable, start=1):
                 if progress:
@@ -350,12 +352,16 @@ class TextIndex:
                     continue
                 seen.add(str(path))
                 try:
-                    changed = self._replace_file(connection, root, path)
-                except (ExtractionError, OSError) as exc:
+                    changed = self._replace_file(connection, root, path, parser)
+                except Exception as exc:
+                    # Any error in one file is that file's failure: a malformed
+                    # PDF used to abort the whole folder (audit A8).
                     self._delete_path(connection, path)
                     seen.discard(str(path))
                     counts["failed"] += 1
-                    issues.append({"path": str(path), "reason": str(exc)})
+                    reason = str(exc) if isinstance(exc, (ExtractionError, OSError)) else (
+                        f"could not be read ({type(exc).__name__})")
+                    issues.append({"path": str(path), "reason": reason})
                     continue
                 counts["indexed" if changed else "unchanged"] += 1
 
@@ -489,8 +495,13 @@ class TextIndex:
                 matches[term] = best
         return matches
 
-    def _replace_file(self, connection: sqlite3.Connection, root: Path, path: Path) -> bool:
-        data = path.read_bytes()
+    def _replace_file(self, connection: sqlite3.Connection, root: Path, path: Path,
+                      parser: IsolatedParser | None = None) -> bool:
+        # Bounded read: the file may have grown since the folder was walked (audit L5).
+        with path.open("rb") as handle:
+            data = handle.read(self.MAX_FILE_BYTES + 1)
+        if len(data) > self.MAX_FILE_BYTES:
+            raise ExtractionError("file exceeds 25 MiB limit")
         version = extraction_version(path).encode("ascii")
         digest = hashlib.sha256(data + b"\0" + version).hexdigest()
         existing = connection.execute(
@@ -499,7 +510,12 @@ class TextIndex:
         if existing and existing["content_hash"] == digest:
             return False
 
-        chunks = extract_chunks(path)
+        # Parsed in a limited child process: a crafted file can hang or inflate
+        # a parser, and must cost only itself (audit A5-A7).
+        if parser is not None:
+            chunks, title = parser.extract_file(path)
+        else:
+            chunks, title = extract_chunks(path), document_title(path)
         source_id = hashlib.sha256(f"{path}\0{digest}".encode("utf-8")).hexdigest()[:16]
         if existing:
             self._delete_source(connection, existing["source_id"])
@@ -514,7 +530,7 @@ class TextIndex:
                 digest,
                 stat.st_size,
                 stat.st_mtime_ns,
-                document_title(path),
+                title,
             ),
         )
         for chunk in chunks:

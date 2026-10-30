@@ -22,6 +22,7 @@ Changed for Kiki:
 from __future__ import annotations
 
 import re
+from bisect import bisect_left, bisect_right
 from collections import Counter
 from dataclasses import dataclass
 
@@ -47,12 +48,13 @@ class Paragraph:
         text = raw.strip()
         start += leading
         end = start + len(text)
-        covered = [
-            (max(offset, start) - start, page)
-            for index, (offset, page) in enumerate(self.pages)
-            if offset < end
-            and (index + 1 == len(self.pages) or self.pages[index + 1][0] > start)
-        ]
+        # Binary search over the page offsets: scanning all of them for every
+        # slice was quadratic on long books (audit A27).
+        offsets = [offset for offset, _ in self.pages]
+        first = max(0, bisect_right(offsets, start) - 1)
+        last = bisect_left(offsets, end)
+        covered = [(max(offset, start) - start, page)
+                   for offset, page in self.pages[first:max(last, first + 1)]]
         return Paragraph(text, tuple(covered))
 
 
@@ -111,18 +113,27 @@ def strip_running_lines(pages: list[tuple[int, str]]) -> list[tuple[int, str]]:
 
 def page_paragraphs(pages: list[tuple[int, str]]) -> list[Paragraph]:
     """Document-order paragraphs, joining text interrupted by a page break."""
-    stream: list[Paragraph] = []
+    # Each paragraph is built from a list of parts and joined once: gluing a
+    # growing string page after page was quadratic for books whose sentences
+    # run across page breaks (audit A27).
+    building: list[tuple[list[str], list[tuple[int, int]], int]] = []
     for number, text in pages:
         blocks = [block.strip() for block in re.split(r"\n\s*\n", text) if block.strip()]
         for position, block in enumerate(blocks):
-            if position == 0 and stream and _continues(stream[-1].text, block):
-                last = stream.pop()
-                hyphenated = last.text.endswith("-") and block[:1].islower()
-                body = last.text[:-1] if hyphenated else last.text + " "
-                stream.append(Paragraph(body + block, (*last.pages, (len(body), number))))
+            if position == 0 and building and _continues(building[-1][0][-1], block):
+                parts, offsets, length = building[-1]
+                if parts[-1].endswith("-") and block[:1].islower():
+                    parts[-1] = parts[-1][:-1]
+                    length -= 1
+                else:
+                    parts.append(" ")
+                    length += 1
+                offsets.append((length, number))
+                parts.append(block)
+                building[-1] = (parts, offsets, length + len(block))
             else:
-                stream.append(Paragraph(block, ((0, number),)))
-    return stream
+                building.append(([block], [(0, number)], len(block)))
+    return [Paragraph("".join(parts), tuple(offsets)) for parts, offsets, _ in building]
 
 
 def _continues(previous: str, following: str) -> bool:
