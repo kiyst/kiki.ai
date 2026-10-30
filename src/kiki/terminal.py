@@ -41,7 +41,13 @@ from .apply_command import apply_command
 from .run_command import run_command
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex, query_instruction
 from .settings import RetrievalSettings
-from .self_knowledge import COMMAND_HELP, capabilities_text, self_help_hints, self_knowledge_prompt
+from .self_knowledge import (
+    COMMAND_HELP,
+    capabilities_text,
+    self_help_hints,
+    self_knowledge_prompt,
+    unknown_commands,
+)
 from .tools import ToolRegistry
 from .web import (
     WEB_PASSAGES,
@@ -54,6 +60,8 @@ from .web import (
     offline_mode,
     page_passages,
     REMOVED_MARKER,
+    asks_for_credentials,
+    risky_details,
     secret_parameters,
     suspicious_instructions,
     without_planted,
@@ -134,6 +142,13 @@ class TerminalSession:
         # The page from the last /web, kept so follow-up questions need no new download.
         self.web_page: WebPage | None = None
         self._web_vectors: dict[str, list[list[float]]] = {}
+        # Defences against instructions planted in web pages (see
+        # ToolCallingAssistant). Datamarking resisted 24/26 attack answers
+        # against 22/26 for none (delimiting was worse, the reminder added
+        # nothing) with no loss on ordinary questions, at about 3 s more per
+        # answer; see the engineering log.
+        self.web_spotlight: str | None = "datamark"
+        self.web_reminder = False
         self.web_meaning_error: str | None = None
         self._set_index(database)
 
@@ -232,6 +247,8 @@ class TerminalSession:
             passages=min(self.settings.passages, WEB_PASSAGES),
             max_evidence_characters=self.settings.context_characters,
             support_check=True,
+            spotlight=self.web_spotlight,
+            reminder=self.web_reminder,
         )
         outcome = assistant.ask(question, history=self.histories[self.mode])
         if search.meaning_error:
@@ -606,7 +623,8 @@ def run_shell(
                 debug=session.debug,
             )
             if retrieval_mode == "page":
-                _render_web_notes(console, outcome, session.web_meaning_error)
+                _render_web_notes(console, outcome, session.web_meaning_error,
+                          session.web_page.url if session.web_page else "")
         except Exception as exc:  # terminal boundary: preserve session after provider/model errors
             error = exc.payload() if isinstance(exc, KikiError) else safe_error(exc)
             message = f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}"
@@ -623,6 +641,10 @@ def render_outcome(
 ) -> None:
     title = {"rag": "Kiki · RAG", "web": "Kiki · Web"}.get(mode, "Kiki · Chat")
     console.print(Panel(Markdown(outcome.answer or "_(No response)_"), title=title, border_style="cyan"))
+    invented = unknown_commands(outcome.answer)
+    if invented:
+        console.print(Text(
+            f"Not a Kiki command: {', '.join(invented)}. /help lists the real ones.", style="yellow"))
     render_sources(console, outcome.sources, outcome.answer)
     if debug:
         render_trace(console, outcome, retrieval_mode)
@@ -1185,13 +1207,29 @@ def _handle_web(console: Console, session: TerminalSession, command: str, rest: 
                             title="Request failed", border_style="red"))
         return
     render_outcome(console, outcome, mode="web", retrieval_mode="page", debug=session.debug)
-    _render_web_notes(console, outcome, session.web_meaning_error)
+    _render_web_notes(console, outcome, session.web_meaning_error,
+                          session.web_page.url if session.web_page else "")
 
 
 def _render_web_notes(
-    console: Console, outcome: ChatOutcome, meaning_error: str | None = None
+    console: Console, outcome: ChatOutcome, meaning_error: str | None = None,
+    page_url: str = "",
 ) -> None:
-    """Flag unsupported sentences and say how much of the page was read, and how."""
+    """Flag unsupported sentences and risky details, and say how much of the page was read."""
+    if asks_for_credentials(outcome.answer):
+        console.print(Text(
+            "Warning: this answer tells you to send or enter a password, code, or payment details. "
+            "That is how phishing pages work. Don't, unless you reached the service yourself "
+            "through its official site or app.",
+            style="bold red"))
+    risky = risky_details(outcome.answer, page_url)
+    if risky:
+        console.print(Text(
+            "From the page, unverified: " + "; ".join(risky[:5])
+            + (f"; and {len(risky) - 5} more" if len(risky) > 5 else "")
+            + ". Pages can be wrong or planted; check these with an official source before you "
+              "call, write to, click, or run them.",
+            style="yellow"))
     flagged = unsupported_sentences(outcome.answer, outcome.sources)
     if flagged:
         examples = "\n".join(f"  • {_shorten(sentence, 110)}" for sentence in flagged[:3])

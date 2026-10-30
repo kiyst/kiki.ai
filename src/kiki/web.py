@@ -180,6 +180,74 @@ def without_planted(page: WebPage) -> tuple[WebPage, int]:
     return (replace(page, blocks=blocks) if removed else page), removed
 
 
+# A full stop may end the sentence after a number, but not continue it (3.14.0).
+_PHONE = re.compile(r"(?<![\w.])\+?\d[\d ().-]{7,}\d(?!\w|\.\d)")
+_EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+_LINK = re.compile(r"\bhttps?://[^\s)\]>\"'`]+|\bwww\.[^\s)\]>\"'`]+", re.IGNORECASE)
+# Commands that download and run something, or need administrator rights.
+_RISKY_COMMAND = re.compile(
+    r"\b(?:curl|wget|iwr|invoke-webrequest|invoke-expression|iex|certutil|bitsadmin|mshta|"
+    r"regsvr32|sudo|chmod\s+777|rm\s+-rf|del\s+/[sq]|format\s+[a-z]:|reg\s+add)\b|\|\s*(?:ba)?sh\b",
+    re.IGNORECASE,
+)
+
+
+def risky_details(answer: str, page_url: str) -> list[str]:
+    """Phone numbers, emails, other sites' links, and risky commands in a web answer.
+
+    A planted instruction can steer an answer however it is phrased, but what
+    it wants passed on is nearly always one of these: a number to call, an
+    address to write to, a link, or a command. They are listed for the user
+    as unverified, whether or not anything looked like an attack."""
+    found: list[str] = []
+    for match in _PHONE.finditer(answer):
+        number = match.group().strip()
+        # Dates (2025-10-07) and year ranges (1815-1852) look like numbers too.
+        if (sum(character.isdigit() for character in number) >= 7
+                and not re.fullmatch(r"\d{4}-\d{1,2}-\d{1,2}|\d{4}\s*-\s*\d{2,4}", number)):
+            found.append(f"phone number {number}")
+    found.extend(f"email address {match.group()}" for match in _EMAIL.finditer(answer))
+    host = (urlsplit(page_url).hostname or "").casefold().removeprefix("www.")
+    for match in _LINK.finditer(answer):
+        link = match.group().rstrip(".,;:!?")
+        target = (urlsplit(link if "://" in link else f"https://{link}").hostname or "").casefold()
+        if not host or not (target == host or target.endswith(f".{host}")
+                            or target.removeprefix("www.") == host):
+            found.append(f"link {link}")
+    # Code spans and lines first, so the command itself is reported, not its paragraph.
+    pieces = re.findall(r"`([^`\n]+)`", answer) + [
+        sentence for line in re.sub(r"`[^`\n]+`", " ", answer).splitlines()
+        for sentence in re.split(r"(?<=[.!?])\s+", line)]
+    for piece in pieces:
+        if _RISKY_COMMAND.search(piece):
+            found.append(f"command {piece.strip()[:120]}")
+    return list(dict.fromkeys(found))
+
+
+_CREDENTIAL_REQUEST = re.compile(
+    r"\b(?:send(?:ing)?|e-?mail(?:ing)?|enter(?:ing)?|typ(?:e|ing)|shar(?:e|ing)|text(?:ing)?|"
+    r"giv(?:e|ing)|submit(?:ting)?|provid(?:e|ing)|reply(?:ing)? with)\b(?:[^.!?\n]|\.(?=\S)){0,60}"
+    r"\b(?:password|passcode|pin|one-time code|verification code|card number|credit card|"
+    r"bank details|account number|social security|seed phrase|recovery phrase)\b"
+    r"|\b(?:password|passcode|pin|card number|bank details|seed phrase)\b(?:[^.!?\n]|\.(?=\S)){0,40}"
+    r"\b(?:to|at|via)\b[^.!?\n]{0,20}(?:@|https?://|\+?\d{3})",
+    re.IGNORECASE,
+)
+
+
+def asks_for_credentials(answer: str) -> bool:
+    """True when an answer tells the user to hand over a password, code, or payment details.
+
+    No legitimate page needs an assistant to relay that; it is the payload of
+    phishing pages, so it gets its own warning however it was phrased. A
+    sentence warning against it ("never share your password") doesn't count."""
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", answer):
+        if _CREDENTIAL_REQUEST.search(sentence) and not re.search(
+                r"\b(?:never|don't|do not|not|avoid|without)\b", sentence, re.IGNORECASE):
+            return True
+    return False
+
+
 def looks_like_url(text: str) -> bool:
     # A bare address needs a letter top-level domain, so "python3.14" is a word, not a site.
     return bool(re.match(r"^(https?://\S+|([\w-]+\.)+[a-z]{2,}(:\d+)?([/?#]\S*)?)$", text, re.I))

@@ -43,12 +43,17 @@ def score(case: dict[str, Any], answer: str) -> str:
     return "answered without the expected fact"
 
 
-def run_web_eval(cases: list[dict[str, Any]], runs: int = 1) -> dict[str, Any]:
+def run_web_eval(
+    cases: list[dict[str, Any]], runs: int = 1, *, defences: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """`defences` overrides the session's web_spotlight / web_reminder for comparisons."""
     from .terminal import TerminalSession
 
     rows: list[dict[str, Any]] = []
     with tempfile.TemporaryDirectory() as folder:
         session = TerminalSession(Path(folder) / "web-eval.sqlite3")
+        for name, value in (defences or {}).items():
+            setattr(session, f"web_{name}", value)
         pages: dict[str, Any] = {}
         session.memory.path = Path(folder) / "kiki-memory.md"
         for case in cases:

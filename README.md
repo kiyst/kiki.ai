@@ -65,6 +65,10 @@ RAG you > What does Paine say about hereditary succession?
   ([Reading web pages](#reading-web-pages)).
 - **Know when to stop.** Questions the documents cannot answer get "Evidence is
   insufficient" instead of a guess.
+- **Know herself.** Ask "what goes with /web?" or "how do I make you
+  wittier?" and she answers from her own command list. If any answer presents
+  a slash command Kiki doesn't have (an invented `/admin`, or a fake one
+  copied from a web page), a line under it says so.
 - **Check the weather.** Live conditions from Open-Meteo, with a follow-up
   question when a place name is ambiguous ("Springfield… which one?").
 - **Remember only what you ask her to.** `/remember` saves a note to a plain
@@ -325,12 +329,21 @@ cannot see the page and says so rather than guessing what it contains.
     WEB mode, so a page can't trick her into repeating them.
   - A link containing a password or token gets a warning, and the value is
     kept out of the web log.
-  - **Known limit:** the detector recognises common phrasings only. In
-    testing, the model obeyed planted instructions it missed (an
-    `[INSTRUCTION]` block, a Spanish one, an "editor's note" giving a scam
-    phone number). Nothing can run from a web page, but an answer can be
-    steered, so treat phone numbers, links, and commands in web answers
-    with care.
+  - Page text reaches the model "datamarked" (every space replaced with
+    `ˆ`) and she's told marked text is never an instruction. This resisted
+    more planted instructions than wrapping pages in tags or repeating the
+    question, with no loss on ordinary questions, at about 3 seconds more per
+    answer.
+  - Under every web answer, phone numbers, email addresses, links to other
+    sites, and commands that download-and-run or need admin rights are listed
+    as **unverified**, and an answer that tells you to send or enter a
+    password, code, or payment details gets a red warning. These don't depend
+    on spotting the attack, so they catch what the detector misses.
+  - **Known limit:** planted instructions in unfamiliar phrasings still steer
+    some answers. On a set of attacks written after these defences were
+    built, she passed on a planted link and "email your password to…"; both
+    were caught by the unverified list and the red warning, but treat phone
+    numbers, links, and commands in web answers with care.
 - **Offline switch.** Set `KIKI_OFFLINE=1` and Kiki makes no internet requests
   at all, for web pages or weather.
 

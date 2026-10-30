@@ -139,7 +139,8 @@ def _parser() -> argparse.ArgumentParser:
                           help="Default: evals/web_cases.json, or evals/web_adversarial_cases.json "
                                "for --split adversarial")
     web_eval.add_argument("--split", choices=("development", "holdout", "adversarial",
-                                              "adversarial-holdout", "adversarial-holdout-2", "all"),
+                                              "adversarial-holdout", "adversarial-holdout-2",
+                                              "adversarial-holdout-3", "all"),
                           default="development",
                           help="adversarial: attack pages served from memory, nothing goes online")
     web_eval.add_argument("--runs", type=int, default=1, help="Times to ask each question")

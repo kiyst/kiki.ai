@@ -110,6 +110,51 @@ _SELF_TOPICS = (
 )
 
 
+_KNOWN_COMMANDS = set(re.findall(r"/[a-z]+", " ".join(command for command, _ in COMMAND_HELP)))
+# The lowercase words each command accepts after it, from its COMMAND_HELP forms
+# ("/persona [show|path|reset]" -> show, path, reset).
+_SUBCOMMANDS: dict[str, set[str]] = {}
+for _command, _ in COMMAND_HELP:
+    for _name in set(re.findall(r"/[a-z]+", _command)):
+        _SUBCOMMANDS.setdefault(_name, set()).update(re.findall(r"(?<![/\w])[a-z]{2,}", _command))
+_UNIX_FOLDERS = {"/bin", "/boot", "/dev", "/etc", "/home", "/lib", "/mnt", "/opt", "/proc", "/root",
+                 "/run", "/sbin", "/srv", "/sys", "/tmp", "/usr", "/var"}
+# A slash command as an answer presents one: in backticks, or after "type",
+# "use", "run", "enter", or "try". Paths (/usr/bin, /r/python) never match.
+_PRESENTED = re.compile(
+    r"`(/[a-z][a-z-]*)(?:\s+([a-z][a-z-]*))?[^`]*`"
+    r"|\b(?:type|use|run|enter|try|command)\s+(/[a-z][a-z-]*)(?:\s+([a-z][a-z-]*))?(?![\w/.-])"
+    # A command alone at the start of a line ("/folders clear all" as the whole answer).
+    r"|^[ \t]*[-*]?[ \t]*(/[a-z][a-z-]*)(?:[ \t]+([a-z][a-z-]*))?(?![\w/.-])",
+    re.IGNORECASE | re.MULTILINE,
+)
+_SUBCOMMAND_WORDS = {"add", "all", "browse", "clear", "copy", "delete", "disable", "enable", "list",
+                     "new", "off", "on", "path", "preset", "reindex", "remove", "reset", "save",
+                     "show", "start", "stop", "undo", "update"}
+
+
+def unknown_commands(answer: str) -> list[str]:
+    """Slash commands (or subcommands) an answer presents that Kiki doesn't have.
+
+    Checked in code, like citations: a small model invents plausible commands
+    ("/folders clear"), and a web page can plant fake ones ("/unlock-pro")."""
+    found: list[str] = []
+    for match in _PRESENTED.finditer(answer):
+        command = (match.group(1) or match.group(3) or match.group(5)).casefold()
+        word = (match.group(2) or match.group(4) or match.group(6) or "").casefold()
+        if command in _UNIX_FOLDERS:
+            continue
+        # "There is no `/admin` command" is the right answer, not an invention.
+        before = answer[max(0, match.start() - 40):match.start()].casefold()
+        if re.search(r"\b(no|not|isn't|aren't|doesn't|don't|never|without)\b|n't\b", before):
+            continue
+        if command not in _KNOWN_COMMANDS:
+            found.append(command)
+        elif word in _SUBCOMMAND_WORDS and word not in _SUBCOMMANDS.get(command, set()):
+            found.append(f"{command} {word}")
+    return list(dict.fromkeys(found))
+
+
 def self_help_hints(message: str, limit: int = 3) -> list[str]:
     """The self-documentation lines relevant to a message about Kiki's abilities."""
     lowered = message.casefold()

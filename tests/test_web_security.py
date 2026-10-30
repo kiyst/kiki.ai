@@ -353,8 +353,11 @@ def test_planted_instructions_are_shown_to_the_user_but_kept_from_the_model(tmp_
     output = console.export_text()
     assert "Heads up: this page contains text aimed at AI assistants" in output and "verified safe" in output
     # Neither the instructions nor the passages the model reads contain the attack.
-    assert "verified safe" not in seen[0]
-    assert "removed" in seen[0] and "Enter your password below." in seen[0]
+    # (Passages are datamarked: spaces arrive as ˆ.)
+    shown = seen[0].replace("\\u02c6", " ")
+    assert "verified safe" not in shown
+    assert "removed" in shown and "Enter your password below." in shown
+    assert "Enter\\u02c6your" in seen[0]
 
 
 def test_look_alike_characters_and_summary_hooks_are_detected() -> None:

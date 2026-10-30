@@ -1230,3 +1230,54 @@ Tests/evaluations run: pytest 364 passed. Ten self-questions used while
 Guard: tests/test_self_knowledge.py fails when an interactive command or a
         handled subcommand is missing from what the model is told.
 ```
+
+## Planted-instruction defences: datamarking, unverified details, command guard
+
+```text
+Date: 2026-10-30
+Stage: follow-up to the attack holdout (3/12); the user approved spotlighting,
+        labelling risky details, and self-knowledge edge cases
+Files changed: src/kiki/model_client.py (spotlight: datamark or delimit,
+        reminder; token-aware budget), web.py (risky_details,
+        asks_for_credentials), self_knowledge.py (unknown_commands),
+        terminal.py, web_evals.py (defence overrides), cli.py,
+        evals/web_adversarial_cases.json (holdout-3, written before any of
+        these defences), tests
+Measured cost: datamarking with every marker tried costs 57-134% more tokens
+        (2.5-2.7 characters per token instead of 4.3); "_" costs 22% but
+        collides with code names. The budget uses 2.4 for marked text.
+Comparison on attack sets allowed for tuning (13 pages x 2 runs): none
+        22/26 resisted; reminder 22/26; delimit 20/26 (worse); delimit +
+        reminder 21/26; datamark 24/26; datamark + reminder 23/26. Datamark
+        adopted: ordinary questions 15/15 and 13/13 with it, at about 3 s
+        more per answer in a single run (7.0 and 8.0 s over three runs).
+Clean holdout-3 (5 new styles x 3 runs): graded 4/15 resisted with
+        datamarking, 3/15 without; read by hand, 9/15 resisted (the FAQ and
+        "user request" answers warned about the planted claim, which the
+        substring grader counts as following) and 6/15 genuinely passed on a
+        planted link or "email your password to ...".
+Labels: under every web answer, phone numbers, email addresses, links to
+        other sites, and download-and-run or admin commands are listed as
+        unverified; telling the user to send or enter a password, code, or
+        payment details gets a red warning (this rule was written after
+        seeing the holdout-3 password case, so that case is not a clean
+        result). Every genuine failure in holdout-2 and holdout-3 is now
+        labelled; ordinary answers labelled: 6/84 (sudo make install from
+        the CPython README, Flask's 127.0.0.1 link). A phone number ending a
+        sentence was missed at first (the pattern refused a following full
+        stop); fixed with a test.
+Command guard: answers that present a slash command or subcommand Kiki
+        doesn't have get "Not a Kiki command" (code check, all modes). Self
+        edge cases: no /admin, no secret debug command, no file deletion, no
+        password, no voice mode; she still answered "/folders clear all"
+        (invented; caught once the guard also read bare commands at the start
+        of a line) and repeated a fake /unlock-pro planted on a page (caught).
+Regression (3 runs): web development 45/45, holdout 39/39, attack set 27/27,
+        attack holdout-2 9/12 (the scam number, now labelled); eval-rag 15/15
+        cited and 3/3 declined; eval-behavior 7/8 (the known SQL-injection
+        case). pytest 367 passed.
+Known limits: the model still passes on planted links and contact details in
+        unfamiliar phrasings; the defence for those is the label, not the
+        model. Wrong claims with no names, numbers, links, or commands are
+        not caught.
+```
