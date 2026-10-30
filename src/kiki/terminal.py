@@ -251,6 +251,7 @@ class TerminalSession:
             support_check=True,
             spotlight=self.web_spotlight,
             reminder=self.web_reminder,
+            strip_planted=True,
         )
         outcome = assistant.ask(question, history=self.histories[self.mode])
         if search.meaning_error:
@@ -260,6 +261,8 @@ class TerminalSession:
     def _set_index(self, database: Path) -> None:
         self.index = TextIndex(database)
         self.database = self.index.database
+        # Weather requests are logged with web requests, next to the library.
+        self.weather.log = self.web_log
 
     def set_database(self, database: Path) -> None:
         self._set_index(database)
@@ -354,22 +357,27 @@ class TerminalSession:
             return self.ask_web(prompt, prompt), "page"
         if self.mode == "rag":
             backend, retrieval_mode = self.retrieval_backend()
-            registry = ToolRegistry(backend, weather=self.weather)
+            # The model gets only document search: no network tool it could be
+            # talked into using by a planted document (audit A1). Documents in
+            # indexed folders are untrusted like web pages, so they get the same
+            # defences, and saved memories stay out of reach.
+            registry = ToolRegistry(backend)
             assistant = ToolCallingAssistant(
                 OllamaClient(),
                 registry,
                 model=self.last_model_selection.model,
                 pre_retrieve=weather_location is None,
-                system_prompt=self._system_prompt(RAG_SYSTEM_PROMPT),
+                system_prompt=self._system_prompt(RAG_SYSTEM_PROMPT, include_memory=False),
                 passages=self.settings.passages,
                 max_evidence_characters=self.settings.context_characters,
+                spotlight=self.web_spotlight,
+                strip_planted=True,
             )
         else:
             retrieval_mode = "none"
-            registry = ToolRegistry(
-                weather=self.weather,
-                include_search=False,
-            )
+            # Weather is fetched by Kiki's code from what the user typed (above),
+            # never by a tool the model chooses to call.
+            registry = ToolRegistry(include_search=False)
             system_prompt = self._system_prompt(CHAT_SYSTEM_PROMPT)
             hints = self_help_hints(prompt)
             if hints:

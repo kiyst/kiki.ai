@@ -35,6 +35,7 @@ import httpx
 
 from .documents import html_document
 from .retrieval import SearchResult
+from .safety import offline_mode
 
 MAX_PAGE_BYTES = 5 * 1024 * 1024
 MAX_REDIRECTS = 5
@@ -76,8 +77,6 @@ class WebError(ValueError):
     """A page Kiki will not or cannot read; the message is meant for the user."""
 
 
-def offline_mode() -> bool:
-    return os.getenv("KIKI_OFFLINE", "").strip().casefold() in {"1", "true", "yes", "on"}
 
 
 @dataclass(frozen=True)
@@ -169,15 +168,30 @@ def without_planted(page: WebPage) -> tuple[WebPage, int]:
     removed = 0
     blocks: list[tuple[int, str]] = []
     for number, text in page.blocks:
-        kept = []
-        for sentence in _sentences(text):
-            if _is_planted(sentence):
-                removed += 1
-                kept.append(REMOVED_MARKER)
-            else:
-                kept.append(sentence)
-        blocks.append((number, " ".join(kept)))
-    return (replace(page, blocks=blocks) if removed else page), removed
+        cleaned, count = remove_planted_text(text)
+        removed += count
+        blocks.append((number, cleaned))
+    # The title travels with every passage, so it is checked too (audit A10).
+    title, count = remove_planted_text(page.title)
+    if count:
+        removed += count
+        title = page.host
+    if not removed:
+        return page, 0
+    return replace(page, blocks=blocks, title=title), removed
+
+
+def remove_planted_text(text: str) -> tuple[str, int]:
+    """Text with each sentence aimed at AI readers replaced by REMOVED_MARKER, and how many."""
+    kept: list[str] = []
+    removed = 0
+    for sentence in _sentences(text):
+        if _is_planted(sentence):
+            removed += 1
+            kept.append(REMOVED_MARKER)
+        else:
+            kept.append(sentence)
+    return (" ".join(kept) if removed else text), removed
 
 
 # A full stop may end the sentence after a number, but not continue it (3.14.0).

@@ -17,6 +17,11 @@ from pathlib import Path
 _CONTROL = re.compile("[\x00-\x08\x0b-\x1f\x7f-\x9f]")
 
 
+def offline_mode() -> bool:
+    """KIKI_OFFLINE=1 (or true/yes/on) blocks every internet request Kiki makes."""
+    return os.getenv("KIKI_OFFLINE", "").strip().casefold() in {"1", "true", "yes", "on"}
+
+
 def visible_controls(text: str) -> str:
     """Text with control characters shown as \\xNN instead of acted on by the terminal."""
     return _CONTROL.sub(lambda match: f"\\x{ord(match.group()):02x}", text)

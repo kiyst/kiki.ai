@@ -465,7 +465,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             cases = cases[: arguments.limit]
         assistant = ToolCallingAssistant(
             OllamaClient(),
-            ToolRegistry(weather=OpenMeteoWeatherProvider(), include_search=False),
+            ToolRegistry(include_search=False),
             model=arguments.model,
             system_prompt=(
                 f"{CHAT_SYSTEM_PROMPT}\n\n"
@@ -497,7 +497,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             cases = cases[: arguments.limit]
         assistant = ToolCallingAssistant(
             OllamaClient(),
-            ToolRegistry(weather=OpenMeteoWeatherProvider(), include_search=False),
+            ToolRegistry(include_search=False),
             model=arguments.model,
             system_prompt=(
                 f"{CHAT_SYSTEM_PROMPT}\n\n"
