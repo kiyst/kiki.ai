@@ -108,6 +108,9 @@ def _preview(console: Console, code: str, *, source: str, mode: str, limits: Run
     ]
     if mode == "rag":
         notes.append("This answer was based on your documents; read the code before running it.")
+    elif mode == "web":
+        notes.append("This answer was based on a web page, which anyone could have written; "
+                     "read the code before running it.")
     console.print(Text("\n".join(notes), style="dim"))
 
 

@@ -533,6 +533,13 @@ def _support_terms(text: str) -> set[str]:
     }
 
 
+_ABSENCE_NOTE = re.compile(
+    r"\b(?:no|not|n't|neither|nor|none)\b.*\b(?:excerpts?|passages?|page|sources?|evidence|provided)\b"
+    r"|\b(?:excerpts?|passages?|page|sources?|evidence)\b.*\b(?:no|not|n't|neither|nor|none)\b",
+    re.IGNORECASE,
+)
+
+
 def unsupported_sentences(answer: str, sources: list[dict[str, Any]]) -> list[str]:
     """Sentences whose distinctive words mostly don't appear in the evidence shown.
 
@@ -555,6 +562,8 @@ def unsupported_sentences(answer: str, sources: list[dict[str, Any]]) -> list[st
     flagged = []
     for sentence in re.split(r"(?<=[.!?])\s+|\n+", prose):
         sentence = sentence.replace("**", "").strip(" -*•\t")
+        if _ABSENCE_NOTE.search(sentence):
+            continue  # "The excerpts don't mention X" needs no support from them.
         terms = _support_terms(sentence)
         if len(terms) >= 3 and len(terms & evidence) / len(terms) < 0.5:
             flagged.append(sentence)

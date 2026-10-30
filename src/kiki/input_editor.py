@@ -116,7 +116,7 @@ class ChatInput:
         )
 
     def prompt(self, mode: str, debug: bool = False) -> str:
-        color = "ansimagenta" if mode == "rag" else "ansicyan"
+        color = {"rag": "ansimagenta", "web": "ansigreen"}.get(mode, "ansicyan")
         suffix = " · debug" if debug else ""
         message = HTML(
             f"<b><{color}>{mode.upper()}{suffix}</{color}></b> <b>you &gt;</b> "

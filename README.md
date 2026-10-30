@@ -74,9 +74,10 @@ RAG you > What does Paine say about hereditary succession?
   adjustable, and her persona lives in an editable text file that never
   overrides the rules about evidence and safety.
 
-Two modes keep these apart. **CHAT** is ordinary conversation with no document
+Modes keep these apart. **CHAT** is ordinary conversation with no document
 access. **RAG** (retrieval-augmented generation) answers only from your indexed
-documents. Each mode keeps its own conversation history.
+documents. **WEB** answers only from the page you opened with `/web`. Each mode
+keeps its own conversation history.
 
 ## How a question becomes an answer
 
@@ -172,7 +173,7 @@ kiki --database .kiki\history.sqlite3 run
 | `/sources` | Show the last answer's sources again |
 | `/find WORDS` | Find whole files in your indexed folders; `/find` alone shows the last list again |
 | `/folders` | List indexed folders; `add PATH\|browse`, `reindex [NUMBER\|all]`, `remove NUMBER` |
-| `/web URL [QUESTION]` | Read one public web page and answer from it; `/web QUESTION` asks about it again, `/web clear` forgets it |
+| `/web URL [QUESTION]` | Read one public web page and switch to WEB mode, where messages ask about it; `/web` returns to it, `/web clear` forgets it |
 | `/run [FILE.py]` | Run the last answer's Python (or a copy of a file) in the sandbox, after you confirm |
 | `/workspace [PATH\|browse]` | Choose the folder `/apply` may write into (this session only) |
 | `/apply FILE` | Save the last answer's code to a file in the workspace, after you approve the diff |
@@ -260,9 +261,13 @@ Give Kiki a link and, optionally, a question:
 ```text
 /web en.wikipedia.org/wiki/History_of_Python when was Python 3.0 released?
 /web https://github.com/python/cpython            (no question: a short overview)
-/web what does it say about building on Windows?  (asks about the same page)
 /web clear                                        (forgets the page)
 ```
+
+Reading a page switches to **WEB** mode (a green `WEB you >` prompt): plain
+messages then ask about that page, with no need to type `/web` again. `/chat`
+or `/rag` leaves, and `/web` alone returns to the page. In the other modes Kiki
+cannot see the page and says so rather than guessing what it contains.
 
 - **One page, only when you ask.** Kiki has no web search and never follows
   links or browses by herself. Every request is announced on screen ("Going

@@ -106,9 +106,9 @@ class TerminalSession:
         self.personality = PersonalitySettings.load(self.personality_path)
         self.persona = PersonaFile(database.resolve().parent / "kiki-persona.md")
         self.memory = MemoryStore(database.resolve().parent / "kiki-memory.md")
-        self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": []}
-        self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None}
-        self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None}
+        self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": [], "web": []}
+        self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None, "web": None}
+        self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None, "web": None}
         self.turns: list[dict[str, Any]] = []
         # Folder /apply may write into; chosen by the user each session, never saved.
         self.workspace: Path | None = None
@@ -123,12 +123,19 @@ class TerminalSession:
         return self.database.resolve().parent / "kiki-web-log.jsonl"
 
     def read_web_page(self, url: str) -> WebPage:
-        self.web_page = fetch_page(url, log=self.web_log)
-        return self.web_page
+        page = fetch_page(url, log=self.web_log)
+        if self.web_page is None or page.url != self.web_page.url:
+            # Earlier turns were about another page; they would only mislead.
+            self.histories["web"].clear()
+        self.web_page = page
+        return page
 
     def ask_web(self, command: str, question: str, *, overview: bool = False) -> ChatOutcome:
-        """Answer from the current /web page, citing its passages like documents."""
+        """Answer from the current /web page, citing its passages like documents.
+
+        Always recorded in the WEB conversation, which /web switches to."""
         assert self.web_page is not None
+        self.mode = "web"
         self.last_model_selection = self.model_router.select(self.model_profile, Capability.RAG)
         assistant = ToolCallingAssistant(
             OllamaClient(),
@@ -231,6 +238,12 @@ class TerminalSession:
                 else []
             )
             return self._remember(prompt, outcome, "none")
+        if self.mode == "web":
+            if self.web_page is None:
+                return self._remember(prompt, ChatOutcome(
+                    "No page is open. Type /web URL to read one, or /chat to go back to "
+                    "ordinary conversation.", [], []), "none")
+            return self.ask_web(prompt, prompt), "page"
         if self.mode == "rag":
             backend, retrieval_mode = self.retrieval_backend()
             registry = ToolRegistry(backend, weather=self.weather)
@@ -482,10 +495,9 @@ def run_shell(
                 continue
             prompt = immediate_prompt
         try:
-            with console.status(
-                "Searching indexed evidence..." if session.mode == "rag" else "Thinking locally...",
-                spinner="dots",
-            ):
+            status = {"rag": "Searching indexed evidence...",
+                      "web": "Reading the passages that fit your question..."}
+            with console.status(status.get(session.mode, "Thinking locally..."), spinner="dots"):
                 outcome, retrieval_mode = session.ask(prompt)
             render_outcome(
                 console,
@@ -494,6 +506,8 @@ def run_shell(
                 retrieval_mode=retrieval_mode,
                 debug=session.debug,
             )
+            if retrieval_mode == "page":
+                _render_web_notes(console, outcome)
         except Exception as exc:  # terminal boundary: preserve session after provider/model errors
             error = exc.payload() if isinstance(exc, KikiError) else safe_error(exc)
             message = f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}"
@@ -547,7 +561,8 @@ def render_sources(
     console.print(table)
     uncited = len(sources) - len(listed)
     if uncited:
-        console.print(f"[dim]{uncited} more retrieved passages were not cited. /sources all lists them.[/dim]")
+        noun = "passage was" if uncited == 1 else "passages were"
+        console.print(f"[dim]{uncited} more retrieved {noun} not cited. /sources all lists them.[/dim]")
 
 
 def _source_name(path: str) -> str:
@@ -690,7 +705,7 @@ def _render_banner(console: Console, session: TerminalSession) -> None:
 
 
 def _prompt_text(session: TerminalSession) -> str:
-    color = "magenta" if session.mode == "rag" else "cyan"
+    color = {"rag": "magenta", "web": "green"}.get(session.mode, "cyan")
     debug = " · debug" if session.debug else ""
     return f"[{color}]{session.mode.upper()}{debug}[/{color}] [bold]you >[/bold] "
 
@@ -989,8 +1004,15 @@ def _handle_command(
     return False, None
 
 
-_WEB_USAGE = ("Usage: /web URL [QUESTION] reads a page and answers from it; "
-              "/web QUESTION asks about the same page again; /web clear forgets it.")
+_WEB_USAGE = ("Usage: /web URL [QUESTION] reads a page and switches to WEB mode, where plain "
+              "messages ask about that page; /chat leaves; /web clear forgets the page.")
+
+
+def _enter_web_mode(console: Console, session: TerminalSession) -> None:
+    if session.mode != "web":
+        session.mode = "web"
+        console.print("[bold]Mode changed to WEB.[/bold] [dim]Your messages now ask about this page; "
+                      "/chat goes back to conversation.[/dim]")
 
 
 def _handle_web(console: Console, session: TerminalSession, command: str, rest: str) -> None:
@@ -999,11 +1021,17 @@ def _handle_web(console: Console, session: TerminalSession, command: str, rest: 
         if session.web_page:
             page = session.web_page
             console.print(f"Current page: [cyan]{page.title}[/cyan] · {page.url}")
+            _enter_web_mode(console, session)
         console.print(f"[dim]{_WEB_USAGE}\nEvery request is logged in {session.web_log}.[/dim]")
         return
     if rest.casefold() == "clear":
         session.web_page = None
-        console.print("[dim]Forgot the page. Nothing from it was saved.[/dim]")
+        session.histories["web"].clear()
+        message = "Forgot the page. Nothing from it was saved."
+        if session.mode == "web":
+            session.mode = "chat"
+            message += " Back to CHAT."
+        console.print(f"[dim]{message}[/dim]")
         return
     overview = False
     if looks_like_url(words[0]):
@@ -1028,6 +1056,7 @@ def _handle_web(console: Console, session: TerminalSession, command: str, rest: 
         return
     else:
         question = rest
+    _enter_web_mode(console, session)
     try:
         with console.status("Reading the passages that fit your question...", spinner="dots"):
             outcome = session.ask_web(command, question, overview=overview)
@@ -1037,6 +1066,11 @@ def _handle_web(console: Console, session: TerminalSession, command: str, rest: 
                             title="Request failed", border_style="red"))
         return
     render_outcome(console, outcome, mode="web", retrieval_mode="page", debug=session.debug)
+    _render_web_notes(console, outcome)
+
+
+def _render_web_notes(console: Console, outcome: ChatOutcome) -> None:
+    """Flag unsupported sentences and say how much of the page was read."""
     flagged = unsupported_sentences(outcome.answer, outcome.sources)
     if flagged:
         examples = "\n".join(f"  • {_shorten(sentence, 110)}" for sentence in flagged[:3])

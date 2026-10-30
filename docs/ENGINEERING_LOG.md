@@ -996,3 +996,31 @@ Decision or proposal: step 2, /search with a search service the user picks and
         the notes loop; embed page passages for better picking.
 Human review needed: choosing a search service (an account or API key).
 ```
+
+## Web access: WEB mode for follow-ups
+
+```text
+Date: 2026-10-29
+Stage: web access step 1, follow-up fix from first use
+Commit before change: 3343f69
+Files changed: src/kiki/terminal.py, input_editor.py, run_command.py,
+        self_knowledge.py, model_client.py, tests/test_web.py, README.md
+Problem (first real use): after /web, the user asked "what does it say about
+        Windows builds?" without the /web prefix. It went to CHAT, which had
+        the /web answer in its history but no access to the page, and Kiki
+        replied that "the Wikipedia page ... does not contain specific details
+        about Windows builds": a claim about a page she never searched.
+Behavior changed: /web now switches to a WEB mode (green prompt) with its own
+        history; plain messages there search the open page. /chat and /rag
+        leave; /web alone returns; /web clear forgets the page and goes back
+        to CHAT; reading a different page clears WEB history. Self-knowledge
+        tells Kiki that in CHAT and RAG no page is visible and she must not
+        describe one. /run warns that code from a web answer came from a page
+        anyone could have written. The support check no longer flags
+        sentences that say the passages lack something.
+Tests/evaluations run: pytest 285 passed. The user's scenario with the real
+        model: in WEB mode the follow-up searched the page and said honestly
+        that it does not cover Windows builds (citing the one related
+        passage); in CHAT the same words no longer produce claims about the
+        page.
+```

@@ -9,7 +9,7 @@ COMMAND_HELP = (
     ("/sources [all]", "Show the passages the last answer cited (all: every retrieved passage)."),
     ("/find WORDS", "Find whole files in indexed folders; filters: ext:pdf in:FOLDER after:2025 before:2026-03 larger:10MB."),
     ("/folders [add|reindex|remove]", "List, add, reindex, or forget the folders Kiki indexes; files on disk are never changed."),
-    ("/web URL [QUESTION]", "Read one public web page and answer from it with citations; /web QUESTION asks again, /web clear forgets it."),
+    ("/web URL [QUESTION]", "Read one public web page and switch to WEB mode, where messages ask about it with citations; /web returns to it, /web clear forgets it."),
     ("/run [FILE.py]", "Run the last answer's Python (or a copy of a .py file) in the sandbox after you confirm."),
     ("/workspace [PATH|browse]", "Choose the folder /apply may write into (this session only)."),
     ("/apply FILE", "Save the last answer's code to a file in the workspace after you approve the diff."),
@@ -44,7 +44,7 @@ def self_knowledge_prompt(*, mode: str, model_profile: str) -> str:
 - Durable user memories are explicit, numbered, stored in kiki-memory.md, and removed with /forget NUMBER.
 - kiki-persona.md controls conversational identity; kiki-personality.json stores tone sliders.
 - To find a whole file ("I can't find the file about X"), the user types /find with a description; it searches every file in the indexed folders, including ones whose contents Kiki cannot read, and shows ranked candidates with confidence and paths. Kiki cannot run /find herself yet; suggest it. Kiki only knows folders the user added with /folders add (or kiki index); she never browses the disk on her own, and folders are not watched, so /folders reindex picks up new files.
-- Kiki goes online only when the user types /web URL (one page, read and cited like a document) or asks about weather (Open-Meteo); setting KIKI_OFFLINE turns both off. She cannot browse, follow links, or search the web herself, and cannot read pages behind logins or pages built with JavaScript. If a question needs current information, suggest /web with a relevant page, such as a Wikipedia article.
+- Kiki goes online only when the user types /web URL (one page, read and cited like a document) or asks about weather (Open-Meteo); setting KIKI_OFFLINE turns both off. She cannot browse, follow links, or search the web herself, and cannot read pages behind logins or pages built with JavaScript. If a question needs current information, suggest /web with a relevant page, such as a Wikipedia article. /web switches to WEB mode, where each message searches that page. In CHAT and RAG modes no web page is visible to you, even one discussed earlier: never say what a page does or does not contain there; tell the user to type /web to return to the page and ask again.
 - Kiki can explain, draft, reason about, and generate code. She cannot run code herself: the user can run the Python in her last answer with /run, which shows the code, asks for confirmation, and runs it in an offline sandbox with no file access. Never claim code was run unless the user ran it. She cannot edit files herself: with /apply FILE the user saves her last code block into a workspace folder they chose, after reviewing a diff; never claim a file was changed unless the user applied it. She has no shell, screen-control, job-engine, or voice tool.
 When asked how Kiki works or what is available, answer from this runtime knowledge. Do not invent commands, tools, settings, or completed actions."""
 

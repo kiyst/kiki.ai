@@ -213,15 +213,32 @@ def test_web_command_answers_from_the_page_and_cites_its_address(tmp_path, monke
     assert "Going online" in output and "Kiki · Web" in output
     assert "October 2025" in output and "https://example.com/a" in output
 
-    # A follow-up question reuses the page without downloading it again.
-    _handle_command(console, session, "/web what else does it say?")
+    # Reading a page switches to WEB mode; plain follow-ups search the same page
+    # without downloading it again, in their own conversation.
+    assert session.mode == "web" and "Mode changed to WEB" in output
+    outcome, retrieval_mode = session.ask("what else does it say?")
+    assert retrieval_mode == "page" and "October 2025" in outcome.answer
     assert len(fetched) == 1
-    assert session.turns[-1]["prompt"] == "/web what else does it say?"
+    assert [turn["prompt"] for turn in session.turns] == [
+        "/web example.com/a when was python 3.14 released?", "what else does it say?"]
+    assert not session.histories["chat"]
+
+    # Leaving and coming back keeps the page.
+    _handle_command(console, session, "/chat")
+    _handle_command(console, session, "/web")
+    assert session.mode == "web" and len(fetched) == 1
 
     _handle_command(console, session, "/web clear")
-    assert session.web_page is None
+    assert session.web_page is None and session.mode == "chat"
     _handle_command(console, session, "/web anything?")
     assert "No page yet" in console.export_text()
+
+
+def test_web_mode_without_a_page_says_so(tmp_path) -> None:
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    session.mode = "web"
+    outcome, _ = session.ask("what does it say?")
+    assert outcome.answer.startswith("No page is open")
 
 
 def test_evidence_shrinks_to_the_reading_space_left() -> None:
@@ -269,3 +286,6 @@ def test_support_check_flags_claims_the_passages_dont_contain() -> None:
     assert flagged == ["The capital of France is Paris, a famous European city."]
     # An honest "not on this page" answer is never flagged.
     assert unsupported_sentences("Evidence is insufficient. Nothing about France or Paris here.", sources) == []
+    assert unsupported_sentences(
+        "Python 3.0 came out on December 3, 2008. [source:p1] No details about Windows-specific "
+        "builds or installation are given in the excerpts.", sources) == []
