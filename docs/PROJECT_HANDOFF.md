@@ -282,25 +282,44 @@ environments, `.git`, hidden system data, and configurable private locations.
 
 ### Web access (approved October 29, 2026, one step at a time)
 
+Purpose, confirmed by the user on October 29, 2026. Web access is for three
+jobs:
+
+- **Fresh facts:** short current answers her training lacks (versions, dates,
+  recent events).
+- **Read what I link:** explain, summarise, or answer questions about a page
+  the user chooses.
+- **Coding help:** library documentation, GitHub issues and READMEs, and
+  searching for error messages.
+
+Out of scope: multi-page research and comparison (the notes loop below is
+deferred with it), logging in, forms, purchases, and background browsing. A
+news briefing remains a separate Phase 7 idea, not part of this.
+
 1. `/web URL [QUESTION]`: done. One public page, fetched only when the user
    types it, announced and logged (`kiki-web-log.jsonl`), cited by paragraph
    or line; local and private addresses refused at every redirect;
    `KIKI_OFFLINE=1` blocks it and weather.
-2. `/search WORDS`: needs the user to choose a search service (a free API key
+2. `/search WORDS`, sized for fresh facts and error messages: one search,
+   answer from the result snippets plus at most two pages, showing each
+   source's date. Needs the user to choose a search service (a free API key
    such as Brave or Tavily is the recommendation; SearXNG needs Docker, which
-   is paused). Includes the notes loop the user designed: when the pages read
-   exceed the reading space, condense findings into a short Markdown notes
-   file with an exact quote and source address per finding (quotes checked
-   in code against the page), search again for what is missing, answer from
-   the notes, and delete them when the conversation closes (`/web notes`,
-   `/web clear`). Hard limits of about 3 searches and 6 pages per question.
-   Needs an evaluation of multi-page questions with known answers.
+   is paused). Needs an evaluation of current-fact questions with known
+   answers.
+   Deferred with multi-page research: the notes loop the user designed (when
+   pages exceed the reading space, condense findings into a short Markdown
+   notes file with an exact, code-checked quote and source per finding,
+   search again for what is missing, answer from the notes, delete them when
+   the conversation closes; about 3 searches and 6 pages per question).
 3. Kiki searching on her own: only after steps 1 and 2 prove reliable, with an
    on-screen notice (or a y/N) before anything is sent, and never with text
    from the user's private documents in the query.
 
-Better passage picking for long pages (embedding the page's passages with the
-existing qwen3-embedding model) is the main quality upgrade for step 1.
+Quality work for these purposes, in order: meaning-based passage picking for
+pages (the existing qwen3-embedding model), quote checking, better whole-page
+summaries, coding-site handling (documentation sites and GitHub issues
+through the API), then a small claim-checking model (MiniCheck or HHEM; a new
+model download, so it needs approval).
 
 ## Upstream projects to study
 

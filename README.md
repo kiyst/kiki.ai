@@ -556,11 +556,11 @@ Roughly in priority order (details in the
    ([Finding files](#finding-files)); next, watching folders so new files
    appear without a reindex, `/summarize NUMBER` for a found file, and letting
    Kiki search for files herself when you ask in plain conversation.
-2. **Web access, step by step** (in progress). `/web URL` is done
-   ([Reading web pages](#reading-web-pages)). Next: `/search WORDS` through a
-   search service you choose, with a notes file that collects key facts and
-   quotes when she reads more pages than fit at once; later, and only with
-   your approval, letting her search on her own with a visible notice.
+2. **Web access, for fresh facts, pages you link, and coding help** (in
+   progress). `/web URL` is done ([Reading web pages](#reading-web-pages)).
+   Next: picking passages by meaning, then `/search WORDS` through a search
+   service you choose, for current facts and error messages. Multi-page
+   research is out of scope for now.
 3. **Run Python safely** (paused). The sandbox, `/run`, and `/apply` are done.
    Left: finishing the LeetCode and MBPP+ benchmarks, and a loop in which Kiki
    fixes her own failing code.
