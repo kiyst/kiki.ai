@@ -513,24 +513,37 @@ def resolve_citations(answer: str, sources: list[dict[str, Any]]) -> list[dict[s
     return resolved
 
 
-_SUPPORT_STOP_WORDS = {
-    "about", "also", "although", "based", "because", "been", "being", "both", "could",
-    "describes", "does", "each", "either", "excerpt", "excerpts", "from", "have", "however",
-    "includes", "including", "into", "itself", "mentions", "more", "most", "notes", "only",
-    "other", "overall", "overview", "page", "passage", "passages", "provided", "provides",
-    "same", "says", "shown", "some", "source", "sources", "specific", "such", "than", "that",
-    "their", "them", "then", "there", "these", "they", "this", "those", "through", "under",
-    "were", "what", "when", "where", "which", "while", "will", "with", "within", "would",
-}
+# Details a model can't reword, so they must appear in the evidence as written:
+# `code`, big-O, numbers and dates, code names (snake_case, dotted.names,
+# camelCase), and capitalized names.
+_DETAIL = re.compile(
+    r"`([^`\n]+)`"
+    r"|\b(O\([^)\n]{1,20}\))"
+    r"|((?<![\w.])\d[\d,.:/-]*\d|(?<![\w.])\d)"
+    r"|\b([A-Za-z]\w*(?:[_.]\w+)+|[a-z]+[A-Z]\w*)\b"
+    r"|\b([A-Z][\w'-]*)"
+)
+# Capitalized words that are not names.
+_NOT_NAMES = {"a", "an", "and", "as", "for", "however", "i", "in", "it", "its", "no", "not",
+              "on", "or", "the", "this", "these", "those", "to", "while", "with", "yes"}
 
 
-def _support_terms(text: str) -> set[str]:
-    words = re.findall(r"\d+(?:\.\d+)+|\w+", text.casefold())
-    return {
-        word if word[0].isdigit() else word[:6]
-        for word in words
-        if (len(word) >= 4 or word[0].isdigit()) and word not in _SUPPORT_STOP_WORDS
-    }
+def _sentence_details(sentence: str) -> list[str]:
+    details = []
+    # A capital after the start of a sentence, a colon, or a list marker is
+    # ordinary capitalization, not a name.
+    starts = {0} | {match.end() for match in re.finditer(r"[:;(]\s*|\s[-–]\s", sentence)}
+    for match in _DETAIL.finditer(sentence):
+        if match.group(5):
+            word = re.sub(r"['’]s$", "", match.group(5))
+            if match.start() in starts or word.casefold() in _NOT_NAMES:
+                continue
+            details.append(word)
+        else:
+            detail = next(group for group in match.groups() if group)
+            if detail.casefold() not in {"e.g", "i.e", "etc"}:
+                details.append(detail)
+    return details
 
 
 _ABSENCE_NOTE = re.compile(
@@ -541,31 +554,32 @@ _ABSENCE_NOTE = re.compile(
 
 
 def unsupported_sentences(answer: str, sources: list[dict[str, Any]]) -> list[str]:
-    """Sentences whose distinctive words mostly don't appear in the evidence shown.
+    """Sentences whose names, numbers, or code details aren't in the evidence shown.
 
     A valid citation only proves the passage exists, not that it says what the
     sentence claims; a small model will cite an unrelated passage for something
-    it knows from memory. This cheap word check catches the plainest cases. It
-    can't judge meaning, so it flags sentences for the user rather than
-    deleting them.
+    it knows from memory. Ordinary words are ignored, because rewording a
+    passage is fine; details that can't be reworded ("Paris", "2008",
+    "O(n)", `heappushpop`) must appear as written in some passage she was
+    shown. It can't judge meaning, so it flags sentences rather than deleting
+    them, and a sentence with no such details is never flagged.
     """
     if _looks_like_insufficient(answer):
         return []
-    cited = [item for item in resolve_citations(answer, sources) if item.get("resolved")]
-    evidence: set[str] = set()
-    for source in cited or sources:
-        evidence |= _support_terms(str(source.get("evidence", "")))
-    if not evidence:
+    evidence = " ".join(str(source.get("evidence", "")) for source in sources).casefold()
+    if not evidence.strip():
         return []
+    evidence = re.sub(r"\s+", " ", evidence)
     prose = re.sub(r"```.*?```", " ", answer, flags=re.DOTALL)
     prose = _CITATION.sub(" ", prose)
     flagged = []
-    for sentence in re.split(r"(?<=[.!?])\s+|\n+", prose):
+    for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z`*\"'(\[]|$)|\n+", prose):
         sentence = sentence.replace("**", "").strip(" -*•\t")
         if _ABSENCE_NOTE.search(sentence):
             continue  # "The excerpts don't mention X" needs no support from them.
-        terms = _support_terms(sentence)
-        if len(terms) >= 3 and len(terms & evidence) / len(terms) < 0.5:
+        details = _sentence_details(sentence)
+        missing = [item for item in details if re.sub(r"\s+", " ", item.casefold()) not in evidence]
+        if missing and len(missing) * 2 >= len(details):
             flagged.append(sentence)
     return flagged
 

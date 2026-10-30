@@ -284,6 +284,13 @@ def test_support_check_flags_claims_the_passages_dont_contain() -> None:
         "Python 3.0 came out on December 3, 2008. [source:p1]\n\n"
         "The capital of France is Paris, a famous European city. [source:p1]", sources)
     assert flagged == ["The capital of France is Paris, a famous European city."]
+    # Rewording is fine; only names, numbers, and code details must match.
+    code = [{"passage_id": "p2", "evidence":
+             'def heappushpop(heap, item):\n    """Fast version of a heappush followed by a heappop."""'}]
+    answer = ("`heappushpop` efficiently combines `heappush` and `heappop` into a single, optimized "
+              "step, which is particularly useful for priority queues. [source:p2] "
+              "It runs in O(n) time, as Guido van Rossum noted.")
+    assert unsupported_sentences(answer, code) == ["It runs in O(n) time, as Guido van Rossum noted."]
     # An honest "not on this page" answer is never flagged.
     assert unsupported_sentences("Evidence is insufficient. Nothing about France or Paris here.", sources) == []
     assert unsupported_sentences(

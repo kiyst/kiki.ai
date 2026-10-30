@@ -281,10 +281,12 @@ cannot see the page and says so rather than guessing what it contains.
   passages and shows only the ones that best match your question, as much as
   still fits after her instructions, the conversation, and room for the answer.
   She tells you how much she read.
-- **Unsupported sentences are flagged.** A citation proves the passage exists,
-  not that it says what the sentence claims. Sentences whose key words are not
-  in the passages she read are listed under the answer as "Check these": they
-  may come from her general knowledge rather than the page.
+- **Unsupported details are flagged.** A citation proves the passage exists,
+  not that it says what the sentence claims. Rewording is fine, but names,
+  numbers, dates, code names, and claims like "O(n)" must appear in the
+  passages she read; sentences whose details don't are listed under the
+  answer as "Check these", since they may come from her general knowledge
+  rather than the page. Vague claims with no such details are not checked.
 - **Clean versions of popular sites.** Wikipedia articles are read without
   menus and footnote markers; GitHub repositories are read through their README
   and GitHub files through the raw file.

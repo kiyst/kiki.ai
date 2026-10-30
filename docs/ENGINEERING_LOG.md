@@ -1024,3 +1024,28 @@ Tests/evaluations run: pytest 285 passed. The user's scenario with the real
         passage); in CHAT the same words no longer produce claims about the
         page.
 ```
+
+## Web access: support check on details, not wording
+
+```text
+Date: 2026-10-29
+Stage: web access step 1, fix from first use
+Files changed: src/kiki/model_client.py, tests/test_web.py, README.md
+Problem: an accurate answer about heappushpop (the definition was among the
+        passages read) got 5 of 5 sentences flagged, because the check
+        compared ordinary words, and paraphrase ("efficiently", "combines",
+        "optimized") is not on the page. Flags on correct answers teach the
+        user to ignore them.
+Behavior changed: only details a model cannot reword are checked: `code`,
+        big-O, numbers and dates, code names (snake_case, dotted.names,
+        camelCase), and capitalized names after the start of a sentence. A
+        sentence is flagged when at least half of its details appear in none
+        of the passages shown; sentences with no such details are never
+        flagged.
+Tests/evaluations run: pytest passed. Real questions replayed: heappushpop
+        5 flags -> 0; "capital of France" on the Python article still flagged
+        (Paris); "how fast is heapify" still flags O(n) and Dijkstra's
+        algorithm, which came from memory; 3.13, CPython overview, and Ada
+        Lovelace overview 0 flags. Trade-off: invented vague claims with no
+        names or numbers ("more intuitive interface") are no longer flagged.
+```
