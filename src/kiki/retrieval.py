@@ -106,6 +106,14 @@ class TextIndex:
 
     def __init__(self, database: Path) -> None:
         self.database = database.resolve()
+        # Only a SQLite file (or nothing) can become a library. Anything else is
+        # the user's own file: "recovering" it used to rename it aside and put
+        # a database in its place (/database notes.md, audit A13).
+        if self.database.is_file() and self.database.stat().st_size:
+            with self.database.open("rb") as handle:
+                if handle.read(16) != b"SQLite format 3\x00":
+                    raise ValueError(f"{self.database} is not a Kiki library (not a SQLite "
+                                     "database); Kiki won't use or change it.")
         self.database.parent.mkdir(parents=True, exist_ok=True)
         self.recovery_notice: str | None = None
         try:
@@ -118,6 +126,8 @@ class TextIndex:
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
         connection.execute("PRAGMA busy_timeout = 5000")
+        # Deleted text is overwritten, not left in free pages (audit A18).
+        connection.execute("PRAGMA secure_delete = ON")
         return connection
 
     @contextmanager
@@ -471,7 +481,15 @@ class TextIndex:
                 self._delete_source(connection, row["source_id"])
             connection.execute("DELETE FROM catalog WHERE root = ?", (key,))
             connection.execute("DELETE FROM roots WHERE path = ?", (key,))
+        # Forgetting must really forget: compact the file and rewrite the
+        # backup, which used to keep the forgotten text (audit A18).
+        connection = self._connect()
+        try:
+            connection.execute("VACUUM")
+        finally:
+            connection.close()
         self._record_roots()
+        self.backup()
         return int(forgotten)
 
     def catalog_entries(self) -> list[dict[str, Any]]:
@@ -601,10 +619,21 @@ class TextIndex:
                         rows.append(row)
             else:
                 rows = self._fts_rows(connection, fts_query, candidate_limit, source_ids)
-            titles = dict(connection.execute("SELECT source_id, title FROM files").fetchall())
+            files = {row["source_id"]: (row["title"], row["modified_ns"]) for row in connection.execute(
+                "SELECT source_id, title, modified_ns FROM files").fetchall()}
         rows = sorted(rows, key=lambda row: _lexical_rank(row, tokens), reverse=True)[:limit]
-        return [
-            SearchResult(
+        results = []
+        for row in rows:
+            path = Path(row["path"])
+            try:
+                modified = path.stat().st_mtime_ns
+            except OSError:
+                continue  # gone since indexing
+            title, indexed = files.get(row["source_id"], (None, None))
+            if indexed is not None and modified != indexed:
+                # The passage may no longer match the file (audit L4).
+                title = f"{title or path.name} (changed since indexing; /folders reindex)"
+            results.append(SearchResult(
                 source_id=row["source_id"],
                 path=row["path"],
                 location_kind=row["location_kind"],
@@ -612,11 +641,9 @@ class TextIndex:
                 end_location=int(row["end_location"]),
                 excerpt=row["content"],
                 score=float(-row["rank"]) + 100.0 * _filename_hits(row["path"], tokens),
-                title=titles.get(row["source_id"]),
-            )
-            for row in rows
-            if Path(row["path"]).is_file()
-        ]
+                title=title,
+            ))
+        return results
 
     @staticmethod
     def _fts_rows(
@@ -729,7 +756,9 @@ def _query_tokens(query: str) -> list[str]:
 
 def _filename_hits(path: str, tokens: list[str]) -> int:
     filename = Path(path).stem.casefold().replace("_", " ").replace("-", " ")
-    return sum(token in filename for token in tokens)
+    # Capped: a file named with every likely query word shouldn't outrank
+    # every passage that actually answers (audit L3).
+    return min(2, sum(token in filename for token in tokens))
 
 
 def _title_words(path: str) -> list[str]:

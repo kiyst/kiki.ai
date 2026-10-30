@@ -32,12 +32,20 @@ def build_diagnostics(
         "model_profile": model_profile,
         "selected_model": selected_model,
         "embedding_model": embedding_model,
-        "database": str(database.resolve()),
-        "index": index_health,
+        "database": _without_home(str(database.resolve())),
+        # Error texts and recovery notes can contain paths with the user name.
+        "index": {key: _without_home(value) if isinstance(value, str) else value
+                  for key, value in index_health.items()},
         "retrieval": retrieval or {},
         "tools": tool_catalog,
         "note": "Environment variable values and conversation content are intentionally omitted.",
     }
+
+
+def _without_home(text: str) -> str:
+    """The home folder (which names the Windows user) shown as ~ in support reports."""
+    home = str(Path.home())
+    return text.replace(home, "~").replace(home.replace("\\", "/"), "~")
 
 
 def diagnostics_markdown(report: dict[str, Any]) -> str:

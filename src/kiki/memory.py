@@ -1,17 +1,39 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from pathlib import Path
 
 
 MEMORY_HEADER = "# Kiki memory\n\nUser-approved, non-sensitive notes:\n"
+# Plurals and other forms count ("passwords", "pins"), as do common shorthand
+# and key formats; the audit got "my passwords are hunter2", "pw: …", an AWS key,
+# and an email address past the old list (audit A19).
 _SENSITIVE = re.compile(
-    r"\b(?:password|passcode|pin|credit card|card number|bank account|routing number|"
-    r"social security|passport|driver'?s license|api key|secret key|private key|"
-    r"date of birth|home address|street address|phone number|email address)\b|"
-    r"\b\d{3}-\d{2}-\d{4}\b|\b(?:sk|pk)-[A-Za-z0-9_-]{12,}\b",
+    r"\b(?:pass(?:word|phrase|code)s?|pins?|pw|pwd|credit cards?|card numbers?|cvv|cvc|"
+    r"bank accounts?|account numbers?|routing numbers?|iban|social security|ssn|passports?|"
+    r"driver'?s licen[cs]es?|api[ _-]?keys?|secret keys?|private keys?|access keys?|"
+    r"(?:access|auth|api|bearer|refresh|session) tokens?|credentials?|seed phrases?|"
+    r"recovery (?:phrase|code)s?|one-time codes?|"
+    r"date of birth|dob|birthday|home address|street address|(?:i|we) live at|"
+    r"phone numbers?|mobile numbers?|email(?: address)?s?)\b"
+    r"|\b\d{3}-\d{2}-\d{4}\b"
+    r"|\b(?:sk|pk|rk)-[A-Za-z0-9_-]{12,}\b|\bAKIA[0-9A-Z]{16}\b|\bgh[pousr]_[A-Za-z0-9]{20,}\b"
+    r"|\bxox[abpr]-[A-Za-z0-9-]{10,}\b|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"
+    r"|[\w.+-]+@[\w-]+\.[\w.]+"
+    r"|\b\d{1,5}\s+\w+\s+(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|boulevard|blvd|court|ct)\b"
+    r"|\b\w+[_-]?(?:key|token|secret)\s*[:=]",
     re.IGNORECASE,
 )
+# Cyrillic and Greek letters that look Latin ("pаssword" with a Cyrillic а).
+_LOOKALIKES = str.maketrans("АВЕКМНОРСТХаеорсухіІјЈѕЅΑΒΕΖΗΙΚΜΝΟΡΤΥΧαοριυν",
+                            "ABEKMHOPCTXaeopcyxiIjJsSABEZHIKMNOPTYXaopiuv")
+
+
+def is_sensitive(text: str) -> bool:
+    """True for text that looks like a secret, identity number, or contact detail."""
+    folded = unicodedata.normalize("NFKC", text).translate(_LOOKALIKES)
+    return bool(_SENSITIVE.search(folded)) or _looks_like_long_number(folded)
 
 
 class SensitiveMemoryError(ValueError):
@@ -38,7 +60,7 @@ class MemoryStore:
             raise ValueError("Memory must not be empty")
         if len(note) > 300:
             raise ValueError("Memory must be 300 characters or fewer")
-        if _SENSITIVE.search(note) or _looks_like_long_number(note):
+        if is_sensitive(note):
             raise SensitiveMemoryError(
                 "I won't save secrets, financial details, identity numbers, or contact details."
             )

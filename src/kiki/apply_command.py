@@ -14,6 +14,7 @@ import re
 import tempfile
 from dataclasses import dataclass
 from datetime import datetime
+from glob import escape as glob_escape
 from pathlib import Path
 from typing import Callable
 
@@ -136,6 +137,7 @@ def write_change(change: Change, backups: Path) -> Path | None:
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         backup = backups / f"{change.target.name}.{stamp}.bak"
         backup.write_bytes(change.target.read_bytes())
+        _prune_backups(backups, change.target.name)
     handle, temporary = tempfile.mkstemp(prefix=".kiki-apply-", dir=change.target.parent)
     try:
         with os.fdopen(handle, "w", encoding="utf-8", newline="") as stream:
@@ -145,6 +147,19 @@ def write_change(change: Change, backups: Path) -> Path | None:
         Path(temporary).unlink(missing_ok=True)
         raise
     return backup
+
+
+KEEP_BACKUPS = 20
+
+
+def _prune_backups(backups: Path, name: str) -> None:
+    """Keep the newest KEEP_BACKUPS backups of one file name (audit L: they grew forever)."""
+    stamped = sorted(backups.glob(f"{glob_escape(name)}.*.bak"), key=lambda path: path.name, reverse=True)
+    for old in stamped[KEEP_BACKUPS:]:
+        try:
+            old.unlink()
+        except OSError:
+            pass
 
 
 def apply_command(

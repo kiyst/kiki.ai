@@ -538,6 +538,12 @@ class TerminalSession:
             stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             path = folder / f"kiki-{stamp}.md"
         path = path.expanduser().resolve()
+        # Always Markdown, never over an existing file: "/save thesis.docx" used
+        # to replace the document with a transcript (audit A17).
+        if path.suffix.casefold() != ".md":
+            path = path.with_name(path.name + ".md")
+        if path.exists():
+            raise FileExistsError(f"{path} already exists; Kiki won't overwrite it. Choose another name.")
         path.parent.mkdir(parents=True, exist_ok=True)
         lines = ["# Kiki transcript", ""]
         for turn in self.turns:
@@ -1101,7 +1107,12 @@ def _handle_command(
         if selected is None:
             console.print("[dim]Save cancelled.[/dim]")
             return False, None
-        path = session.export_transcript(selected)
+        try:
+            path = session.export_transcript(selected)
+        except OSError as exc:  # exists, is a folder, or can't be written
+            console.print(Text(str(exc) if isinstance(exc, FileExistsError)
+                               else f"Couldn't save there: {exc.strerror or exc}", style="yellow"))
+            return False, None
         console.print(f"[green]Transcript saved to[/green] {escape(str(path))}")
         return False, None
     if name in {"/clear", "/new"}:
@@ -1115,15 +1126,17 @@ def _handle_command(
                 "Use [bold]/database browse[/bold] to navigate or "
                 "[bold]/database PATH[/bold] to set it directly."
             )
-        elif rest.casefold() == "browse":
-            selected = _browse_for_database(console, session.database.parent)
+        else:
+            selected = (_browse_for_database(console, session.database.parent)
+                        if rest.casefold() == "browse" else _path_argument(rest))
             if selected is None:
                 console.print("[dim]Database selection cancelled.[/dim]")
                 return False, None
-            session.set_database(selected)
-            console.print(f"RAG database changed to [cyan]{escape(str(session.database.resolve()))}[/cyan].")
-        else:
-            session.set_database(_path_argument(rest))
+            try:
+                session.set_database(selected)
+            except ValueError as exc:  # not a SQLite file: left untouched (audit A13)
+                console.print(Text(str(exc), style="yellow"))
+                return False, None
             console.print(f"RAG database changed to [cyan]{escape(str(session.database.resolve()))}[/cyan].")
         return False, None
     if name == "/status":

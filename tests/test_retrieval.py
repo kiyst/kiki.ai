@@ -80,7 +80,8 @@ def test_index_writes_recovery_manifest_and_backup(tmp_path: Path) -> None:
 
 def test_corrupt_index_is_quarantined_and_recreated(tmp_path: Path) -> None:
     database = tmp_path / "index.sqlite3"
-    database.write_bytes(b"definitely not sqlite")
+    # A real SQLite header with damage after it: an index, but corrupt.
+    database.write_bytes(b"SQLite format 3\x00" + b"\xff" * 4096)
 
     index = TextIndex(database)
 

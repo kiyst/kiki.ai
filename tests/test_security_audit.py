@@ -674,3 +674,122 @@ def test_l_follow_up_questions_reuse_the_prepared_page(monkeypatch) -> None:
     for _ in range(3):
         web.PageSearch(page).search("text", limit=2)
     assert len(calls) == 1
+
+
+# --- Phase 6: file safety and privacy ----------------------------------------
+
+# A13 · CWE-73 / CWE-59: /database never takes over a file that isn't a library.
+def test_a13_database_refuses_a_file_that_is_not_sqlite(session, tmp_path) -> None:
+    notes = tmp_path / "notes.md"
+    notes.write_text("# my notes\nimportant\n", encoding="utf-8")
+    shown = _run(session, f"/database {notes}")
+    assert "not a Kiki library" in shown
+    assert notes.read_text(encoding="utf-8") == "# my notes\nimportant\n"
+    assert not list(tmp_path.glob("notes.md.corrupt-*"))
+
+
+# A17 · CWE-73: /save writes Markdown only, never over an existing file.
+def test_a17_save_never_overwrites_and_always_writes_markdown(session, tmp_path) -> None:
+    document = tmp_path / "thesis.docx"
+    document.write_bytes(b"PK original document")
+    _run(session, f"/save {document}")
+    assert document.read_bytes() == b"PK original document"
+    assert (tmp_path / "thesis.docx.md").is_file()
+    assert "already exists" in _run(session, f"/save {tmp_path / 'thesis.docx.md'}")
+    assert "Couldn't save" in _run(session, f"/save {tmp_path}") or "already exists" in _run(session, f"/save {tmp_path}")
+
+
+# A18 · OWASP LLM02 · CWE-226 (sensitive data not removed): forgetting erases text from disk.
+def test_a18_forgotten_folders_leave_no_text_in_the_database_or_backup(tmp_path) -> None:
+    from kiki.retrieval import TextIndex
+
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "note.txt").write_text("orchid-lantern secret phrase " * 50, encoding="utf-8")
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(tmp_path / "docs")
+    index.remove_root((tmp_path / "docs").resolve())
+    for name in ["index.sqlite3", "index.sqlite3.backup"]:
+        assert b"orchid-lantern" not in (tmp_path / name).read_bytes(), name
+
+
+# A19 · OWASP LLM02 · CWE-312: secrets stay out of memory and the input history.
+@pytest.mark.parametrize("text", [
+    "my passwords are hunter2", "pw: hunter2!", "AWS key AKIAABCDEFGHIJKLMNOP", "my email is jane.doe@example.com",
+    "api_key=abcdEFGH1234", "my p\u0430ssword is x", "I live at 12 Elm Street", "my PIN is 4417",
+    "github token ghp_abcdefghijklmnopqrstuvwxyz12",
+])
+def test_a19_sensitive_notes_are_refused(text) -> None:
+    from kiki.memory import is_sensitive
+
+    assert is_sensitive(text)
+
+
+@pytest.mark.parametrize("text", ["my favourite colour is teal", "I prefer metric units", "call me Dom",
+                                  "the team pinned the issue", "I use tokens in board games"])
+def test_a19_ordinary_notes_are_kept(text) -> None:
+    from kiki.memory import is_sensitive
+
+    assert not is_sensitive(text)
+
+
+def test_a19_input_history_keeps_no_secrets(tmp_path) -> None:
+    from kiki.input_editor import PrivateFileHistory
+
+    history = PrivateFileHistory(str(tmp_path / "history"))
+    for line in ["/remember my pin is 4417", "/forget 2", "my password is hunter2", "hello there",
+                 "/web https://x.example/p?token=abc123"]:
+        history.append_string(line)
+    stored = (tmp_path / "history").read_text(encoding="utf-8")
+    assert "hello there" in stored and "token=REDACTED" in stored
+    for secret in ["4417", "/forget", "hunter2", "abc123"]:
+        assert secret not in stored
+
+
+# L · diagnostics, backups, stale citations, and file-name ranking.
+def test_l_diagnostics_hide_the_windows_user_name(tmp_path) -> None:
+    from pathlib import Path
+
+    from kiki.diagnostics import build_diagnostics
+
+    report = build_diagnostics(database=Path.home() / "kiki" / "index.sqlite3", mode="chat", model_profile="auto",
+                               selected_model="m", embedding_model="e",
+                               index_health={"error": f"failed at {Path.home()}\\x"}, tool_catalog={})
+    assert str(Path.home()) not in str(report) and report["database"].startswith("~")
+
+
+def test_l_apply_backups_are_pruned(tmp_path) -> None:
+    from pathlib import Path
+
+    from kiki.apply_command import KEEP_BACKUPS, plan_change, resolve_target, write_change
+
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    target = resolve_target(workspace, Path("a.py"))
+    for n in range(KEEP_BACKUPS + 5):
+        target.write_text(f"print({n})\n", encoding="utf-8")
+        write_change(plan_change(target, f"print({n + 1000})\n", workspace), tmp_path / "backups")
+    assert len(list((tmp_path / "backups").glob("a.py.*.bak"))) == KEEP_BACKUPS
+
+
+def test_l4_citations_say_when_a_file_changed_after_indexing(tmp_path) -> None:
+    import os
+    import time
+
+    from kiki.retrieval import TextIndex
+
+    (tmp_path / "docs").mkdir()
+    note = tmp_path / "docs" / "note.txt"
+    note.write_text("The orchid budget is 4,200.", encoding="utf-8")
+    index = TextIndex(tmp_path / "index.sqlite3")
+    index.index_root(tmp_path / "docs")
+    assert "changed since indexing" not in (index.search("orchid budget")[0].title or "")
+    later = time.time() + 60
+    os.utime(note, (later, later))
+    assert "changed since indexing" in index.search("orchid budget")[0].title
+
+
+def test_l3_file_names_stuffed_with_query_words_gain_little() -> None:
+    from kiki.retrieval import _filename_hits
+
+    assert _filename_hits("C:/x/budget report march kestrel finance totals.pdf",
+                          ["budget", "report", "march", "kestrel", "finance", "totals"]) == 2

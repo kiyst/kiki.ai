@@ -19,6 +19,30 @@ class PromptReader(Protocol):
     def prompt(self, mode: str, debug: bool = False) -> str: ...
 
 
+def history_line(line: str) -> str | None:
+    """What the input-history file may keep of a typed line, or None for nothing.
+
+    Notes for /remember and /forget, and anything that looks like a secret,
+    never reach the file (the memory filter rejected them, but the history
+    used to keep them); tokens in /web links are redacted (audit A19, A29)."""
+    from .memory import is_sensitive
+    from .web import _redacted_text
+
+    stripped = line.strip()
+    if stripped.casefold().startswith(("/remember", "/forget")) or is_sensitive(stripped):
+        return None
+    return _redacted_text(line)
+
+
+class PrivateFileHistory(FileHistory):
+    """FileHistory that stores only what history_line allows."""
+
+    def store_string(self, string: str) -> None:
+        kept = history_line(string)
+        if kept is not None:
+            super().store_string(kept)
+
+
 class PlainInput:
     """Line-at-a-time fallback for pipes, scripts, and non-console terminals."""
 
@@ -93,7 +117,7 @@ class ChatInput:
         def paste(event: Any) -> None:
             event.current_buffer.paste_clipboard_data(event.app.clipboard.get_data())
 
-        history = FileHistory(str(history_path)) if history_path else InMemoryHistory()
+        history = PrivateFileHistory(str(history_path)) if history_path else InMemoryHistory()
         command_completer = WordCompleter(commands, ignore_case=True, sentence=True)
         self._session: PromptSession[str] = PromptSession(
             history=history,
