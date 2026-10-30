@@ -1049,3 +1049,40 @@ Tests/evaluations run: pytest passed. Real questions replayed: heappushpop
         Lovelace overview 0 flags. Trade-off: invented vague claims with no
         names or numbers ("more intuitive interface") are no longer flagged.
 ```
+
+## Web access: answering off-topic questions from memory
+
+```text
+Date: 2026-10-29
+Stage: web access step 1, fix from first use
+Files changed: src/kiki/model_client.py, web.py, terminal.py,
+        tests/test_web.py, README.md
+Problem: on the Python article, "what is the capital of France?" got "Paris"
+        with a citation to a reference-list passage. The rule against outside
+        knowledge was only an instruction; search always returns something,
+        so a passage sharing one word looked relevant; and code checked only
+        that citations exist.
+Behavior changed (/web only; RAG unchanged until its evaluation is rerun
+        with it): (1) a coverage note from code when no passage contains at
+        least 60% of the question's meaningful words, naming the missing
+        words; (2) one support-check retry when names, numbers, or code
+        details are missing from the passages, quoting the sentences; the
+        older "reconsider your abstention" nudge is skipped after it, since
+        declining is then the honest outcome; (3) if every checkable sentence
+        is still unsupported, code relabels the answer: "Evidence is
+        insufficient. The page doesn't seem to cover this." followed by the
+        answer marked as unverified general knowledge, without citations.
+        Filler words (say, else, more, explain, summary) no longer count as
+        question words, so vague follow-ups don't trigger the note.
+Tests/evaluations run: pytest 288 passed (3 new). Real replay, 13 questions:
+        France on the Python article, Boston weather and the 2022 World Cup on
+        History of Python, France on example.com all declined; Python's
+        creator, 3.0, 3.13's interpreter, Ada Lovelace, heappushpop, and two
+        overviews answered normally with citations; "how fast is heapify"
+        relabelled as general knowledge (the passages read lacked
+        O(len(x))).
+Known limits: wrong claims with no names or numbers pass. The heappushpop
+        answer misdescribed the small-item case ("it is pushed onto the
+        heap"; the function returns the item without pushing), which no
+        word check can catch.
+```

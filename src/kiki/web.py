@@ -296,9 +296,11 @@ def _append_log(path: Path, record: dict[str, object]) -> None:
 
 
 _STOP_WORDS = {
-    "a", "an", "and", "are", "about", "can", "does", "did", "for", "from", "how", "into",
-    "is", "it", "its", "of", "on", "or", "page", "says", "tell", "that", "the", "this",
-    "to", "was", "were", "what", "when", "where", "which", "who", "why", "with", "you",
+    "a", "an", "and", "are", "about", "anything", "can", "describe", "details", "does", "did",
+    "else", "explain", "for", "from", "give", "how", "info", "information", "into", "is", "it",
+    "its", "key", "list", "main", "me", "mean", "more", "of", "on", "or", "page", "point",
+    "points", "say", "says", "something", "summarize", "summary", "tell", "that", "the",
+    "this", "to", "was", "were", "what", "when", "where", "which", "who", "why", "with", "you",
 }
 
 
@@ -402,6 +404,24 @@ class PageSearch:
             matched.sort(key=lambda item: (-item[0], item[1]))
             chosen = matched[:limit] or [(0.0, index) for index in range(min(limit, total))]
         return [self._result(index, score) for score, index in chosen]
+
+    def unmatched_words(self, question: str) -> list[str]:
+        """Question words the page barely covers, when no passage matches most of them.
+
+        Empty when some passage contains at least 60% of the question's words.
+        Search always returns something, so without this note a passage that
+        shares one word with the question looks like an answer.
+        """
+        words = {}
+        for word in re.findall(r"\d+(?:\.\d+)+|\w+", question):
+            for term in _terms(word):
+                words.setdefault(term, word)
+        if not words or not self._counts:
+            return []
+        best = max(self._counts, key=lambda counts: sum(term in counts for term in words))
+        if sum(term in best for term in words) >= 0.6 * len(words):
+            return []
+        return [word for term, word in words.items() if term not in best]
 
     def _result(self, index: int, score: float) -> SearchResult:
         passage = self.passages[index]

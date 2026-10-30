@@ -287,6 +287,11 @@ cannot see the page and says so rather than guessing what it contains.
   passages she read; sentences whose details don't are listed under the
   answer as "Check these", since they may come from her general knowledge
   rather than the page. Vague claims with no such details are not checked.
+  When something is flagged, Kiki is asked once to rewrite from the passages
+  alone; if nothing in her answer is still supported, it is shown under
+  "Evidence is insufficient" and labelled as general knowledge, not the page.
+  And when no passage contains most of your question's words, she is told the
+  page probably doesn't cover it before she answers.
 - **Clean versions of popular sites.** Wikipedia articles are read without
   menus and footnote markers; GitHub repositories are read through their README
   and GitHub files through the raw file.

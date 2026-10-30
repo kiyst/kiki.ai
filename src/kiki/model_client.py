@@ -161,7 +161,13 @@ class ToolCallingAssistant:
         *,
         passages: int = 5,
         max_evidence_characters: int = MAX_EVIDENCE_CHARACTERS,
+        support_check: bool = False,
     ) -> None:
+        # support_check: re-ask once when names, numbers, or code details are
+        # missing from the evidence, and label an answer that is still wholly
+        # unsupported as general knowledge. Used for /web; RAG answers are
+        # unchanged until the document evaluation has been rerun with it.
+        self.support_check = support_check
         self.client = client
         self.registry = registry
         self.model = model
@@ -189,6 +195,7 @@ class ToolCallingAssistant:
         evidence_characters = 0
         reconsidered_abstention = False
         requested_citations = False
+        requested_support = False
 
         if self.pre_retrieve:
             arguments = {"query": prompt, "limit": self.passages}
@@ -247,6 +254,9 @@ class ToolCallingAssistant:
                     self.pre_retrieve
                     and sources
                     and not reconsidered_abstention
+                    # Declining after the support check is the honest outcome;
+                    # asking her to reconsider would push the guess back in.
+                    and not requested_support
                     and round_number < self.max_rounds
                     and _looks_like_insufficient(answer)
                 ):
@@ -286,6 +296,30 @@ class ToolCallingAssistant:
                         }
                     )
                     continue
+                flagged = (
+                    unsupported_sentences(answer, list(sources.values()))
+                    if self.support_check and sources
+                    else []
+                )
+                if flagged and not requested_support and round_number < self.max_rounds:
+                    requested_support = True
+                    quoted = "; ".join(f'"{sentence}"' for sentence in flagged[:4])
+                    messages.append(
+                        {
+                            "role": "user",
+                            "content": (
+                                "Support check: these sentences use names, numbers, or code "
+                                f"details that appear in none of the passages you were shown: {quoted}. "
+                                "Rewrite the answer using only what the passages say, with exact "
+                                "[source:ID] citations. If the passages do not answer the question, "
+                                "begin with `Evidence is insufficient.` and say briefly what they "
+                                "do cover. Do not use outside knowledge."
+                            ),
+                        }
+                    )
+                    continue
+                if flagged and _wholly_unsupported(answer, flagged):
+                    answer = _general_knowledge_answer(answer)
                 if self.pre_retrieve:
                     answer = _verify_grounded_answer(answer, sources)
                 return ChatOutcome(
@@ -570,18 +604,42 @@ def unsupported_sentences(answer: str, sources: list[dict[str, Any]]) -> list[st
     if not evidence.strip():
         return []
     evidence = re.sub(r"\s+", " ", evidence)
-    prose = re.sub(r"```.*?```", " ", answer, flags=re.DOTALL)
-    prose = _CITATION.sub(" ", prose)
     flagged = []
-    for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z`*\"'(\[]|$)|\n+", prose):
-        sentence = sentence.replace("**", "").strip(" -*•\t")
-        if _ABSENCE_NOTE.search(sentence):
-            continue  # "The excerpts don't mention X" needs no support from them.
+    for sentence in _claim_sentences(answer):
         details = _sentence_details(sentence)
         missing = [item for item in details if re.sub(r"\s+", " ", item.casefold()) not in evidence]
         if missing and len(missing) * 2 >= len(details):
             flagged.append(sentence)
     return flagged
+
+
+def _claim_sentences(answer: str) -> list[str]:
+    """Sentences of prose that make claims; code blocks, citations, and notes
+    that the evidence lacks something are left out."""
+    prose = re.sub(r"```.*?```", " ", answer, flags=re.DOTALL)
+    prose = _CITATION.sub(" ", prose)
+    sentences = []
+    for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z`*\"'(\[]|$)|\n+", prose):
+        sentence = sentence.replace("**", "").strip(" -*•\t")
+        # "The excerpts don't mention X" needs no support from them.
+        if sentence and not _ABSENCE_NOTE.search(sentence):
+            sentences.append(sentence)
+    return sentences
+
+
+def _wholly_unsupported(answer: str, flagged: list[str]) -> bool:
+    """True when every sentence with checkable details failed the check, so
+    nothing in the answer is shown to come from the evidence."""
+    checkable = [sentence for sentence in _claim_sentences(answer) if _sentence_details(sentence)]
+    return bool(checkable) and set(checkable) <= set(flagged)
+
+
+def _general_knowledge_answer(answer: str) -> str:
+    text = re.sub(r"\s*" + _CITATION.pattern, "", answer).strip()
+    return (
+        "Evidence is insufficient. The page doesn't seem to cover this.\n\n"
+        "From general knowledge, not from the page, so unverified:\n\n" + text
+    )
 
 
 def _looks_like_insufficient(answer: str) -> bool:

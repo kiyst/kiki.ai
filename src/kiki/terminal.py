@@ -137,14 +137,26 @@ class TerminalSession:
         assert self.web_page is not None
         self.mode = "web"
         self.last_model_selection = self.model_router.select(self.model_profile, Capability.RAG)
+        search = PageSearch(self.web_page, overview=overview)
+        system_prompt = self._system_prompt(WEB_SYSTEM_PROMPT)
+        unmatched = [] if overview else search.unmatched_words(question)
+        if unmatched:
+            system_prompt += (
+                "\n\nPage coverage note (from Kiki's code): no passage on this page contains most "
+                f"of the question's words; these appear in none of the closest passages: "
+                f"{', '.join(unmatched)}. The page probably does not answer this question. Answer "
+                "only what the passages actually say, and if they do not answer it, begin with "
+                "`Evidence is insufficient.`"
+            )
         assistant = ToolCallingAssistant(
             OllamaClient(),
-            ToolRegistry(PageSearch(self.web_page, overview=overview)),
+            ToolRegistry(search),
             model=self.last_model_selection.model,
             pre_retrieve=True,
-            system_prompt=self._system_prompt(WEB_SYSTEM_PROMPT),
+            system_prompt=system_prompt,
             passages=self.settings.passages,
             max_evidence_characters=self.settings.context_characters,
+            support_check=True,
         )
         outcome = assistant.ask(question, history=self.histories[self.mode])
         return self._remember(command, outcome, "page")[0]

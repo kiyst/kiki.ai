@@ -296,3 +296,58 @@ def test_support_check_flags_claims_the_passages_dont_contain() -> None:
     assert unsupported_sentences(
         "Python 3.0 came out on December 3, 2008. [source:p1] No details about Windows-specific "
         "builds or installation are given in the excerpts.", sources) == []
+
+
+def test_page_coverage_note_lists_words_no_passage_contains() -> None:
+    page = _page(["Python was created by Guido van Rossum.", "Python 3.0 was released in 2008."])
+    search = PageSearch(page)
+    assert search.unmatched_words("Who created Python?") == []
+    assert search.unmatched_words("what else does it say?") == []
+    assert search.unmatched_words("What is the capital of France?") == ["capital", "France"]
+
+
+class _ScriptedOllama:
+    """Answers with each scripted reply in turn, citing the first passage shown."""
+
+    def __init__(self, replies: list[str]) -> None:
+        self.replies, self.requests = list(replies), []
+
+    def chat(self, **kwargs):
+        self.requests.append(kwargs["messages"])
+        tool = next(m for m in kwargs["messages"] if m["role"] == "tool")
+        cite = json.loads(tool["content"])["data"][0]["cite"]
+        return {"message": {"role": "assistant", "content": self.replies.pop(0).format(cite=cite)}}
+
+
+def _ask(page: WebPage, replies: list[str]) -> tuple[str, _ScriptedOllama]:
+    client = _ScriptedOllama(replies)
+    outcome = ToolCallingAssistant(client, ToolRegistry(PageSearch(page)), pre_retrieve=True,
+                                   support_check=True).ask("what is the capital of France?")
+    return outcome.answer, client
+
+
+def test_unsupported_answer_gets_one_retry_then_is_labelled_general_knowledge() -> None:
+    page = _page(["Python was created by Guido van Rossum in the Netherlands."])
+    answer, client = _ask(page, ["The capital of France is Paris. {cite}"] * 2)
+    assert len(client.requests) == 2
+    assert "Support check" in client.requests[1][-1]["content"]
+    assert '"The capital of France is Paris."' in client.requests[1][-1]["content"]
+    assert answer.startswith("Evidence is insufficient. The page doesn't seem to cover this.")
+    assert "not from the page" in answer and "Paris" in answer and "[source:" not in answer
+
+    # When the retry is honest, the honest answer is kept as written.
+    answer, client = _ask(page, ["The capital of France is Paris. {cite}",
+                                 "Evidence is insufficient. The page is about Python. {cite}"])
+    assert answer.startswith("Evidence is insufficient. The page is about Python.")
+
+
+def test_partly_supported_answers_are_kept_and_supported_ones_not_retried() -> None:
+    page = _page(["Python was created by Guido van Rossum in the Netherlands."])
+    answer, client = _ask(page, ["Guido van Rossum created Python in the Netherlands. {cite}"])
+    assert len(client.requests) == 1
+    mixed = ("Guido van Rossum created Python in the Netherlands. {cite} "
+             "He later worked at Google and Dropbox. {cite}")
+    answer, client = _ask(page, [mixed, mixed])
+    assert len(client.requests) == 2
+    # One sentence is supported, so the answer stands; the flag is shown under it.
+    assert answer.startswith("Guido van Rossum created Python")
