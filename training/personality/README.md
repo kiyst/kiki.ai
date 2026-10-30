@@ -24,6 +24,10 @@ adaptation before being frozen for the first training experiment.
   `score_blind_review.py` — deterministic generation, blinded A/B review, and
   post-review scoring.
 - `merge_adapter.py` — merges an accepted adapter for later GGUF conversion.
+- `convert_gguf.sh` — reproducible Linux merge, F16 conversion, and Q4_K_M
+  quantization pipeline for an accepted adapter.
+- `Modelfile.qwen3` — required Qwen3 chat/tool template and decoding parameters
+  for importing the final GGUF into Ollama.
 - `RUNPOD.md` — cloud setup, commands, stop conditions, and artifact handling.
 
 There is intentionally no holdout set in this directory yet. The next step is

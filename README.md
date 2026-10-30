@@ -423,6 +423,31 @@ links in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) into
 | `kiki-web-log.jsonl` | next to the library | Every web request: time, address, outcome |
 | `KIKI_OFFLINE` | environment | `1` blocks all internet requests (web pages and weather) |
 
+### Install the reviewed personality model
+
+After downloading the generated `kiki-personality-v1-q4_k_m.gguf`, copy
+`training/personality/Modelfile.qwen3` beside it and change its `FROM` line to
+the GGUF's absolute path:
+
+```text
+FROM C:\absolute\path\to\kiki-personality-v1-q4_k_m.gguf
+```
+
+Keep the rest of the supplied Modelfile. A bare GGUF import currently makes
+Ollama use raw `{{ .Prompt }}` formatting instead of Qwen3's role and tool
+tokens, which materially degrades responses.
+
+Then import it and select it for personality-routed turns:
+
+```powershell
+ollama create kiki-personality:v1 -f .\Modelfile.kiki-personality
+$env:KIKI_MODEL_PERSONALITY = "kiki-personality:v1"
+kiki run
+```
+
+Code requests and RAG/web tool planning still use the unadapted SMART model.
+Only the visible non-code answer is routed through the personality model.
+
 Document search has its own settings. Each one can be set as an environment
 variable or as a command-line flag placed before the command
 (`kiki --candidates 32 rag "..."`). The flag wins. The defaults are the setup

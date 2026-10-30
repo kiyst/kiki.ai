@@ -1176,3 +1176,68 @@ Decision or proposal: perform the PEFT merge and Q4_K_M/Q8_0 conversion on a
 Human review needed: approve another temporary cloud run and choose Q4_K_M
         (about 2.5 GB, recommended for this PC) or Q8_0 (about 4.3 GB).
 ```
+
+## Personality QLoRA: accepted adapter converted to deployment GGUF
+
+```text
+Date: 2026-10-30
+Stage: cloud merge, GGUF conversion, and deployment preparation
+Hardware: one temporary RunPod RTX 3090; 50 GB ephemeral disk.
+Human review result: 40 personality-focused cases preferred adapter 26, base
+        8, neither 6. The 20 technical cases the user intentionally skipped
+        were scored against frozen engineering criteria: adapter 11, base 5,
+        neither 4. Combined result: adapter 37, base 13, neither 10; adapter
+        won 74% of comparisons where either side was acceptable.
+Routing decision: keep technical requests and RAG/web tool planning on the
+        unadapted SMART model. Route ordinary non-code chat and the final
+        visible RAG/web response through the personality model. This preserves
+        base-model discretion for technical work while retaining Kiki's voice.
+Conversion: merged the reviewed PEFT adapter into exact base
+        Qwen/Qwen3-4B-Instruct-2507 in bfloat16 using torch 2.8.0+cu128;
+        converted the merged model to an 8.05 GB F16 GGUF; quantized it to
+        Q4_K_M with llama.cpp commit
+        e0f142d5ddc1461ce721644d92af33db23545105. Final size is
+        2,497,278,944 bytes (reported as 2.4 GB / 2.3 GiB).
+Final SHA-256: 79e6ec36eb69e11c78345902a9240789c1ed2b64076365156b5e9fdef8ac4f0.
+Validation: llama-cli loaded all 398 tensors from the Q4_K_M file and produced
+        a generation in the smoke test. Local repository suite: 285 passed,
+        7 expected skips using a short writable temp directory. Three new
+        adapter/base guard tests and all routing/model tests passed.
+Failure and solution: installing llama.cpp's root requirements replaced the
+        CUDA torch build with CPU torch after the merge. The committed
+        conversion pipeline now isolates only the converter requirements in a
+        separate venv. Building every CUDA architecture also wasted paid cloud
+        time; the deployment pipeline now builds a CPU quantizer/smoke-test
+        binary by default because Ollama supplies its own GPU runtime. A
+        standalone CUDA build remains opt-in with KIKI_BUILD_CUDA=ON and is
+        narrowed to the attached GPU architecture.
+Deployment failure and solution: Ollama 0.40.12 imported the prepared GGUF
+        with `TEMPLATE {{ .Prompt }}` rather than using its embedded Qwen chat
+        template. The first live Kiki turn therefore flattened system/user
+        roles and produced a generic answer. `Modelfile.qwen3` now carries the
+        exact Qwen3 message/tool template and decoding parameters used by the
+        installed unadapted model; deployment must use it, not a one-line
+        `FROM` file.
+Live routing regressions after the template fix: ordinary chat loaded
+        kiki-personality:v1; a product-except-self coding prompt loaded
+        qwen3:4b-instruct and returned the expected two-pass O(n) solution;
+        the existing history RAG corpus used validated search_files, retrieved
+        Common Sense passages, and answered Paine's views on monarchy with
+        passage citations. The planner remained SMART while the final answer
+        was personality-routed.
+Known limit: four casual spot checks were concise and operationally sensible,
+        but the personality remained subtler than the reviewed seed examples:
+        the sushi answer still led with a physical-experience disclaimer, the
+        promotion answer was only "Good.", and the joke was generic. The
+        adapter won the blinded aggregate evaluation, not every prompt. Treat
+        stronger casual voice as a measured follow-up (prompt/decoding or a
+        second data iteration), not as grounds to route technical work through
+        the adapter.
+Files changed: training/personality/merge_adapter.py, convert_gguf.sh,
+        Modelfile.qwen3, RUNPOD.md, README.md,
+        tests/test_personality_merge.py, and this log.
+Deployment next: verify the local download against the sidecar, import the
+        GGUF into Ollama as kiki-personality:v1, set KIKI_MODEL_PERSONALITY,
+        and run live CHAT/CODE/RAG routing regressions before stopping the
+        ephemeral Pod.
+```
