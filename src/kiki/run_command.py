@@ -15,24 +15,29 @@ from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
 
+from .codeblocks import CodeBlock, displayed_blocks, hidden_code
 from .permissions import EXECUTE, requires_confirmation
+from .safety import has_controls, visible_controls
 from .resilience import KikiError
 from .sandbox import RunLimits, RunResult, SandboxRunner
 from .sandbox.staging import StagingError
 
-_FENCE = re.compile(r"```[ \t]*([A-Za-z0-9_+-]*)[^\n]*\n(.*?)```", re.DOTALL)
 _PYTHON_TAGS = {"python", "py", "python3"}
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}\.py$")
-PREVIEW_LINES = 60
+
+
+def python_block(answer: str) -> CodeBlock | None:
+    """The last displayed Python block; untagged blocks only if none are tagged Python."""
+    blocks = displayed_blocks(answer)
+    tagged = [block for block in blocks if block.language in _PYTHON_TAGS]
+    untagged = [block for block in blocks if not block.language]
+    chosen = tagged or untagged
+    return chosen[-1] if chosen else None
 
 
 def code_from_answer(answer: str) -> str | None:
-    """The last Python block; untagged blocks only if none are tagged Python."""
-    blocks = [(tag.casefold(), body) for tag, body in _FENCE.findall(answer)]
-    tagged = [body for tag, body in blocks if tag in _PYTHON_TAGS]
-    untagged = [body for tag, body in blocks if not tag]
-    chosen = (tagged or untagged)[-1:] if (tagged or untagged) else []
-    return chosen[0].rstrip() + "\n" if chosen and chosen[0].strip() else None
+    block = python_block(answer)
+    return block.code if block else None
 
 
 def code_from_file(path: Path, limits: RunLimits) -> tuple[str, str]:
@@ -67,14 +72,24 @@ def run_command(
             name, code = code_from_file(argument, limits)
             source = f"a copy of {argument}"
         else:
-            code = code_from_answer(answer or "")
-            if code is None:
+            block = python_block(answer or "")
+            if block is None:
                 console.print("[yellow]The last answer has no Python code block to run.[/yellow] "
                               "Use [bold]/run FILE.py[/bold] to run a file.")
                 return None
-            name, source = "main.py", "the last answer"
+            code, name = block.code, "main.py"
+            source = "the last answer" + (f" (block {block.number} of {block.total})"
+                                          if block.total > 1 else "")
+            if hidden_code(answer or ""):
+                console.print(Text("This answer also contains code that isn't displayed (for "
+                                   "example inside an HTML comment); Kiki ignores it.", style="yellow"))
     except (StagingError, OSError, UnicodeDecodeError) as exc:
         console.print(Text(str(exc), style="yellow"))
+        return None
+    if has_controls(code):
+        # Raw control characters can redraw the preview to hide what runs (audit A2-A3).
+        console.print(Text("This code contains invisible control characters (such as ESC) that "
+                           "could disguise what it does, so Kiki won't run it.", style="yellow"))
         return None
 
     _preview(console, code, source=source, mode=mode, limits=limits)
@@ -97,12 +112,10 @@ def run_command(
 
 
 def _preview(console: Console, code: str, *, source: str, mode: str, limits: RunLimits) -> None:
-    lines = code.splitlines()
-    shown = "\n".join(lines[:PREVIEW_LINES])
-    if len(lines) > PREVIEW_LINES:
-        shown += f"\n# … {len(lines) - PREVIEW_LINES} more lines"
-    console.print(Panel(Syntax(shown, "python", line_numbers=True, word_wrap=True),
-                        title=f"Code from {source}", border_style="cyan"))
+    # All of it: approval covers every line, so every line is shown (audit A15).
+    console.print(Panel(Syntax(code.rstrip("\n"), "python", line_numbers=True, word_wrap=True),
+                        title=Text(f"Code from {source} · {len(code.splitlines())} lines"),
+                        border_style="cyan"))
     notes = [
         f"Runs in the sandbox on a temporary copy: no access to your files, no network, "
         f"stopped after {limits.timeout_s:g} s or {limits.memory_mib} MB. Nothing is saved.",
@@ -131,10 +144,12 @@ def render_run_result(console: Console, result: RunResult, limits: RunLimits) ->
     body = Text()
     body.append(f"{status} · {result.duration_s:.1f} s · {result.peak_memory_mb:.0f} MB\n",
                 style=f"bold {style}")
+    # Output is shown, never acted on: control characters appear as \x1b text,
+    # so code can't clear the screen, set the clipboard, or fake a prompt (audit A2).
     if result.stdout:
-        body.append("\n" + result.stdout.rstrip() + "\n")
+        body.append("\n" + visible_controls(result.stdout.rstrip()) + "\n")
     if result.stderr.strip():
-        body.append("\n" + result.stderr.rstrip()[-4000:] + "\n", style="red")
+        body.append("\n" + visible_controls(result.stderr.rstrip()[-4000:]) + "\n", style="red")
     if not result.stdout and not result.stderr.strip():
         body.append("\n(no output)\n", style="dim")
     if result.output_truncated:

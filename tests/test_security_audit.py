@@ -206,3 +206,89 @@ def test_a20_embeddings_ignore_ollama_host_and_proxies(monkeypatch) -> None:
     client = OllamaEmbeddingClient().client
     assert str(client._client.base_url).startswith("http://127.0.0.1:11434")
     assert client._client._trust_env is False
+
+
+# L (sandbox) · OWASP LLM10 (unbounded consumption) · CWE-400: a call blocked
+# outside wasm (time.sleep) is cut off just after the limit, not at the backstop.
+def test_l_sandbox_blocking_call_stops_soon_after_the_limit() -> None:
+    from test_sandbox import _runner_or_skip
+
+    from kiki.sandbox import RunLimits
+
+    runner = _runner_or_skip()
+    code = "import time\nprint('before', flush=True)\ntime.sleep(10_000)\nprint('after')\n"
+    result = runner.run({"main.py": code}, limits=RunLimits(timeout_s=2))
+    assert result.timed_out
+    assert result.duration_s < 2 + 1 + 6  # limit + grace + start-up, far below the 15 s backstop
+    assert "before" in result.stdout and "after" not in result.stdout
+
+
+# A2-A4, A15 · OWASP LLM05 (improper output handling) · CWE-150 / CWE-451:
+# what is shown is what runs or is saved.
+def test_a4_hidden_code_blocks_are_never_picked() -> None:
+    from kiki.apply_command import last_code_block
+    from kiki.run_command import code_from_answer
+
+    answer = ('Here:\n\n```python\nprint("visible")\n```\n\n<!--\n```python\nprint("HIDDEN")\n```\n-->\n')
+    assert code_from_answer(answer) == 'print("visible")\n'
+    assert last_code_block(answer) == ("python", 'print("visible")\n')
+    assert code_from_answer("~~~py\nprint('tilde')\n~~~\n") == "print('tilde')\n"
+
+
+def test_a2_a3_code_with_control_characters_is_refused_and_output_shown_as_text(tmp_path) -> None:
+    from kiki.apply_command import apply_command
+    from kiki.run_command import render_run_result, run_command
+    from kiki.sandbox import RunLimits, RunResult
+
+    sneaky = "```python\nimport os  # \x1b[2K\x1b[1Gprint('hello')\n```"
+    console = Console(record=True, width=160)
+    assert run_command(console, answer=sneaky, mode="chat", argument=None, read=lambda p: "y",
+                       runner=type("R", (), {"limits": RunLimits()})()) is None
+    assert apply_command(console, answer=sneaky, workspace=tmp_path, argument=tmp_path / "x.py",
+                         backups=tmp_path / "b", read=lambda p: "y") is None
+    shown = console.export_text()
+    assert "won't run" in shown and "won't save" in shown
+    assert not (tmp_path / "x.py").exists()
+    console = Console(record=True, width=160)
+    render_run_result(console, RunResult(0, "\x1b]52;c;aGk=\x07\x1b[2Jdone", ""), RunLimits())
+    shown = console.export_text()
+    assert "\x1b" not in shown and "\\x1b]52" in shown
+
+
+def test_a15_the_whole_program_is_shown_before_approval() -> None:
+    from kiki.run_command import run_command
+    from kiki.sandbox import RunLimits
+
+    code = "\n".join(f"print({n})" for n in range(200))
+    console = Console(record=True, width=160)
+    run_command(console, answer=f"```python\n{code}\n```", mode="chat", argument=None,
+                read=lambda prompt: "n", runner=type("R", (), {"limits": RunLimits()})())
+    assert "print(199)" in console.export_text()
+
+
+# A14 · CWE-67 (Windows device names) · CWE-41: /apply refuses device names and streams.
+@pytest.mark.parametrize("name", ["CON", "con.py", "NUL.txt", "COM1", "LPT9.log", "CONIN$",
+                                  "file.txt:stream", "x.py::$DATA", "exist.txt.", "trailing.py ",
+                                  "sub/AUX.py"])
+def test_a14_reserved_and_ambiguous_file_names_are_refused(tmp_path, name) -> None:
+    from pathlib import Path
+
+    from kiki.apply_command import ApplyError, resolve_target
+
+    (tmp_path / "sub").mkdir()
+    with pytest.raises(ApplyError):
+        resolve_target(tmp_path, Path(name))
+
+
+def test_l_apply_rechecks_the_path_at_write_time(tmp_path, monkeypatch) -> None:
+    from pathlib import Path
+
+    from kiki import apply_command as module
+
+    workspace = tmp_path / "ws"
+    workspace.mkdir()
+    change = module.plan_change(module.resolve_target(workspace, Path("a.py")), "print(1)\n", workspace)
+    monkeypatch.setattr(module, "resolve_target", lambda ws, target: tmp_path / "elsewhere.py")
+    with pytest.raises(module.ApplyError, match="outside the workspace"):
+        module.write_change(change, tmp_path / "backups")
+    assert not (workspace / "a.py").exists()

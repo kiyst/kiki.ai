@@ -104,9 +104,10 @@ class Job:
             self.close()
             raise error
 
-    def start(self, argv: list[str]) -> subprocess.Popen[bytes]:
+    def start(self, argv: list[str], *, stdin: bool = False) -> subprocess.Popen[bytes]:
         process = subprocess.Popen(
-            argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL,
+            argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE if stdin else subprocess.DEVNULL,
             creationflags=CREATE_SUSPENDED, shell=False)
         handle = wintypes.HANDLE(int(process._handle))  # type: ignore[attr-defined]
         if not self._kernel32.AssignProcessToJobObject(self.handle, handle):
