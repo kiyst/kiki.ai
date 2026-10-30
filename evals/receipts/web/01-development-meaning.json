@@ -1,0 +1,719 @@
+{
+  "summary": {
+    "runs_per_question": 3,
+    "answers_scored": 45,
+    "correct": 42,
+    "correct_rate": 0.933,
+    "answer_questions_correct": "30/33",
+    "off_topic_declined": "12/12",
+    "outcomes": {
+      "answered correctly": 30,
+      "declined correctly": 12,
+      "declined wrongly": 3
+    },
+    "labelled_general_knowledge": 0,
+    "answers_with_flags": 3,
+    "pages_unavailable": [],
+    "mean_seconds": 6.7
+  },
+  "rows": [
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "who created Python and when was it first released?",
+      "expect": "answer",
+      "keywords": [
+        "Guido"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 12.0,
+      "answer": "Python was created by Guido van Rossum in the late 1980s. He began working on it as a successor to the ABC programming language while at Centrum Wiskunde & Informatica (CWI) in the Netherlands. The first release of Python was Python 0.9.0, which came out in 1991. [source:p66e07dc2b30]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "who created Python and when was it first released?",
+      "expect": "answer",
+      "keywords": [
+        "Guido"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.7,
+      "answer": "Python was created by Guido van Rossum in the late 1980s. He began working on it as a successor to the ABC programming language while at Centrum Wiskunde & Informatica (CWI) in the Netherlands. The first release of Python was Python 0.9.0, which came out in 1991. [source:p66e07dc2b30]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "who created Python and when was it first released?",
+      "expect": "answer",
+      "keywords": [
+        "Guido"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.6,
+      "answer": "Python was created by Guido van Rossum in the late 1980s. He began working on it as a successor to the ABC programming language while at Centrum Wiskunde & Informatica (CWI) in the Netherlands. The first release of Python was Python 0.9.0, which came out in 1991. [source:p66e07dc2b30]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "is python slow?",
+      "expect": "answer",
+      "keywords": [
+        "performance",
+        "speed",
+        "NumPy",
+        "readability"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 9.5,
+      "answer": "Python isn't inherently slow, but its performance can vary depending on how it's used. The language is designed to be easy to read and write, prioritizing developer productivity over raw speed. Most high-performance Python libraries—like NumPy—use compiled languages such as C or Fortran under the hood, which significantly boosts performance for numerical and scientific computing tasks. This means that while Python itself may run slower than compiled languages like C or C++, the actual performance of Python programs is often improved by leveraging optimized libraries.\n\nAdditionally, some Python implementations—like PyPy or Numba—aim to speed up execution by compiling Python code to machine code or optimizing specific operations. However, the dynamic nature of Python (e.g., dynamic typing and runtime evaluation) can limit performance gains, especially in cases where the entire language is compiled. In such cases, the speed-up may be limited or come with potential semantic changes. That said, for many applications—especially those involving data analysis, scripting, and rapid prototyping—Python's performance is more than adequate, and its ease of use often outweighs raw speed concerns.\n\nIn short: Python isn't slow by design, but its performance depends on the tools and libraries used. For performance-critical tasks, developers often use optimized backends or compile-specific parts of code to achieve better speed. [source:p6cf404884d1] [source:p42a0aefd8ec] [source:p16d0395167c]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "is python slow?",
+      "expect": "answer",
+      "keywords": [
+        "performance",
+        "speed",
+        "NumPy",
+        "readability"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.2,
+      "answer": "Python isn't inherently slow, but its performance can vary depending on how it's used. The language is designed to be easy to read and write, prioritizing developer productivity over raw speed. Most high-performance Python libraries—like NumPy—use compiled languages such as C or Fortran under the hood, which significantly boosts performance for numerical and scientific computing tasks. This means that while Python itself may run slower than compiled languages like C or C++, the actual performance of Python programs is often improved by leveraging optimized libraries.\n\nAdditionally, some Python implementations—like PyPy or Numba—aim to speed up execution by compiling Python code to machine code or optimizing specific operations. However, the dynamic nature of Python (e.g., dynamic typing and runtime evaluation) can limit performance gains, especially in cases where the entire language is compiled. In such cases, the speed-up may be limited or come with potential semantic changes. That said, for many applications—especially those involving data analysis, scripting, and rapid prototyping—Python's performance is more than adequate, and its ease of use often outweighs raw speed concerns.\n\nIn short: Python isn't slow by design, but its performance depends on the tools and libraries used. For performance-critical tasks, developers often use optimized backends or compile-specific parts of code to achieve better speed. [source:p6cf404884d1] [source:p42a0aefd8ec] [source:p16d0395167c]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "is python slow?",
+      "expect": "answer",
+      "keywords": [
+        "performance",
+        "speed",
+        "NumPy",
+        "readability"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.4,
+      "answer": "Python isn't inherently slow, but its performance can vary depending on how it's used. The language is designed to be easy to read and write, prioritizing developer productivity over raw speed. Most high-performance Python libraries—like NumPy—use compiled languages such as C or Fortran under the hood, which significantly boosts performance for numerical and scientific computing tasks. This means that while Python itself may run slower than compiled languages like C or C++, the actual performance of Python programs is often improved by leveraging optimized libraries.\n\nAdditionally, some Python implementations—like PyPy or Numba—aim to speed up execution by compiling Python code to machine code or optimizing specific operations. However, the dynamic nature of Python (e.g., dynamic typing and runtime evaluation) can limit performance gains, especially in cases where the entire language is compiled. In such cases, the speed-up may be limited or come with potential semantic changes. That said, for many applications—especially those involving data analysis, scripting, and rapid prototyping—Python's performance is more than adequate, and its ease of use often outweighs raw speed concerns.\n\nIn short: Python isn't slow by design, but its performance depends on the tools and libraries used. For performance-critical tasks, developers often use optimized backends or compile-specific parts of code to achieve better speed. [source:p6cf404884d1] [source:p42a0aefd8ec] [source:p16d0395167c]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "what is the capital of France?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.2,
+      "answer": "Evidence is insufficient. None of the provided excerpts contain any information about the capital of France. All excerpts pertain to programming language features, databases, or cultural references and do not address geography or the capital city of France. Therefore, no excerpt supports a claim about the capital of France."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "what is the capital of France?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.9,
+      "answer": "Evidence is insufficient."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "what is the capital of France?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.2,
+      "answer": "Evidence is insufficient."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "When was Python 3.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "December 3, 2008",
+        "3 December 2008"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 9.5,
+      "answer": "Python 3.0 was released on December 3, 2008 [source:p1243d683600]. This major, backwards-incompatible release aimed to fix fundamental design flaws in the language by removing redundant constructs and improving clarity, aligning with the Zen of Python's principle of having \"one— and preferably only one —obvious way to do it\" [source:p45ecbf1dc63]. Despite the backward incompatibility, features from Python 3.0 were backported to Python 2.6 and 2.7, and support for Python 2 ended on January 1, 2020 [source:p6134593a615]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "When was Python 3.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "December 3, 2008",
+        "3 December 2008"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.0,
+      "answer": "Python 3.0 was released on December 3, 2008 [source:p1243d683600]. This major, backwards-incompatible release aimed to fix fundamental design flaws in the language by removing redundant constructs and improving clarity, aligning with the Zen of Python's principle of having \"one— and preferably only one —obvious way to do it\" [source:p45ecbf1dc63]. Despite the backward incompatibility, features from Python 3.0 were backported to Python 2.6 and 2.7, and support for Python 2 ended on January 1, 2020 [source:p6134593a615]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "When was Python 3.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "December 3, 2008",
+        "3 December 2008"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.1,
+      "answer": "Python 3.0 was released on December 3, 2008 [source:p1243d683600]. This major, backwards-incompatible release aimed to fix fundamental design flaws in the language by removing redundant constructs and improving clarity, aligning with the Zen of Python's principle of having \"one— and preferably only one —obvious way to do it\" [source:p45ecbf1dc63]. Despite the backward incompatibility, features from Python 3.0 were backported to Python 2.6 and 2.7, and support for Python 2 ended on January 1, 2020 [source:p6134593a615]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "why did Guido step down?",
+      "expect": "answer",
+      "keywords": [
+        "2018",
+        "BDFL",
+        "Benevolent Dictator"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.1,
+      "answer": "Guido van Rossum stepped down as the Benevolent Dictator for Life (BDFL) of Python on July 12, 2018. The decision was part of a broader effort to transition Python’s leadership model to a more collaborative and community-driven structure. While the specific reasons for his departure are not detailed in the provided excerpts, the move was likely motivated by a desire to decentralize decision-making and empower the broader Python community to take a more active role in shaping the language’s future. This shift reflects a growing trend in open-source projects to move away from individual leadership toward distributed governance. [source:p145e45b1d72]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "why did Guido step down?",
+      "expect": "answer",
+      "keywords": [
+        "2018",
+        "BDFL",
+        "Benevolent Dictator"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.9,
+      "answer": "Guido van Rossum stepped down as the Benevolent Dictator for Life (BDFL) of Python on July 12, 2018. The decision was part of a broader effort to transition Python’s leadership model to a more collaborative and community-driven structure. While the specific reasons for his departure are not detailed in the provided excerpts, the move was likely motivated by a desire to decentralize decision-making and empower the broader Python community to take a more active role in shaping the language’s future. This shift reflects a growing trend in open-source projects to move away from individual leadership toward distributed governance. [source:p145e45b1d72]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "why did Guido step down?",
+      "expect": "answer",
+      "keywords": [
+        "2018",
+        "BDFL",
+        "Benevolent Dictator"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.6,
+      "answer": "Guido van Rossum stepped down as the Benevolent Dictator for Life (BDFL) of Python on July 12, 2018. The decision was part of a broader effort to transition Python’s leadership model to a more collaborative and community-driven structure. While the specific reasons for his departure are not detailed in the provided excerpts, the move was likely motivated by a desire to decentralize decision-making and empower the broader Python community to take a more active role in shaping the language’s future. This shift reflects a growing trend in open-source projects to move away from individual leadership toward distributed governance. [source:p145e45b1d72]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "what's the weather in Boston?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.6,
+      "answer": "Evidence is insufficient. The provided excerpts discuss the history of the Python programming language and do not contain any information about the weather in Boston. Therefore, no passage directly supports part of the question."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "what's the weather in Boston?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.0,
+      "answer": "Evidence is insufficient. The provided excerpts discuss the history of the Python programming language and do not contain any information about the weather in Boston. Therefore, no passage directly supports part of the question."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "what's the weather in Boston?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.1,
+      "answer": "Evidence is insufficient. The provided excerpts discuss the history of the Python programming language and do not contain any information about the weather in Boston. Therefore, no passage directly supports part of the question."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "who won the 2022 World Cup?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.7,
+      "answer": "Evidence is insufficient. The provided passages discuss the history of the Python programming language and do not contain any information about the winner of the 2022 FIFA World Cup."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "who won the 2022 World Cup?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.6,
+      "answer": "Evidence is insufficient. The provided passages discuss the history of the Python programming language and do not contain any information about the winner of the 2022 FIFA World Cup."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "who won the 2022 World Cup?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.5,
+      "answer": "Evidence is insufficient. The provided passages discuss the history of the Python programming language and do not contain any information about the winner of the 2022 FIFA World Cup."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "what did she write about the Analytical Engine?",
+      "expect": "answer",
+      "keywords": [
+        "Menabrea",
+        "notes",
+        "Note G"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 15.7,
+      "answer": "Ada Lovelace wrote extensively about the Analytical Engine, emphasizing its ability to be programmed to solve problems of any complexity, far beyond mere numerical calculations. She highlighted the machine’s capacity to follow analysis but stressed that it had no power to anticipate or originate new analytical truths, distinguishing it from earlier calculating machines [source:pe61df716a5b]. Lovelace recognized the difference between the mechanical design of the engine and its logical structure, noting that different specialists might be needed for each aspect [source:p4c0658d3c2e]. While she did not write programs for the Analytical Engine herself—Babbage had prepared most of the early programs, and she only detected a \"bug\" in one—her notes were instrumental in publicizing the machine’s potential [source:p424c604b7e9]. Despite this, historians have debated whether she was truly the first computer programmer, as Babbage had authored the initial algorithms, and many of his programs predated her notes [source:p1fe702dc7cf]. Still, Lovelace is credited with seeing the machine’s potential to process not just numbers but also symbols and entities, making her a visionary in computing history [source:p8131ba6739a]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "what did she write about the Analytical Engine?",
+      "expect": "answer",
+      "keywords": [
+        "Menabrea",
+        "notes",
+        "Note G"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.9,
+      "answer": "Ada Lovelace emphasized the Analytical Engine's ability to be programmed to solve problems of any complexity, extending far beyond mere number crunching. In her notes, she highlighted the machine's capacity to follow analysis but stressed it had no power to anticipate analytical relations or truths on its own. She recognized a key distinction between the mechanical details of computing and the logical structure of the Analytical Engine, noting that different specialists might be needed for each aspect. While she did not write programs for the machine herself—Babbage had prepared most of the early programs, and she only detected a \"bug\" in one—Lovelace was the first to envision the machine's potential to process not just numbers but also symbols and entities, thus seeing it as capable of more than pure calculation. Though historians debate whether she was the first computer programmer, her insight into the machine's broader capabilities remains foundational. [source:pe61df716a5b] [source:p4c0658d3c2e] [source:p424c604b7e9] [source:p7a673c2696f] [source:p1fe702dc7cf] [source:p8131ba6739a]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "what did she write about the Analytical Engine?",
+      "expect": "answer",
+      "keywords": [
+        "Menabrea",
+        "notes",
+        "Note G"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.0,
+      "answer": "Ada Lovelace emphasized the Analytical Engine's ability to be programmed to solve problems of any complexity, extending far beyond mere number crunching. In her notes, she highlighted the machine's capacity to follow analysis but stressed it had no power to anticipate analytical relations or truths on its own. She recognized a key distinction between the mechanical details of computing and the logical structure of the Analytical Engine, noting that different specialists might be needed for each aspect. While she did not write programs for the machine herself—Babbage had prepared most of the early programs, and she only detected a \"bug\" in one—Lovelace was the first to envision the machine's potential to process not just numbers but also symbols and entities, thus seeing it as capable of more than pure calculation. Though historians debate whether she was the first computer programmer, her insight into the machine's broader capabilities remains foundational. [source:pe61df716a5b] [source:p4c0658d3c2e] [source:p424c604b7e9] [source:p7a673c2696f] [source:p1fe702dc7cf] [source:p8131ba6739a]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "Babbage",
+        "Analytical Engine"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.6,
+      "answer": "The page primarily focuses on Ada Lovelace, an English mathematician and writer, best known for her pioneering work on Charles Babbage's analytical engine. She is recognized as the first computer programmer for her detailed notes on the machine, which included a method for calculating Bernoulli numbers—often cited as the first published computer program. Lovelace was the only legitimate child of Lord Byron and Anne Isabella Milbanke, and after her father's death when she was eight, she pursued rigorous studies despite frequent illness. Her intellectual connections extended to prominent scientists and figures like Charles Dickens, Andrew Crosse, and Michael Faraday. She developed a unique approach to science she called \"poetical science\" and described herself as an \"Analyst (& Metaphysician).\" Her collaboration with Charles Babbage, beginning in 1833, was instrumental in advancing early computing concepts, even though the analytical engine was never built. Though Babbage is known as the \"father of computers,\" Lovelace's contributions laid foundational ideas for modern computing. [source:pa30016bb57d] [source:p484d9faac97] [source:pc8eb6ebc81a] [source:p7e8ef1dba9f] [source:pa7a9cc583be] [source:pa7a9cc583be]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "Babbage",
+        "Analytical Engine"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.2,
+      "answer": "The page primarily focuses on Ada Lovelace, an English mathematician and writer, best known for her pioneering work on Charles Babbage's analytical engine. She is recognized as the first computer programmer for her detailed notes on the machine, which included a method for calculating Bernoulli numbers—often cited as the first published computer program. Lovelace was the only legitimate child of Lord Byron and Anne Isabella Milbanke, and after her father's death when she was eight, she pursued rigorous studies despite frequent illness. Her intellectual connections extended to prominent scientists and figures like Charles Dickens, Andrew Crosse, and Michael Faraday. She developed a unique approach to science she called \"poetical science\" and described herself as an \"Analyst (& Metaphysician).\" Her collaboration with Charles Babbage, beginning in 1833, was instrumental in advancing early computing concepts, even though the analytical engine was never built. Though Babbage is known as the \"father of computers,\" Lovelace's contributions laid foundational ideas for modern computing. [source:pa30016bb57d] [source:p484d9faac97] [source:pc8eb6ebc81a] [source:p7e8ef1dba9f] [source:pa7a9cc583be] [source:pa7a9cc583be]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "Babbage",
+        "Analytical Engine"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.0,
+      "answer": "The page primarily focuses on Ada Lovelace, an English mathematician and writer, best known for her pioneering work on Charles Babbage's analytical engine. She is recognized as the first computer programmer for her detailed notes on the machine, which included a method for calculating Bernoulli numbers—often cited as the first published computer program. Lovelace was the only legitimate child of Lord Byron and Anne Isabella Milbanke, and after her father's death when she was eight, she pursued rigorous studies despite frequent illness. Her intellectual connections extended to prominent scientists and figures like Charles Dickens, Andrew Crosse, and Michael Faraday. She developed a unique approach to science she called \"poetical science\" and described herself as an \"Analyst (& Metaphysician).\" Her collaboration with Charles Babbage, beginning in 1833, was instrumental in advancing early computing concepts, even though the analytical engine was never built. Though Babbage is known as the \"father of computers,\" Lovelace's contributions laid foundational ideas for modern computing. [source:pa30016bb57d] [source:p484d9faac97] [source:pc8eb6ebc81a] [source:p7e8ef1dba9f] [source:pa7a9cc583be] [source:pa7a9cc583be]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "how fast is heapify?",
+      "expect": "answer",
+      "keywords": [
+        "O(len(x))",
+        "linear",
+        "O(n)"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "The passage notes that on random arrays of length 1000, heapify reduces the number of comparisons made by heappop operations from approximately 15,000 to about 8,700, demonstrating efficiency in practice.",
+        "This reduction is consistent with theoretical expectations and is supported by experimental results from three runs: 14,996 to 8,680, 14,966 to 8,678, and 15,024 to 8,703 comparisons."
+      ],
+      "seconds": 15.9,
+      "answer": "Heapify operates in O(len(x)) time, meaning it transforms a list into a heap in linear time, as stated in the function definition: \"Transform list into a heap, in-place, in O(len(x)) time.\" [source:p6c61998e14f]  \n\nThe passage notes that on random arrays of length 1000, heapify reduces the number of comparisons made by heappop operations from approximately 15,000 to about 8,700, demonstrating efficiency in practice. This reduction is consistent with theoretical expectations and is supported by experimental results from three runs: 14,996 to 8,680, 14,966 to 8,678, and 15,024 to 8,703 comparisons. [source:p2893b91a314]  \n\nThese results indicate that heapify significantly improves performance during heap operations, particularly in reducing the number of comparisons required during heappop. [source:p2893b91a314]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "how fast is heapify?",
+      "expect": "answer",
+      "keywords": [
+        "O(len(x))",
+        "linear",
+        "O(n)"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "The passage notes that on random arrays of length 1000, heapify reduces the number of comparisons made by heappop operations from approximately 15,000 to about 8,700, demonstrating efficiency in practice.",
+        "This reduction is consistent with theoretical expectations and is supported by experimental results from three runs: 14,996 to 8,680, 14,966 to 8,678, and 15,024 to 8,703 comparisons."
+      ],
+      "seconds": 11.2,
+      "answer": "Heapify operates in O(len(x)) time, meaning it transforms a list into a heap in linear time, as stated in the function definition: \"Transform list into a heap, in-place, in O(len(x)) time.\" [source:p6c61998e14f]  \n\nThe passage notes that on random arrays of length 1000, heapify reduces the number of comparisons made by heappop operations from approximately 15,000 to about 8,700, demonstrating efficiency in practice. This reduction is consistent with theoretical expectations and is supported by experimental results from three runs: 14,996 to 8,680, 14,966 to 8,678, and 15,024 to 8,703 comparisons. [source:p2893b91a314]  \n\nThese results indicate that heapify significantly improves performance during heap operations, particularly in reducing the number of comparisons required during heappop. [source:p2893b91a314]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "how fast is heapify?",
+      "expect": "answer",
+      "keywords": [
+        "O(len(x))",
+        "linear",
+        "O(n)"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "The passage notes that on random arrays of length 1000, heapify reduces the number of comparisons made by heappop operations from approximately 15,000 to about 8,700, demonstrating efficiency in practice.",
+        "This reduction is consistent with theoretical expectations and is supported by experimental results from three runs: 14,996 to 8,680, 14,966 to 8,678, and 15,024 to 8,703 comparisons."
+      ],
+      "seconds": 11.2,
+      "answer": "Heapify operates in O(len(x)) time, meaning it transforms a list into a heap in linear time, as stated in the function definition: \"Transform list into a heap, in-place, in O(len(x)) time.\" [source:p6c61998e14f]  \n\nThe passage notes that on random arrays of length 1000, heapify reduces the number of comparisons made by heappop operations from approximately 15,000 to about 8,700, demonstrating efficiency in practice. This reduction is consistent with theoretical expectations and is supported by experimental results from three runs: 14,996 to 8,680, 14,966 to 8,678, and 15,024 to 8,703 comparisons. [source:p2893b91a314]  \n\nThese results indicate that heapify significantly improves performance during heap operations, particularly in reducing the number of comparisons required during heappop. [source:p2893b91a314]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "what does heappushpop do?",
+      "expect": "answer",
+      "keywords": [
+        "push",
+        "pop"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.7,
+      "answer": "`heappushpop` is a function in Python's `heapq` module that efficiently pushes a new item onto a heap and immediately returns the smallest item from the heap—effectively combining a `heappush` and a `heappop` in one operation. It's designed to be faster than doing these two operations separately, especially when working with a fixed-size heap where you want to maintain the smallest element at the front.\n\nThe function works by first comparing the new item with the smallest element (which is always at index 0 in a min-heap). If the new item is larger than the smallest element, it simply replaces that smallest element with the new one and maintains the heap invariant through a sift-up operation. If the new item is smaller, it is placed at the root, and the heap is adjusted accordingly. The function then returns the smallest element (which may now be the new item or the one that was previously at the root).\n\nThis makes `heappushpop` particularly useful in scenarios where you're maintaining a heap and want to both insert a new value and retrieve the current minimum in a single, optimized step. It's especially efficient when the heap size is fixed or when you're frequently inserting and retrieving values without needing to pop the smallest element repeatedly.\n\n[source:pea3ff9b63fd]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "what does heappushpop do?",
+      "expect": "answer",
+      "keywords": [
+        "push",
+        "pop"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.1,
+      "answer": "`heappushpop` is a function in Python's `heapq` module that efficiently pushes a new item onto a heap and immediately returns the smallest item from the heap—effectively combining a `heappush` and a `heappop` in one operation. It's designed to be faster than doing these two operations separately, especially when working with a fixed-size heap where you want to maintain the smallest element at the front.\n\nThe function works by first comparing the new item with the smallest element (which is always at index 0 in a min-heap). If the new item is larger than the smallest element, it simply replaces that smallest element with the new one and maintains the heap invariant through a sift-up operation. If the new item is smaller, it is placed at the root, and the heap is adjusted accordingly. The function then returns the smallest element (which may now be the new item or the one that was previously at the root).\n\nThis makes `heappushpop` particularly useful in scenarios where you're maintaining a heap and want to both insert a new value and retrieve the current minimum in a single, optimized step. It's especially efficient when the heap size is fixed or when you're frequently inserting and retrieving values without needing to pop the smallest element repeatedly.\n\n[source:pea3ff9b63fd]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "what does heappushpop do?",
+      "expect": "answer",
+      "keywords": [
+        "push",
+        "pop"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.1,
+      "answer": "`heappushpop` is a function in Python's `heapq` module that efficiently pushes a new item onto a heap and immediately returns the smallest item from the heap—effectively combining a `heappush` and a `heappop` in one operation. It's designed to be faster than doing these two operations separately, especially when working with a fixed-size heap where you want to maintain the smallest element at the front.\n\nThe function works by first comparing the new item with the smallest element (which is always at index 0 in a min-heap). If the new item is larger than the smallest element, it simply replaces that smallest element with the new one and maintains the heap invariant through a sift-up operation. If the new item is smaller, it is placed at the root, and the heap is adjusted accordingly. The function then returns the smallest element (which may now be the new item or the one that was previously at the root).\n\nThis makes `heappushpop` particularly useful in scenarios where you're maintaining a heap and want to both insert a new value and retrieve the current minimum in a single, optimized step. It's especially efficient when the heap size is fixed or when you're frequently inserting and retrieving values without needing to pop the smallest element repeatedly.\n\n[source:pea3ff9b63fd]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "how do I build Python on Windows?",
+      "expect": "answer",
+      "keywords": [
+        "PCbuild"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 10.8,
+      "answer": "Evidence is insufficient."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "how do I build Python on Windows?",
+      "expect": "answer",
+      "keywords": [
+        "PCbuild"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.6,
+      "answer": "Evidence is insufficient."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "how do I build Python on Windows?",
+      "expect": "answer",
+      "keywords": [
+        "PCbuild"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.6,
+      "answer": "Evidence is insufficient."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "CPython",
+        "build"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.3,
+      "answer": "The page provides an overview of CPython, the reference implementation of Python. It begins with version details and build status badges from GitHub and Azure DevOps, indicating active development. Key sections include general information such as the official website, source code repository, issue tracker, and documentation. It outlines build instructions for Unix, Linux, macOS, and Windows, detailing steps like configuring, compiling, and installing Python. The page explains that build dependencies vary by platform and directs users to the Developer Guide for specifics. It also covers advanced build options, such as using `--with-pydebug` for debugging or `--enable-optimizations` for performance tuning via Profile Guided Optimization (PGO), which involves instrumenting the interpreter and generating optimized binaries. The content is structured to guide developers through both basic and advanced Python build processes. [source:p01ce43d2883] [source:p28c9233d157] [source:p89762c2aef0] [source:p4ae73ccc28e] [source:pbbeedd9659d] [source:pbb317e1cb83]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "CPython",
+        "build"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.2,
+      "answer": "The page provides an overview of CPython, the reference implementation of Python. It begins with version details and build status badges from GitHub and Azure DevOps, indicating active development. Key sections include general information such as the official website, source code repository, issue tracker, and documentation. It outlines build instructions for Unix, Linux, macOS, and Windows, detailing steps like configuring, compiling, and installing Python. The page explains that build dependencies vary by platform and directs users to the Developer Guide for specifics. It also covers advanced build options, such as using `--with-pydebug` for debugging or `--enable-optimizations` for performance tuning via Profile Guided Optimization (PGO), which involves instrumenting the interpreter and generating optimized binaries. The content is structured to guide developers through both basic and advanced Python build processes. [source:p01ce43d2883] [source:p28c9233d157] [source:p89762c2aef0] [source:p4ae73ccc28e] [source:pbbeedd9659d] [source:pbb317e1cb83]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "CPython",
+        "build"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.2,
+      "answer": "The page provides an overview of CPython, the reference implementation of Python. It begins with version details and build status badges from GitHub and Azure DevOps, indicating active development. Key sections include general information such as the official website, source code repository, issue tracker, and documentation. It outlines build instructions for Unix, Linux, macOS, and Windows, detailing steps like configuring, compiling, and installing Python. The page explains that build dependencies vary by platform and directs users to the Developer Guide for specifics. It also covers advanced build options, such as using `--with-pydebug` for debugging or `--enable-optimizations` for performance tuning via Profile Guided Optimization (PGO), which involves instrumenting the interpreter and generating optimized binaries. The content is structured to guide developers through both basic and advanced Python build processes. [source:p01ce43d2883] [source:p28c9233d157] [source:p89762c2aef0] [source:p4ae73ccc28e] [source:pbbeedd9659d] [source:pbb317e1cb83]"
+    },
+    {
+      "split": "development",
+      "url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "question": "What changed about the interactive interpreter?",
+      "expect": "answer",
+      "keywords": [
+        "PyPy",
+        "multiline",
+        "color"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 14.2,
+      "answer": "The interactive interpreter in Python 3.13 was significantly improved with a new, more capable shell based on code from the PyPy project. This new shell supports multiline editing with history preservation, direct access to REPL-specific commands like `help`, `exit`, and `quit` without needing to call them as functions, and color-enabled prompts and tracebacks by default. It also includes interactive help browsing via F1 and history browsing via F2, which skips output and prompts. A \"paste mode\" (activated by F3) makes it easier to paste larger blocks of code. Additionally, the interpreter now uses color in tracebacks by default, a feature controllable via environment variables like `PYTHON_COLORS`, `NO_COLOR`, or `FORCE_COLOR`. These enhancements make the interactive experience more intuitive and user-friendly. [source:p10790a11cfe] [source:p46a28821294] [source:pdbff4515823]"
+    },
+    {
+      "split": "development",
+      "url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "question": "What changed about the interactive interpreter?",
+      "expect": "answer",
+      "keywords": [
+        "PyPy",
+        "multiline",
+        "color"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.9,
+      "answer": "The interactive interpreter in Python 3.13 was significantly improved with a new, more capable shell based on code from the PyPy project. This new shell supports multiline editing with history preservation, direct access to REPL-specific commands like `help`, `exit`, and `quit` without needing to call them as functions, and color-enabled prompts and tracebacks by default. It also includes interactive help browsing via F1 and history browsing via F2, which skips output and prompts. A \"paste mode\" (activated by F3) makes it easier to paste larger blocks of code. Additionally, the interpreter now uses color in tracebacks by default, a feature controllable via environment variables like `PYTHON_COLORS`, `NO_COLOR`, or `FORCE_COLOR`. These enhancements make the interactive experience more intuitive and user-friendly. [source:p10790a11cfe] [source:p46a28821294] [source:pdbff4515823]"
+    },
+    {
+      "split": "development",
+      "url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "question": "What changed about the interactive interpreter?",
+      "expect": "answer",
+      "keywords": [
+        "PyPy",
+        "multiline",
+        "color"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.8,
+      "answer": "The interactive interpreter in Python 3.13 was significantly improved with a new, more capable shell based on code from the PyPy project. This new shell supports multiline editing with history preservation, direct access to REPL-specific commands like `help`, `exit`, and `quit` without needing to call them as functions, and color-enabled prompts and tracebacks by default. It also includes interactive help browsing via F1 and history browsing via F2, which skips output and prompts. A \"paste mode\" (activated by F3) makes it easier to paste larger blocks of code. Additionally, the interpreter now uses color in tracebacks by default, a feature controllable via environment variables like `PYTHON_COLORS`, `NO_COLOR`, or `FORCE_COLOR`. These enhancements make the interactive experience more intuitive and user-friendly. [source:p10790a11cfe] [source:p46a28821294] [source:pdbff4515823]"
+    },
+    {
+      "split": "development",
+      "url": "https://example.com",
+      "question": "What is the capital of France?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.9,
+      "answer": "Evidence is insufficient. The provided excerpt is about a domain example and does not contain any information about the capital of France. [source:pe09b6594788]"
+    },
+    {
+      "split": "development",
+      "url": "https://example.com",
+      "question": "What is the capital of France?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 1.8,
+      "answer": "Evidence is insufficient. The provided excerpt does not contain any information about the capital of France. [source:pe09b6594788]"
+    },
+    {
+      "split": "development",
+      "url": "https://example.com",
+      "question": "What is the capital of France?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.0,
+      "answer": "Evidence is insufficient. The provided excerpt does not contain any information about the capital of France. [source:pe09b6594788]"
+    }
+  ],
+  "meaning_search_error": null,
+  "configuration": {
+    "cases": "evals\\web_cases.json",
+    "split": "development"
+  }
+}

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+import json
 import re
+from pathlib import Path
 from random import random
 from time import monotonic, sleep
 from typing import Any, Callable, Protocol
@@ -9,6 +11,19 @@ from typing import Any, Callable, Protocol
 import httpx
 
 from ..resilience import CircuitBreaker, KikiError, ErrorCode
+from ..safety import offline_mode
+
+
+def _log_request(path: Path, location: str, country_code: str) -> None:
+    """Weather requests go in the same log as web pages: what was sent, and when."""
+    record = {"time": datetime.now(UTC).isoformat(timespec="seconds"), "requested": GEOCODING_URL,
+              "kind": "weather", "sent": f"{location[:120]} ({country_code})"}
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except OSError:
+        pass
 
 
 GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
@@ -74,10 +89,18 @@ class OpenMeteoWeatherProvider:
         self._random = random_source
         self.circuit_breaker = circuit_breaker or CircuitBreaker("Open-Meteo")
         self._cache: dict[tuple[str, str, int], tuple[float, dict[str, Any]]] = {}
+        # Where weather requests are recorded alongside web requests (set by the session).
+        self.log: Path | None = None
 
     def get_weather(
         self, location: str, country_code: str = "US", days: int = 3
     ) -> dict[str, Any]:
+        # Enforced here, at the network boundary, so no caller can skip it.
+        if offline_mode():
+            raise RuntimeError("Kiki is in offline mode (KIKI_OFFLINE is set), so she can't "
+                               "fetch live weather.")
+        if self.log is not None:
+            _log_request(self.log, location, country_code)
         original_location = location.strip()
         location, country_code = _normalize_us_location(location, country_code)
         key = (location.casefold(), country_code, days)

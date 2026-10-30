@@ -23,6 +23,7 @@ from .extraction import (
     extract_chunks,
 )
 from .resilience import KikiError, ErrorCode
+from .safety import protected_folder_reason
 
 
 @dataclass(frozen=True)
@@ -86,11 +87,13 @@ class TextIndex:
     SCHEMA_VERSION = 5
     MAX_FILE_BYTES = 25 * 1024 * 1024
     MAX_CATALOG_FILES = 200_000
-    # Tool and dependency folders that only bury the user's own files.
+    # Tool and dependency folders that only bury the user's own files;
+    # AppData (credentials, caches) when indexing a whole home folder; and
+    # Kiki's own .kiki folder, so memories and transcripts never become evidence.
     CATALOG_SKIP_DIRS = frozenset({
         ".git", ".hg", ".svn", "node_modules", "__pycache__", ".venv", "venv",
         ".tox", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".cache",
-        "$recycle.bin", "system volume information",
+        "$recycle.bin", "system volume information", "appdata", ".kiki",
     })
 
     def __init__(self, database: Path) -> None:
@@ -324,6 +327,11 @@ class TextIndex:
         root = root.resolve(strict=True)
         if not root.is_dir():
             raise ValueError(f"Not a directory: {root}")
+        refused = protected_folder_reason(root)
+        if refused:
+            # Product decision: Kiki covers the user's folders, never a whole
+            # drive or the system's, which hold credentials, caches, and noise.
+            raise ValueError(f"Kiki won't index {root}: {refused}.")
 
         counts = {"indexed": 0, "unchanged": 0, "skipped": 0, "failed": 0, "removed": 0}
         issues: list[dict[str, str]] = []

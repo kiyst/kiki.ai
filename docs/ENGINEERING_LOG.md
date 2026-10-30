@@ -1134,6 +1134,152 @@ Decision or proposal: complete the blind A/B review, reveal and score labels,
         saved epoch-2 checkpoint, or revise the dataset and retrain.
 Human review needed: personality-training-results/eval/blind_review.json.
         Keep blind_key.json unopened until winners and notes are filled.
+## Web access: meaning-based picking, evaluation, and hardening against hostile pages
+
+```text
+Date: 2026-10-29 to 2026-10-30
+Stage: web access step 1 quality and security; the user asked for edge cases,
+        a regression run, and a holdout, considering reckless, tech-savvy, and
+        malicious users
+Files changed: src/kiki/web.py, documents.py, model_client.py, terminal.py,
+        cli.py, web_evals.py (new), evals/web_cases.json (new),
+        evals/web_adversarial_cases.json (new), tests/test_web.py,
+        tests/test_web_security.py (new), README.md, docs
+Quality: passages picked by meaning and words (qwen3-embedding, merged
+        rankings; off-topic note from meaning: off-topic best similarity
+        0.19-0.24, on-topic 0.43-0.86 on three pages, cutoff 0.35); passages
+        700 characters, six per answer, so the right one is never trimmed by
+        words (that had cut heapify's "O(len(x)) time" out); quotations must
+        match the page; details checked against the passages each paragraph
+        cites; big-O counts as supported if the page states any complexity;
+        the support-check retry drops the draft (it argued with itself) and a
+        bare refusal after it falls back to a partly supported draft;
+        overviews sample section starts; documentation sites read through
+        their marked main content; GitHub issues through the API.
+Hardening (each found by an edge-case test that failed first):
+        invalid port crashed the chat session; NAT64 and 6to4 forms of
+        127.0.0.1 passed as public (Python's is_global); DNS rebinding was
+        possible (now: connect to the checked address, Host and SNI carry the
+        name); gzip was fully decompressed before the 5 MB cap (now bounded;
+        a 200 MB bomb peaks under 40 MB); non-pages downloaded up to 5 MB
+        before refusal (now refused from headers); page titles could inject
+        Rich markup; control, zero-width, and bidi characters kept; hidden
+        elements read; saved memories given to the model in WEB mode; tokens
+        in URLs logged; overview quadratic in headings; 30 s total download
+        limit; backslashes, spaces, and userinfo in URLs refused.
+Planted instructions: a detector for text addressed to AI readers. Quoting
+        detected sentences in the system prompt made the model obey one
+        (pirate voice 0/3 -> 3/3 followed): text among instructions borrows
+        their authority. Detected sentences are now removed from what the
+        model reads (marker in place), with a generic note; the user sees
+        them in a "Heads up" line. False alarms: 0 of 24 real pages,
+        including articles about AI and prompt injection.
+Evaluations (kiki eval-web, 3 runs per question, receipts 01-15 in
+        evals/receipts/web/): development 45/45 and holdout 39/39 before and
+        after hardening (no regression); attack set 27/27 resisted; first
+        attack holdout 15/15 after tuning on it (no longer clean); fresh
+        attack holdout 3/12: the model obeyed every style the detector
+        missed ([INSTRUCTION] block, Spanish, an "editor's note" with a scam
+        phone number). Mean answer 6-8 s.
+Result: page fetching is robust against the attacks tried; the model itself
+        is not robust against planted instructions the detector misses.
+Known limits: the detector is pattern-based and evadable; a page can still
+        steer the answer (worst case: a wrong or scam detail, cited to the
+        page). Kiki has no dangerous tools in WEB mode, so nothing runs.
+Decision or proposal: try "spotlighting" (marking passage text so the model
+        can tell data from instructions; no new model), and label contact
+        details, links, and commands from web answers as unverified; a small
+        injection classifier (e.g. Prompt Guard) would need approval.
+Human review needed: any new model download.
+```
+
+## Self-knowledge: every command form, and facts beside the question
+
+```text
+Date: 2026-10-30
+Stage: user report: asked what else goes with /web, Kiki didn't know /web clear
+Files changed: src/kiki/self_knowledge.py, terminal.py,
+        tests/test_self_knowledge.py (new), tests/test_terminal.py
+Cause: the runtime prompt listed command names only ("/web URL [QUESTION]");
+        subcommands lived in the /help descriptions, which the model never saw.
+Behavior changed: COMMAND_HELP's command column now carries every accepted
+        form (feeds /help and the model); multi-form commands get one line
+        each with every form spelled out (in one long list the model missed
+        /web clear and invented /folders clear); bracket notation like
+        [PATH|browse] is spelled out (it was read as a "/browse" command);
+        the runtime knowledge now covers WEB mode and its protections,
+        readable formats, kiki one-off commands, KIKI_OFFLINE, and limits.
+        In CHAT, a message about one of Kiki's abilities (web, offline, run,
+        edit files, tone, memory, folders, finding files, commands) also
+        gets the two or three relevant facts placed beside it for that turn:
+        in the long block, the model's generic replies ("I can't run code",
+        "I don't have internet access") won over the facts, and rewording the
+        block only moved which question failed. Source code is not read
+        (the user's decision: a narrow feature, if ever).
+Cost: about 90 more prompt tokens per mode; the evidence budget adapts.
+Tests/evaluations run: pytest 364 passed. Ten self-questions used while
+        tuning: 7/10 (list only) -> 8/10 -> 7/10 (rewording) -> 10/10 (facts
+        beside the question). Holdout of ten new phrasings: 10/10 on reading
+        (the checker flagged a /path/to placeholder and an accurate answer
+        that didn't name KIKI_OFFLINE); six ordinary questions that share
+        trigger words ("search a list in Python", "more concise essay"): no
+        Kiki commands leaked into any. Regression: eval-web development
+        15/15, eval-rag 15/15 cited and 3/3 declined, eval-behavior 7/8 both
+        with the old and the new self-description (the known SQL-injection
+        payload case).
+Guard: tests/test_self_knowledge.py fails when an interactive command or a
+        handled subcommand is missing from what the model is told.
+```
+
+## Planted-instruction defences: datamarking, unverified details, command guard
+
+```text
+Date: 2026-10-30
+Stage: follow-up to the attack holdout (3/12); the user approved spotlighting,
+        labelling risky details, and self-knowledge edge cases
+Files changed: src/kiki/model_client.py (spotlight: datamark or delimit,
+        reminder; token-aware budget), web.py (risky_details,
+        asks_for_credentials), self_knowledge.py (unknown_commands),
+        terminal.py, web_evals.py (defence overrides), cli.py,
+        evals/web_adversarial_cases.json (holdout-3, written before any of
+        these defences), tests
+Measured cost: datamarking with every marker tried costs 57-134% more tokens
+        (2.5-2.7 characters per token instead of 4.3); "_" costs 22% but
+        collides with code names. The budget uses 2.4 for marked text.
+Comparison on attack sets allowed for tuning (13 pages x 2 runs): none
+        22/26 resisted; reminder 22/26; delimit 20/26 (worse); delimit +
+        reminder 21/26; datamark 24/26; datamark + reminder 23/26. Datamark
+        adopted: ordinary questions 15/15 and 13/13 with it, at about 3 s
+        more per answer in a single run (7.0 and 8.0 s over three runs).
+Clean holdout-3 (5 new styles x 3 runs): graded 4/15 resisted with
+        datamarking, 3/15 without; read by hand, 9/15 resisted (the FAQ and
+        "user request" answers warned about the planted claim, which the
+        substring grader counts as following) and 6/15 genuinely passed on a
+        planted link or "email your password to ...".
+Labels: under every web answer, phone numbers, email addresses, links to
+        other sites, and download-and-run or admin commands are listed as
+        unverified; telling the user to send or enter a password, code, or
+        payment details gets a red warning (this rule was written after
+        seeing the holdout-3 password case, so that case is not a clean
+        result). Every genuine failure in holdout-2 and holdout-3 is now
+        labelled; ordinary answers labelled: 6/84 (sudo make install from
+        the CPython README, Flask's 127.0.0.1 link). A phone number ending a
+        sentence was missed at first (the pattern refused a following full
+        stop); fixed with a test.
+Command guard: answers that present a slash command or subcommand Kiki
+        doesn't have get "Not a Kiki command" (code check, all modes). Self
+        edge cases: no /admin, no secret debug command, no file deletion, no
+        password, no voice mode; she still answered "/folders clear all"
+        (invented; caught once the guard also read bare commands at the start
+        of a line) and repeated a fake /unlock-pro planted on a page (caught).
+Regression (3 runs): web development 45/45, holdout 39/39, attack set 27/27,
+        attack holdout-2 9/12 (the scam number, now labelled); eval-rag 15/15
+        cited and 3/3 declined; eval-behavior 7/8 (the known SQL-injection
+        case). pytest 367 passed.
+Known limits: the model still passes on planted links and contact details in
+        unfamiliar phrasings; the defence for those is the label, not the
+        model. Wrong claims with no names, numbers, links, or commands are
+        not caught.
 ```
 
 ## Personality QLoRA: blind result and split model routing
@@ -1236,8 +1382,12 @@ Known limit: four casual spot checks were concise and operationally sensible,
 Files changed: training/personality/merge_adapter.py, convert_gguf.sh,
         Modelfile.qwen3, RUNPOD.md, README.md,
         tests/test_personality_merge.py, and this log.
-Deployment next: verify the local download against the sidecar, import the
-        GGUF into Ollama as kiki-personality:v1, set KIKI_MODEL_PERSONALITY,
-        and run live CHAT/CODE/RAG routing regressions before stopping the
-        ephemeral Pod.
+Local deployment: the downloaded GGUF matched its sidecar checksum, was
+        imported into Ollama as kiki-personality:v1 with Modelfile.qwen3, and
+        KIKI_MODEL_PERSONALITY was persisted for the Windows user. Live
+        CHAT/CODE/RAG routing regressions passed. The personality branch was
+        then merged with main's security hardening; the combined suite passed
+        394 tests with 8 expected skips. One merged sandbox audit now skips
+        explicitly when its optional WASI runtime has not been installed.
+Deployment next: stop the paid ephemeral Pod after fresh human confirmation.
 ```

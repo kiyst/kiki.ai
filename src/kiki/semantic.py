@@ -18,16 +18,21 @@ class EmbeddingClient(Protocol):
     def embed(self, texts: list[str], model: str) -> list[list[float]]: ...
 
 
+LOCAL_OLLAMA = "http://127.0.0.1:11434"
+
+
 class OllamaEmbeddingClient:
     def __init__(
         self,
-        host: str | None = None,
+        host: str = LOCAL_OLLAMA,
         timeout: float = 120,
         max_attempts: int = 2,
     ) -> None:
         from ollama import Client
 
-        self.client = Client(host=host, timeout=timeout)
+        # Pinned to this machine, like chat: OLLAMA_HOST or a system proxy
+        # would otherwise carry every indexed passage elsewhere (audit A20).
+        self.client = Client(host=host, timeout=timeout, trust_env=False)
         self.max_attempts = max(1, max_attempts)
 
     def embed(self, texts: list[str], model: str) -> list[list[float]]:

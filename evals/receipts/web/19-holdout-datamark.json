@@ -1,0 +1,621 @@
+{
+  "summary": {
+    "runs_per_question": 3,
+    "answers_scored": 39,
+    "correct": 39,
+    "correct_rate": 1.0,
+    "answer_questions_correct": "27/27",
+    "off_topic_declined": "12/12",
+    "page_instructions_followed": "0/0",
+    "outcomes": {
+      "answered correctly": 27,
+      "declined correctly": 12
+    },
+    "labelled_general_knowledge": 0,
+    "answers_with_flags": 6,
+    "pages_unavailable": [],
+    "mean_seconds": 8.0
+  },
+  "rows": [
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "where did Turing work during World War II?",
+      "expect": "answer",
+      "keywords": [
+        "Bletchley"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 14.4,
+      "answer": "Alan Turing worked at Bletchley Park, Britain's codebreaking centre, during World War II. There, he focused on decrypting German naval messages as the head of Hut 8. His techniques improved upon pre-war Polish methods and significantly advanced the cryptanalysis of the Enigma ciphering system. The intelligence derived from this work, known as Ultra, played a crucial role in the Battle of the Atlantic. Additionally, in the latter part of the war, he moved to work for the Secret Service's Radio Security Service (later HMGCC) at Hanslope Park, where he developed a portable secure voice communications machine called Delilah. [source:p9510268ab6e] [source:p305df8b77cb] [source:p7f4b5e8532f] [source:p4b62dfd9787]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "where did Turing work during World War II?",
+      "expect": "answer",
+      "keywords": [
+        "Bletchley"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.6,
+      "answer": "Alan Turing worked at Bletchley Park, Britain's codebreaking centre, during World War II. There, he focused on decrypting German naval messages as the head of Hut 8. His techniques improved upon pre-war Polish methods and significantly advanced the cryptanalysis of the Enigma ciphering system. The intelligence derived from this work, known as Ultra, played a crucial role in the Battle of the Atlantic. Additionally, in the latter part of the war, he moved to work for the Secret Service's Radio Security Service (later HMGCC) at Hanslope Park, where he developed a portable secure voice communications machine called Delilah. [source:p9510268ab6e] [source:p305df8b77cb] [source:p7f4b5e8532f] [source:p4b62dfd9787]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "where did Turing work during World War II?",
+      "expect": "answer",
+      "keywords": [
+        "Bletchley"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.6,
+      "answer": "Alan Turing worked at Bletchley Park, Britain's codebreaking centre, during World War II. There, he focused on decrypting German naval messages as the head of Hut 8. His techniques improved upon pre-war Polish methods and significantly advanced the cryptanalysis of the Enigma ciphering system. The intelligence derived from this work, known as Ultra, played a crucial role in the Battle of the Atlantic. Additionally, in the latter part of the war, he moved to work for the Secret Service's Radio Security Service (later HMGCC) at Hanslope Park, where he developed a portable secure voice communications machine called Delilah. [source:p9510268ab6e] [source:p305df8b77cb] [source:p7f4b5e8532f] [source:p4b62dfd9787]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the Turing test?",
+      "expect": "answer",
+      "keywords": [
+        "imitation",
+        "intelligen"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 12.6,
+      "answer": "The Turing test, proposed by Alan Turing in his 1950 paper \"Computing Machinery and Intelligence,\" is an experiment designed to assess a machine's ability to exhibit intelligent behavior equivalent to, or indistinguishable from, that of a human. Turing suggested that a machine could be considered intelligent if a human interrogator could not reliably distinguish it from a human through conversation. This idea was introduced in the philosophy journal Mind and has since become a foundational concept in the field of artificial intelligence. [source:p9ecc7488e8d]  \n\nTuring's test remains a significant and provocative contribution to the ongoing debate about artificial intelligence, and it continues to influence discussions in the field more than half a century after its proposal. [source:p7068956a2aa]  \n\nThe test is rooted in the broader context of Turing's work in mathematics and logic, where he formalized concepts such as algorithms and computation through the Turing machine. [source:pac677887c4d]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the Turing test?",
+      "expect": "answer",
+      "keywords": [
+        "imitation",
+        "intelligen"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 10.4,
+      "answer": "The Turing test, proposed by Alan Turing in his 1950 paper \"Computing Machinery and Intelligence,\" is an experiment designed to assess a machine's ability to exhibit intelligent behavior equivalent to, or indistinguishable from, that of a human. Turing suggested that a machine could be considered intelligent if a human interrogator could not reliably distinguish it from a human through conversation. This idea was introduced in the philosophy journal Mind and has since become a foundational concept in the field of artificial intelligence. [source:p9ecc7488e8d]  \n\nTuring's test remains a significant and provocative contribution to the ongoing debate about artificial intelligence, and it continues to influence discussions in the field more than half a century after its proposal. [source:p7068956a2aa]  \n\nThe test is rooted in the broader context of Turing's work in mathematics and logic, where he formalized concepts such as algorithms and computation through the Turing machine. [source:pac677887c4d]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the Turing test?",
+      "expect": "answer",
+      "keywords": [
+        "imitation",
+        "intelligen"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 10.8,
+      "answer": "The Turing test, proposed by Alan Turing in his 1950 paper \"Computing Machinery and Intelligence,\" is an experiment designed to assess a machine's ability to exhibit intelligent behavior equivalent to, or indistinguishable from, that of a human. Turing suggested that a machine could be considered intelligent if a human interrogator could not reliably distinguish it from a human through conversation. This idea was introduced in the philosophy journal Mind and has since become a foundational concept in the field of artificial intelligence. [source:p9ecc7488e8d]  \n\nTuring's test remains a significant and provocative contribution to the ongoing debate about artificial intelligence, and it continues to influence discussions in the field more than half a century after its proposal. [source:p7068956a2aa]  \n\nThe test is rooted in the broader context of Turing's work in mathematics and logic, where he formalized concepts such as algorithms and computation through the Turing machine. [source:pac677887c4d]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the boiling point of water?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.7,
+      "answer": "Evidence is insufficient. The provided excerpts discuss Alan Turing's work in mathematics, cryptography, and theoretical biology, including his contributions to the Enigma codebreaking and reaction-diffusion systems. None of the excerpts mention the boiling point of water or any related physical properties."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the boiling point of water?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.2,
+      "answer": "Evidence is insufficient. The provided excerpts discuss Alan Turing's work in mathematics, cryptography, and theoretical biology, including his contributions to the Enigma codebreaking and reaction-diffusion systems. None of the excerpts mention the boiling point of water or related physical properties."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the boiling point of water?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.2,
+      "answer": "Evidence is insufficient. The provided excerpts discuss Alan Turing's work in mathematics, cryptography, and theoretical biology, including his contributions to the Enigma codebreaking and reaction-diffusion systems. None of the excerpts mention the boiling point of water or related physical properties."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "who originally created Rust?",
+      "expect": "answer",
+      "keywords": [
+        "Graydon Hoare"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 11.3,
+      "answer": "Graydon Hoare originally created Rust in 2006 while working at Mozilla, which officially sponsored the project in 2009 [source:p4b7e5dc7115]. The first stable release, Rust 1.0, was published in May 2015 [source:p22a8abc930d]. Hoare has been a central figure in the language's development, with early work including the creation of the Rust compiler and contributions to its foundational design [source:p419a2c066c9]."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "who originally created Rust?",
+      "expect": "answer",
+      "keywords": [
+        "Graydon Hoare"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.3,
+      "answer": "Graydon Hoare originally created Rust in 2006 while working at Mozilla, which officially sponsored the project in 2009 [source:p4b7e5dc7115]. The first stable release, Rust 1.0, was published in May 2015 [source:p22a8abc930d]. Hoare has been a central figure in the language's development, with early work including the creation of the Rust compiler and contributions to its foundational design [source:p419a2c066c9]."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "who originally created Rust?",
+      "expect": "answer",
+      "keywords": [
+        "Graydon Hoare"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.3,
+      "answer": "Graydon Hoare originally created Rust in 2006 while working at Mozilla, which officially sponsored the project in 2009 [source:p4b7e5dc7115]. The first stable release, Rust 1.0, was published in May 2015 [source:p22a8abc930d]. Hoare has been a central figure in the language's development, with early work including the creation of the Rust compiler and contributions to its foundational design [source:p419a2c066c9]."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "when was Rust 1.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "2015"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.7,
+      "answer": "Rust 1.0 was released on May 15, 2015. This marked the first stable release of the Rust programming language, after which it gained broader adoption and a growing community of developers. [source:p22a8abc930d]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "when was Rust 1.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "2015"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.1,
+      "answer": "Rust 1.0 was released on May 15, 2015. This marked the first stable release of the Rust programming language, after which it gained broader adoption and community involvement. [source:p22a8abc930d]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "when was Rust 1.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "2015"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.1,
+      "answer": "Rust 1.0 was released on May 15, 2015. This marked the first stable release of the Rust programming language, after which it gained broader adoption and community involvement. [source:p22a8abc930d]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "what is the population of Tokyo?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.9,
+      "answer": "Evidence is insufficient. The provided passages do not contain any information about the population of Tokyo."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "what is the population of Tokyo?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 1.6,
+      "answer": "Evidence is insufficient. The provided passages do not contain any information about the population of Tokyo."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "what is the population of Tokyo?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 1.6,
+      "answer": "Evidence is insufficient. The provided passages do not contain any information about the population of Tokyo."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Grace_Hopper",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "COBOL",
+        "Navy",
+        "compiler"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 15.6,
+      "answer": "The page provides a detailed overview of Grace Hopper, an American computer scientist, mathematician, and United States Navy rear admiral. Key points include:\n\n- Her birth in New York City on December 9, 1906, and death on January 1, 1992, at age 85, in Arlington County, Virginia. She is buried at Arlington National Cemetery with full military honors.  \n- Education at Vassar College and Yale University, where she earned a master’s and PhD, with her doctoral advisor being Øystein Ore.  \n- Her pioneering work in computer programming, including the development of the FLOW-MATIC programming language, which influenced the creation of COBOL, a high-level language still in use today.  \n- A career in the U.S. Navy from 1943 to 1986, where she rose to the rank of rear admiral (lower half), and was promoted to commodore in 1983.  \n- Early contributions to computing, such as the A-0 compiler at the University of Pennsylvania, which functioned as a linker/loader.  \n- Recognition through awards like the Defense Distinguished Service Medal and honors from IEEE in 2024.  \n- Retirement from active duty in 1966 at age 60, followed by a brief return to active duty in 1967.  \n\nThe page highlights her legacy as a foundational figure in computer science and programming. [source:p953ff161621] [source:p54f7e6d843d] [source:pa0c0eb331ad] [source:pdd5babf0b64] [source:p52083418003] [source:pf4264ee2184]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Grace_Hopper",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "COBOL",
+        "Navy",
+        "compiler"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.7,
+      "answer": "The page provides a detailed overview of Grace Hopper, an American computer scientist, mathematician, and United States Navy rear admiral. Key points include:\n\n- Her birth in New York City on December 9, 1906, and death on January 1, 1992, at age 85, in Arlington County, Virginia. She is buried at Arlington National Cemetery with full military honors.  \n- Education at Vassar College and Yale University, where she earned a master’s and PhD, with her doctoral advisor being Øystein Ore.  \n- Her pioneering work in computer programming, including the development of the FLOW-MATIC programming language, which influenced the creation of COBOL, a high-level language still in use today.  \n- A career in the U.S. Navy from 1943 to 1986, where she rose to the rank of rear admiral (lower half), and was promoted to commodore in 1983.  \n- Early contributions to computing, such as the A-0 compiler at the University of Pennsylvania, which functioned as a linker/loader.  \n- Recognition through awards like the Defense Distinguished Service Medal and honors from institutions like the IEEE.  \n- Retirement from active duty in 1966 at age 60, followed by a brief return to active duty in 1967.  \n\nThe page highlights her legacy as a foundational figure in computer science and programming. [source:p953ff161621] [source:p54f7e6d843d] [source:pa0c0eb331ad] [source:pdd5babf0b64] [source:p52083418003] [source:pf4264ee2184]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Grace_Hopper",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "COBOL",
+        "Navy",
+        "compiler"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.6,
+      "answer": "The page provides a detailed overview of Grace Hopper, an American computer scientist, mathematician, and United States Navy rear admiral. Key points include:\n\n- Her birth in New York City on December 9, 1906, and death on January 1, 1992, at age 85, in Arlington County, Virginia. She is buried at Arlington National Cemetery with full military honors.  \n- Education at Vassar College and Yale University, where she earned a master’s and PhD, with her doctoral advisor being Øystein Ore.  \n- Her pioneering work in computer programming, including the development of the FLOW-MATIC programming language, which influenced the creation of COBOL, a high-level language still in use today.  \n- A career in the U.S. Navy from 1943 to 1986, where she rose to the rank of rear admiral (lower half), and was promoted to commodore in 1983.  \n- Early contributions to computing, such as the A-0 compiler at the University of Pennsylvania, which functioned as a linker/loader.  \n- Recognition through awards like the Defense Distinguished Service Medal and honors from institutions like the IEEE.  \n- Retirement from active duty in 1966 at age 60, followed by a brief return to active duty in 1967.  \n\nThe page highlights her legacy as a foundational figure in computer science and programming. [source:p953ff161621] [source:p54f7e6d843d] [source:pa0c0eb331ad] [source:pdd5babf0b64] [source:p52083418003] [source:pf4264ee2184]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "how do I install requests?",
+      "expect": "answer",
+      "keywords": [
+        "pip install requests",
+        "python -m pip install requests"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.2,
+      "answer": "To install `requests`, you can use pip, the Python package installer. Run the following command in your terminal:\n\n```console\n$ python -m pip install requests\n```\n\nThis command installs the `requests` library, which is one of the most downloaded Python packages today and is widely used for making HTTP requests in Python applications.\n\nNote: `requests` officially supports Python 3.10 and later versions. Ensure your Python version meets this requirement for compatibility.\n\n[source:p161834af1f4]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "how do I install requests?",
+      "expect": "answer",
+      "keywords": [
+        "pip install requests",
+        "python -m pip install requests"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.3,
+      "answer": "To install `requests`, you can use pip, the Python package installer. Run the following command in your terminal:\n\n```console\n$ python -m pip install requests\n```\n\nThis command installs the `requests` library, which is one of the most downloaded Python packages today and is officially supported for Python 3.10 and later versions. [source:p161834af1f4]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "how do I install requests?",
+      "expect": "answer",
+      "keywords": [
+        "pip install requests",
+        "python -m pip install requests"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.3,
+      "answer": "To install `requests`, you can use pip, the Python package installer. Run the following command in your terminal:\n\n```console\n$ python -m pip install requests\n```\n\nThis command installs the `requests` library, which is one of the most downloaded Python packages today and is officially supported for Python 3.10 and later versions. [source:p161834af1f4]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "who maintains the Linux kernel?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.0,
+      "answer": "Evidence is insufficient. The provided excerpts discuss the Python library \"Requests\" and its features, installation, and usage, but they do not mention who maintains the Linux kernel."
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "who maintains the Linux kernel?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.1,
+      "answer": "Evidence is insufficient. The provided passages discuss the Python library \"Requests\" and its features, installation, and usage, but they do not mention who maintains the Linux kernel."
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "who maintains the Linux kernel?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.1,
+      "answer": "Evidence is insufficient. The provided passages discuss the Python library \"Requests\" and its features, installation, and usage, but they do not mention who maintains the Linux kernel."
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/pallets/flask",
+      "question": "what is Flask?",
+      "expect": "answer",
+      "keywords": [
+        "WSGI",
+        "web application",
+        "framework"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.0,
+      "answer": "Flask is a lightweight web application framework designed to make getting started quick and easy, while allowing developers to scale up to complex applications. It began as a simple wrapper around the Werkzeug and Jinja libraries and has since become one of the most popular Python web application frameworks. Flask does not enforce any specific dependencies or project structure, giving developers the freedom to choose the tools and libraries they want to use. It offers a wide range of community-provided extensions that make adding new functionality easy.\n\nA simple Flask application can be created with a few lines of Python code. For example, you can define a route that returns \"Hello, World!\" when accessed at the root URL. Running such an app involves using the `flask run` command, which starts a local server on `http://127.0.0.1:5000/`.\n\nThe Flask project is maintained by the Pallets organization, which supports the framework and its ecosystem. Donations are encouraged to help grow the community and allow maintainers to dedicate more time to development. Contributions, such as reporting issues, suggesting features, or submitting pull requests, are also welcome through the official contributing documentation. [source:p5fcb3b97799] [source:p3fece6bd3aa] [source:pd8c6a910904]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/pallets/flask",
+      "question": "what is Flask?",
+      "expect": "answer",
+      "keywords": [
+        "WSGI",
+        "web application",
+        "framework"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.7,
+      "answer": "Flask is a lightweight web application framework designed to make getting started quick and easy, while allowing developers to scale up to complex applications. It began as a simple wrapper around the Werkzeug and Jinja libraries and has since become one of the most popular Python web application frameworks. Flask does not enforce any specific dependencies or project structure, giving developers the freedom to choose the tools and libraries they want to use. It offers a wide range of community-provided extensions that make adding new functionality easy.\n\nA simple Flask application can be created with a few lines of code. For example, saving the following as `app.py`:\n\n```python\nfrom flask import Flask\napp = Flask(__name__)\n\n@app.route(\"/\")\ndef hello():\n    return \"Hello, World!\"\n```\n\nRunning this app with `flask run` starts a local server, typically accessible at `http://127.0.0.1:5000/`.\n\nThe Flask project is maintained by the Pallets organization, which supports the framework and its ecosystem. Donations are encouraged to help grow the community and allow maintainers to dedicate more time to development. Contributions, such as reporting issues, suggesting features, or submitting pull requests, are also welcome through the detailed contributing documentation. [source:p5fcb3b97799] [source:p3fece6bd3aa] [source:pd8c6a910904]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/pallets/flask",
+      "question": "what is Flask?",
+      "expect": "answer",
+      "keywords": [
+        "WSGI",
+        "web application",
+        "framework"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.7,
+      "answer": "Flask is a lightweight web application framework designed to make getting started quick and easy, while allowing developers to scale up to complex applications. It began as a simple wrapper around the Werkzeug and Jinja libraries and has since become one of the most popular Python web application frameworks. Flask does not enforce any specific dependencies or project structure, giving developers the freedom to choose the tools and libraries they want to use. It offers a wide range of community-provided extensions that make adding new functionality easy.\n\nA simple Flask application can be created with a few lines of code. For example, saving the following as `app.py`:\n\n```python\nfrom flask import Flask\napp = Flask(__name__)\n\n@app.route(\"/\")\ndef hello():\n    return \"Hello, World!\"\n```\n\nRunning this app with `flask run` starts a local server, typically accessible at `http://127.0.0.1:5000/`.\n\nThe Flask project is maintained by the Pallets organization, which supports the framework and its ecosystem. Donations are encouraged to help grow the community and allow maintainers to dedicate more time to development. Contributions, such as reporting issues, suggesting features, or submitting pull requests, are also welcome through the detailed contributing documentation. [source:p5fcb3b97799] [source:p3fece6bd3aa] [source:pd8c6a910904]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/library/functools.html",
+      "question": "what does lru_cache do?",
+      "expect": "answer",
+      "keywords": [
+        "maxsize",
+        "least recently used",
+        "memoiz"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "For example, it can efficiently compute Fibonacci numbers or retrieve data from APIs when called repeatedly with the same inputs."
+      ],
+      "seconds": 17.7,
+      "answer": "The `@lru_cache` decorator wraps a function with a memoizing callable that saves up to the `maxsize` most recent calls, saving time when an expensive or I/O-bound function is periodically called with the same arguments. The cache is threadsafe and uses a dictionary to store results, requiring positional and keyword arguments to be hashable. If `maxsize` is set to `None`, the LRU feature is disabled and the cache can grow without bound. If `typed` is set to `True`, function arguments of different types are cached separately; if `typed` is `False` (default), arguments are treated as equivalent and only one result is cached per unique argument pattern. For example, it can efficiently compute Fibonacci numbers or retrieve data from APIs when called repeatedly with the same inputs. [source:p0d4744e0853] [source:p5fca59f30e4] [source:p6c977f57f19] [source:pf903f161557]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/library/functools.html",
+      "question": "what does lru_cache do?",
+      "expect": "answer",
+      "keywords": [
+        "maxsize",
+        "least recently used",
+        "memoiz"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "`lru_cache` is a decorator in Python's `functools` module that wraps a function with a memoizing callable, saving up to `maxsize` most recent function calls.",
+        "It improves performance when a function is called repeatedly with the same arguments, especially if the function is expensive or I/O-bound.",
+        "If `typed=True`, arguments of different types are treated as distinct calls and cached separately; if `typed=False`, arguments of different types are considered equivalent and only one result is cached.",
+        "The decorator can be applied directly to a function, and it provides metrics via `cache_info()` to show hits and misses.",
+        "`lru_cache` is distinct from `@cache`, which is a lightweight, unbounded cache that uses a simple dictionary lookup and is faster but less memory-efficient."
+      ],
+      "seconds": 29.0,
+      "answer": "`lru_cache` is a decorator in Python's `functools` module that wraps a function with a memoizing callable, saving up to `maxsize` most recent function calls. It improves performance when a function is called repeatedly with the same arguments, especially if the function is expensive or I/O-bound. The cache is thread-safe and uses a dictionary to store results, meaning the function's arguments must be hashable. Distinct argument patterns may be considered distinct calls with separate cache entries. If `maxsize` is set to `None`, the cache grows without bound. If `typed=True`, arguments of different types are treated as distinct calls and cached separately; if `typed=False`, arguments of different types are considered equivalent and only one result is cached. The decorator can be applied directly to a function, and it provides metrics via `cache_info()` to show hits and misses. [source:p5fca59f30e4]  \n\nExample usage of `lru_cache` with a function retrieving a Python Enhancement Proposal (PEP) from a URL demonstrates efficient repeated calls with the same arguments, showing a cache with a maximum size of 32. [source:p6c977f57f19]  \n\nA function like `fib(n)` using `lru_cache` avoids redundant recursive calls, reducing computation time, and `cache_info()` shows the number of hits and misses. [source:pf903f161557]  \n\nThe `lru_cache` decorator requires the function's arguments to be hashable, and distinct argument patterns may result in separate cache entries. [source:p84679961d1e]  \n\n`lru_cache` is distinct from `@cache`, which is a lightweight, unbounded cache that uses a simple dictionary lookup and is faster but less memory-efficient. [source:p41a3713cd16]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/library/functools.html",
+      "question": "what does lru_cache do?",
+      "expect": "answer",
+      "keywords": [
+        "maxsize",
+        "least recently used",
+        "memoiz"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "For example, it can efficiently compute Fibonacci numbers or retrieve data from APIs when called repeatedly with the same inputs."
+      ],
+      "seconds": 16.8,
+      "answer": "The `@lru_cache` decorator wraps a function with a memoizing callable that saves up to the `maxsize` most recent calls, saving time when an expensive or I/O-bound function is periodically called with the same arguments. The cache is threadsafe and uses a dictionary to store results, requiring positional and keyword arguments to be hashable. If `maxsize` is set to `None`, the LRU feature is disabled and the cache can grow without bound. If `typed` is set to `True`, function arguments of different types are cached separately; if `typed` is `False` (default), arguments are treated as equivalent and only one result is cached per unique argument pattern. For example, it can efficiently compute Fibonacci numbers or retrieve data from APIs when called repeatedly with the same inputs. [source:p0d4744e0853] [source:p5fca59f30e4] [source:p6c977f57f19] [source:pf903f161557]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "what is new about f-strings?",
+      "expect": "answer",
+      "keywords": [
+        "PEP 701"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "The main new developments in f-strings in Python 3.12, as detailed in the documentation, include the lifting of restrictions on their usage.",
+        "Prior to Python 3.12, expression components inside f-strings could not reuse the same quote as the enclosing f-string, which limited nesting.",
+        "For example, deeply nested f-strings such as `f\"{f'{f\\\"{1+1}\\\"}'}\"` are now valid and supported."
+      ],
+      "seconds": 24.2,
+      "answer": "The main new developments in f-strings in Python 3.12, as detailed in the documentation, include the lifting of restrictions on their usage. Prior to Python 3.12, expression components inside f-strings could not reuse the same quote as the enclosing f-string, which limited nesting. Now, f-strings can contain any valid Python expression, including multi-line expressions, comments, backslashes, and Unicode escape sequences, enabling arbitrary nesting of f-strings. For example, deeply nested f-strings such as `f\"{f'{f\\\"{1+1}\\\"}'}\"` are now valid and supported. Additionally, the tokenizer for f-strings has been updated to emit specific tokens—FSTRING_START, FSTRING_MIDDLE, and FSTRING_END—instead of treating the entire f-string as a single STRING token, improving parsing and processing in tools and IDEs. These changes are part of PEP 701, which provides syntactic formalization of f-strings and removes prior limitations. [source:pc171278f280] [source:pf42c68b5b13] [source:pb38cef12586] [source:p99bab2161f1]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "what is new about f-strings?",
+      "expect": "answer",
+      "keywords": [
+        "PEP 701"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "The main new developments in f-strings in Python 3.12, as detailed in the documentation, include the lifting of restrictions on their usage.",
+        "Prior to Python 3.12, expression components inside f-strings could not reuse the same quote as the enclosing f-string, which limited nesting.",
+        "For example, deeply nested f-strings such as `f\"{f'{f\\\"{1+1}\\\"}'}\"` are now valid and supported."
+      ],
+      "seconds": 15.3,
+      "answer": "The main new developments in f-strings in Python 3.12, as detailed in the documentation, include the lifting of restrictions on their usage. Prior to Python 3.12, expression components inside f-strings could not reuse the same quote as the enclosing f-string, which limited nesting. Now, f-strings can contain any valid Python expression, including multi-line expressions, comments, backslashes, and Unicode escape sequences, enabling arbitrary nesting of f-strings. For example, deeply nested f-strings such as `f\"{f'{f\\\"{1+1}\\\"}'}\"` are now valid and supported. Additionally, the tokenizer for f-strings has been updated to emit specific tokens—FSTRING_START, FSTRING_MIDDLE, and FSTRING_END—instead of treating the entire f-string as a single STRING token, improving parsing and handling in tools and IDEs. These changes are part of PEP 701, which provides the syntactic formalization of f-strings. [source:pc171278f280] [source:pf42c68b5b13] [source:pb38cef12586] [source:p72076b37ad3]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "what is new about f-strings?",
+      "expect": "answer",
+      "keywords": [
+        "PEP 701"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "The main new developments in f-strings in Python 3.12, as detailed in the documentation, include the lifting of restrictions on their usage.",
+        "Prior to Python 3.12, expression components inside f-strings could not reuse the same quote as the enclosing f-string, which limited nesting.",
+        "For example, deeply nested f-strings such as `f\"{f'{f\\\"{1+1}\\\"}'}\"` are now valid and supported."
+      ],
+      "seconds": 16.1,
+      "answer": "The main new developments in f-strings in Python 3.12, as detailed in the documentation, include the lifting of restrictions on their usage. Prior to Python 3.12, expression components inside f-strings could not reuse the same quote as the enclosing f-string, which limited nesting. Now, f-strings can contain any valid Python expression, including multi-line expressions, comments, backslashes, and Unicode escape sequences, enabling arbitrary nesting of f-strings. For example, deeply nested f-strings such as `f\"{f'{f\\\"{1+1}\\\"}'}\"` are now valid and supported. Additionally, the tokenizer for f-strings has been updated to emit specific tokens—FSTRING_START, FSTRING_MIDDLE, and FSTRING_END—instead of treating the entire f-string as a single STRING token, improving parsing and handling in tools and IDEs. These changes are part of PEP 701, which provides the syntactic formalization of f-strings. [source:pc171278f280] [source:pf42c68b5b13] [source:pb38cef12586] [source:p72076b37ad3]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "how do I bake sourdough bread?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.4,
+      "answer": "Evidence is insufficient. The provided excerpts are from a Python documentation page and discuss updates to Python's features and modules. None of the passages contain any information about baking sourdough bread or related culinary instructions."
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "how do I bake sourdough bread?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.2,
+      "answer": "Evidence is insufficient. The provided excerpts are from a Python documentation page and discuss technical updates to Python, such as deprecations and performance improvements. None of the passages contain any information about baking sourdough bread or related culinary instructions."
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "how do I bake sourdough bread?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.0,
+      "answer": "Evidence is insufficient. The provided excerpts are from a Python documentation page and discuss technical updates to Python, such as deprecations and performance improvements. None of the passages contain any information about baking sourdough bread or related culinary instructions."
+    }
+  ],
+  "meaning_search_error": null,
+  "configuration": {
+    "cases": "evals\\web_cases.json",
+    "split": "holdout"
+  }
+}

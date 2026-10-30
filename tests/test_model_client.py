@@ -162,6 +162,40 @@ def test_unadapted_planner_runs_tools_before_personality_response(tmp_path: Path
     assert fake.requests[2]["tools"] == []
 
 
+def test_same_planner_and_answer_model_keeps_tool_calling_enabled(tmp_path: Path) -> None:
+    fake = FakeClient(
+        [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": "",
+                    "tool_calls": [
+                        {
+                            "function": {
+                                "name": "search_files",
+                                "arguments": {"query": "retry"},
+                            }
+                        }
+                    ],
+                }
+            },
+            {"message": {"role": "assistant", "content": "No matching passage."}},
+        ]
+    )
+    registry = ToolRegistry(TextIndex(tmp_path / "index.sqlite3"))
+
+    outcome = ToolCallingAssistant(
+        fake,
+        registry,
+        model="qwen-unadapted",
+        planner_model="qwen-unadapted",
+    ).ask("What is the retry policy?")
+
+    assert outcome.answer == "No matching passage."
+    assert fake.requests[0]["tools"]
+    assert fake.requests[1]["tools"]
+
+
 def test_unknown_model_tool_is_returned_as_error(tmp_path: Path) -> None:
     fake = FakeClient(
         [

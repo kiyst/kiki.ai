@@ -91,15 +91,16 @@ class SandboxRunner:
             "keep_stderr": limits.keep_stderr_bytes,
             "kill_output_bytes": limits.kill_output_bytes,
         }
-        spec_path = folder.with_suffix(".json")
-        spec_path.write_text(json.dumps(spec), encoding="utf-8")
         job = Job(limits.worker_memory_mib * 2**20)
         started = time.perf_counter()
         try:
-            process = job.start([sys.executable, "-I", "-m", "kiki.sandbox.worker", str(spec_path)])
+            # Settings go over stdin, not a file in %TEMP% that could be edited
+            # between writing and reading (audit L).
+            process = job.start([sys.executable, "-I", "-m", "kiki.sandbox.worker", "-"], stdin=True)
             backstop = False
             try:
-                out, err = process.communicate(timeout=limits.timeout_s + BACKSTOP_S)
+                out, err = process.communicate(json.dumps(spec).encode("utf-8"),
+                                               timeout=limits.timeout_s + BACKSTOP_S)
             except subprocess.TimeoutExpired:
                 process.kill()
                 out, err = process.communicate()

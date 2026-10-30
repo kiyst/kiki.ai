@@ -1,20 +1,27 @@
 """Child process that runs one program inside wasmtime.
 
-Started by `runner.py` as `python -I -m kiki.sandbox.worker <spec.json>`
-inside a Job Object. Prints one JSON line with the result.
+Started by `runner.py` as `python -I -m kiki.sandbox.worker -` inside a Job
+Object; the run settings arrive on stdin (never as a file another process could
+change in between). Prints one JSON line with the result.
 """
 
 from __future__ import annotations
 
 import errno
+import hashlib
 import json
+import os
 import sys
 import threading
 import time
 from pathlib import Path
 from typing import Any, Callable
 
-from .wasi import GUEST_ARGV, GUEST_ENV, HOST_THREAD_STACK_BYTES, engine_config, grants, sha256_file
+from .wasi import GUEST_ARGV, GUEST_ENV, HOST_THREAD_STACK_BYTES, engine_config, grants
+
+# After the deadline, how long a call blocked outside wasm (time.sleep, say)
+# may keep the worker before it reports and exits anyway.
+GRACE_S = 1.0
 
 
 class OutputSink:
@@ -61,12 +68,14 @@ def trap_reason(error: Exception) -> str:
 def run(spec: dict[str, Any]) -> dict[str, Any]:
     import wasmtime as wt
 
-    compiled = Path(spec["compiled"])
-    if sha256_file(compiled) != spec["compiled_sha256"]:
+    # Read once, then check and load the same bytes: checking the file and
+    # loading it again from disk left a window to swap it (audit L).
+    compiled = Path(spec["compiled"]).read_bytes()
+    if hashlib.sha256(compiled).hexdigest() != spec["compiled_sha256"]:
         # Deserializing skips validation, so an altered cache must never load.
         return {"refused": "compiled runtime does not match its recorded checksum"}
     engine = wt.Engine(engine_config())
-    module = wt.Module.deserialize_file(engine, str(compiled))
+    module = wt.Module.deserialize(engine, compiled)
 
     linker = wt.Linker(engine)
     linker.define_wasi()
@@ -94,12 +103,20 @@ def run(spec: dict[str, Any]) -> dict[str, Any]:
     store.set_epoch_deadline(1)
     finished = threading.Event()
 
+    outcome: dict[str, Any] = {"exit_code": None, "trap": None, "timed_out": False}
+    started = time.perf_counter()
+
     def clock() -> None:
-        if not finished.wait(spec["timeout_s"]):
-            engine.increment_epoch()
+        if finished.wait(spec["timeout_s"]):
+            return
+        engine.increment_epoch()
+        if not finished.wait(GRACE_S):
+            # Still stuck in a host call the epoch can't interrupt: report what
+            # was printed and stop now, not at the runner's backstop (audit L).
+            print(json.dumps(_report({**outcome, "timed_out": True}, sink, started)), flush=True)
+            os._exit(0)
 
     threading.Thread(target=clock, daemon=True).start()
-    outcome: dict[str, Any] = {"exit_code": None, "trap": None, "timed_out": False}
 
     def execute() -> None:
         try:
@@ -114,12 +131,15 @@ def run(spec: dict[str, Any]) -> dict[str, Any]:
         except wt.WasmtimeError as error:
             outcome["trap"] = trap_reason(error)
 
-    started = time.perf_counter()
     threading.stack_size(HOST_THREAD_STACK_BYTES)
     thread = threading.Thread(target=execute)
     thread.start()
     thread.join()
     finished.set()
+    return _report(outcome, sink, started)
+
+
+def _report(outcome: dict[str, Any], sink: OutputSink, started: float) -> dict[str, Any]:
     return {
         **outcome,
         "output_truncated": sink.truncated,
@@ -131,8 +151,8 @@ def run(spec: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> None:
-    spec = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
-    print(json.dumps(run(spec)))
+    source = sys.stdin.read() if sys.argv[1:] == ["-"] else Path(sys.argv[1]).read_text(encoding="utf-8")
+    print(json.dumps(run(json.loads(source))))
 
 
 if __name__ == "__main__":

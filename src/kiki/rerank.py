@@ -29,6 +29,7 @@ import re
 from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -187,7 +188,9 @@ class OllamaGenerateClient:
 
     def generate(self, payload: dict[str, Any], timeout: float) -> dict[str, Any]:
         try:
-            response = httpx.post(f"{self.host}/api/generate", json=payload, timeout=timeout)
+            # trust_env=False: local traffic never goes through a system proxy.
+            response = httpx.post(f"{self.host}/api/generate", json=payload, timeout=timeout,
+                                  trust_env=False)
         except httpx.TimeoutException as exc:
             raise KikiError(
                 f"The reranker timed out after {timeout:g} s",
@@ -365,7 +368,8 @@ class LlamaCppReranker:
         self.timeout = timeout
         self.passage_characters = passage_characters
         self._cache = _ScoreCache(cache_size)
-        self._post = post or httpx.post
+        # Local server only, never through a system proxy.
+        self._post = post or partial(httpx.post, trust_env=False)
 
     def rerank(self, query: str, results: list[SearchResult]) -> list[SearchResult]:
         scores = [self._cache.get(_cache_key(self.model, query, result)) for result in results]

@@ -149,7 +149,7 @@ def test_terminal_workspace_then_apply(tmp_path: Path, monkeypatch: pytest.Monke
     workspace.mkdir()
     session.last_outcomes["chat"] = ChatOutcome(answer=ANSWER, trace=[], sources=[])
     console = _console()
-    monkeypatch.setattr(console, "input", lambda prompt: "y")
+    monkeypatch.setattr(console, "input", lambda prompt, **options: "y")
 
     _handle_command(console, session, f'/workspace "{workspace}"')
     _handle_command(console, session, "/apply add.py")

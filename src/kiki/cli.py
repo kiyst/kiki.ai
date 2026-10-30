@@ -132,6 +132,20 @@ def _parser() -> argparse.ArgumentParser:
     find_eval.add_argument("--split", choices=("development", "holdout"), default="development")
     find_eval.add_argument("--output", type=Path, help="Optional JSON receipt path")
 
+    web_eval = commands.add_parser(
+        "eval-web", help="Score /web answers on live pages (goes online; uses the local model)"
+    )
+    web_eval.add_argument("--cases", type=Path,
+                          help="Default: evals/web_cases.json, or evals/web_adversarial_cases.json "
+                               "for --split adversarial")
+    web_eval.add_argument("--split", choices=("development", "holdout", "adversarial",
+                                              "adversarial-holdout", "adversarial-holdout-2",
+                                              "adversarial-holdout-3", "all"),
+                          default="development",
+                          help="adversarial: attack pages served from memory, nothing goes online")
+    web_eval.add_argument("--runs", type=int, default=1, help="Times to ask each question")
+    web_eval.add_argument("--output", type=Path, help="Optional JSON receipt path")
+
     embed = commands.add_parser("embed", help="Generate missing local semantic vectors")
     embed.add_argument("--model", default=DEFAULT_EMBEDDING_MODEL)
     embed.add_argument("--batch-size", type=int, default=4)
@@ -368,6 +382,19 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             "failures": len(report["failures"])
         }
         return report, "mapping"
+    if arguments.command == "eval-web":
+        from .web_evals import load_cases, run_web_eval
+
+        cases_path = arguments.cases or Path(
+            "evals/web_adversarial_cases.json" if arguments.split.startswith("adversarial")
+            else "evals/web_cases.json")
+        report = run_web_eval(load_cases(cases_path, arguments.split), max(1, arguments.runs))
+        report["configuration"] = {"cases": str(cases_path), "split": arguments.split}
+        if arguments.output:
+            arguments.output.parent.mkdir(parents=True, exist_ok=True)
+            arguments.output.write_text(json.dumps(report, indent=2, ensure_ascii=False),
+                                        encoding="utf-8")
+        return report["summary"], "mapping"
     settings = _retrieval_settings(arguments)
     index = TextIndex(arguments.database)
     if arguments.command == "doctor":
@@ -438,7 +465,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             cases = cases[: arguments.limit]
         assistant = ToolCallingAssistant(
             OllamaClient(),
-            ToolRegistry(weather=OpenMeteoWeatherProvider(), include_search=False),
+            ToolRegistry(include_search=False),
             model=arguments.model,
             system_prompt=(
                 f"{CHAT_SYSTEM_PROMPT}\n\n"
@@ -470,7 +497,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             cases = cases[: arguments.limit]
         assistant = ToolCallingAssistant(
             OllamaClient(),
-            ToolRegistry(weather=OpenMeteoWeatherProvider(), include_search=False),
+            ToolRegistry(include_search=False),
             model=arguments.model,
             system_prompt=(
                 f"{CHAT_SYSTEM_PROMPT}\n\n"

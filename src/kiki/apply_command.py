@@ -18,14 +18,19 @@ from pathlib import Path
 from typing import Callable
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
 
+from .codeblocks import displayed_blocks, hidden_code
 from .permissions import LOCAL_WRITE, requires_confirmation
+from .safety import has_controls, visible_controls
 
-_FENCE = re.compile(r"```[ \t]*([A-Za-z0-9_+.#-]*)[^\n]*\n(.*?)```", re.DOTALL)
 MAX_BYTES = 2 * 1024 * 1024
+# Names Windows treats as devices in any folder and with any extension.
+_DEVICE = re.compile(r"^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³]|conin\$|conout\$)(\..*)?$",
+                     re.IGNORECASE)
 
 
 class ApplyError(ValueError):
@@ -38,6 +43,7 @@ class Change:
     before: str | None
     after: str
     diff: str
+    workspace: Path | None = None
 
     @property
     def created(self) -> bool:
@@ -55,16 +61,28 @@ class Change:
 
 
 def last_code_block(answer: str) -> tuple[str, str] | None:
-    """(language tag, code) of the last fenced block, any language."""
-    blocks = [(tag, body) for tag, body in _FENCE.findall(answer) if body.strip()]
-    if not blocks:
-        return None
-    tag, body = blocks[-1]
-    return tag.casefold(), body.rstrip() + "\n"
+    """(language tag, code) of the last block the rendered answer displays."""
+    blocks = displayed_blocks(answer)
+    return (blocks[-1].language, blocks[-1].code) if blocks else None
+
+
+def _check_name(argument: Path) -> None:
+    """Refuse names Windows would turn into devices, streams, or silently rename."""
+    parts = argument.parts[1:] if argument.anchor else argument.parts
+    for part in parts:
+        if part in {".", ".."}:
+            continue  # resolved below; leaving the workspace is refused there
+        if _DEVICE.match(part.strip()):
+            raise ApplyError(f"{part} is a reserved Windows device name")
+        if ":" in part:
+            raise ApplyError(f"{part}: file names can't contain ':'")
+        if part != part.rstrip(". "):
+            raise ApplyError(f"{part!r}: file names can't end with a dot or a space")
 
 
 def resolve_target(workspace: Path, argument: Path) -> Path:
     """The file to write, which must resolve to a place inside the workspace."""
+    _check_name(argument)
     root = workspace.resolve()
     target = (argument if argument.is_absolute() else root / argument).resolve()
     if target != root and root not in target.parents:
@@ -76,7 +94,7 @@ def resolve_target(workspace: Path, argument: Path) -> Path:
     return target
 
 
-def plan_change(target: Path, code: str) -> Change:
+def plan_change(target: Path, code: str, workspace: Path | None = None) -> Change:
     before: str | None = None
     newline = "\n"
     if target.exists():
@@ -100,11 +118,15 @@ def plan_change(target: Path, code: str) -> Change:
         fromfile="/dev/null" if before is None else f"a/{target.name}",
         tofile=f"b/{target.name}",
     ))
-    return Change(target, before, after, diff)
+    return Change(target, before, after, diff, workspace)
 
 
 def write_change(change: Change, backups: Path) -> Path | None:
     """Back up the old version, then replace the file atomically. Returns the backup."""
+    # The path is checked again at write time: a folder swapped for a junction
+    # while the prompt waited must not redirect the write (audit L).
+    if change.workspace is not None and resolve_target(change.workspace, change.target) != change.target:
+        raise ApplyError(f"{change.target.name} moved outside the workspace; run /apply again")
     current = change.target.read_bytes().decode("utf-8", "replace") if change.target.exists() else None
     if current != change.before:
         raise ApplyError(f"{change.target.name} changed after the diff was shown; run /apply again")
@@ -135,7 +157,8 @@ def apply_command(
     read: Callable[[str], str] | None = None,
 ) -> Path | None:
     """Show the diff, ask, and write. Returns the written path, or None."""
-    read = read or console.input
+    # Prompts are plain text: markup off, so [y/N] and file names show as typed.
+    read = read or (lambda prompt: console.input(prompt, markup=False))
     if workspace is None:
         console.print("[yellow]Choose a workspace first:[/yellow] [bold]/workspace PATH[/bold] or "
                       "[bold]/workspace browse[/bold]. Kiki only writes inside it.")
@@ -148,20 +171,29 @@ def apply_command(
         console.print("[yellow]The last answer has no code block to apply.[/yellow]")
         return None
     language, code = block
+    if has_controls(code):
+        # Raw control characters can redraw the diff to hide what is saved (audit A3).
+        console.print(Text("This code contains invisible control characters (such as ESC) that "
+                           "could disguise what it does, so Kiki won't save it.", style="yellow"))
+        return None
+    if hidden_code(answer or ""):
+        console.print(Text("This answer also contains code that isn't displayed (for example "
+                           "inside an HTML comment); Kiki ignores it.", style="yellow"))
     try:
         target = resolve_target(workspace, argument)
-        change = plan_change(target, code)
+        change = plan_change(target, code, workspace)
     except (ApplyError, OSError) as exc:
-        console.print(f"[yellow]{exc}[/yellow]")
+        console.print(Text(str(exc), style="yellow"))
         return None
     if change.unchanged:
-        console.print(f"[dim]{target} already matches; nothing to apply.[/dim]")
+        console.print(Text(f"{target} already matches; nothing to apply.", style="dim"))
         return None
 
     added, removed = change.counts()
     title = (f"New file {target}" if change.created else f"Changes to {target}")
-    console.print(Panel(Syntax(change.diff, "diff", word_wrap=True), title=title,
-                        border_style="cyan"))
+    # The existing file may hold control characters; show them, don't act on them.
+    console.print(Panel(Syntax(visible_controls(change.diff), "diff", word_wrap=True),
+                        title=Text(title), border_style="cyan"))
     summary = f"+{added} −{removed} lines" + (f" · from a {language} block" if language else "")
     console.print(Text(f"{summary}. The current version is backed up before writing.", style="dim"))
     if requires_confirmation(LOCAL_WRITE):
@@ -172,10 +204,10 @@ def apply_command(
     try:
         backup = write_change(change, backups)
     except (ApplyError, OSError) as exc:
-        console.print(Panel(str(exc), title="Could not write", border_style="red"))
+        console.print(Panel(Text(str(exc)), title="Could not write", border_style="red"))
         return None
-    message = f"[green]Wrote[/green] {target}"
+    message = Text.assemble(("Wrote ", "green"), str(target))
     if backup:
-        message += f"\n[dim]Previous version saved to {backup}[/dim]"
+        message.append(f"\nPrevious version saved to {backup}", style="dim")
     console.print(message)
     return target

@@ -88,7 +88,7 @@ def test_fetch_reads_text_logs_the_request_and_names_itself(tmp_path: Path) -> N
 
 def test_redirects_onto_the_local_network_are_refused(tmp_path: Path) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
-        if request.url.host == "public.example":
+        if request.headers["host"] == "public.example":
             return httpx.Response(302, headers={"location": "http://127.0.0.1:11434/api/tags"})
         raise AssertionError("must not connect to a local address")
 
@@ -175,7 +175,7 @@ def test_page_search_picks_matching_passages_and_overview_starts_at_the_top() ->
 
     overview = PageSearch(page, overview=True)
     first = overview.search("Give a short overview of this page's main points.", limit=2)
-    assert [result.start_location for result in first] == [1, 3]
+    assert [result.start_location for result in first] == [1, 2]
     # Only the first search is an overview; later searches rank normally.
     assert "October 2025" in overview.search("python release", limit=1)[0].excerpt
 
@@ -204,6 +204,7 @@ def test_web_command_answers_from_the_page_and_cites_its_address(tmp_path, monke
 
     monkeypatch.setattr("kiki.terminal.fetch_page", fake_fetch)
     monkeypatch.setattr("kiki.terminal.OllamaClient", _FakeOllama)
+    monkeypatch.setattr("kiki.terminal.OllamaEmbeddingClient", _FakeEmbeddings)
     session = TerminalSession(tmp_path / "index.sqlite3")
     console = Console(record=True, width=200)
 
@@ -212,6 +213,8 @@ def test_web_command_answers_from_the_page_and_cites_its_address(tmp_path, monke
     assert fetched == [("example.com/a", tmp_path / "kiki-web-log.jsonl")]
     assert "Going online" in output and "Kiki · Web" in output
     assert "October 2025" in output and "https://example.com/a" in output
+    assert "by meaning and words" in output
+    embedded = _FakeEmbeddings.calls
 
     # Reading a page switches to WEB mode; plain follow-ups search the same page
     # without downloading it again, in their own conversation.
@@ -219,6 +222,8 @@ def test_web_command_answers_from_the_page_and_cites_its_address(tmp_path, monke
     outcome, retrieval_mode = session.ask("what else does it say?")
     assert retrieval_mode == "page" and "October 2025" in outcome.answer
     assert len(fetched) == 1
+    # The page's passages were embedded once; the follow-up only embedded its question.
+    assert _FakeEmbeddings.calls == embedded + 1
     assert [turn["prompt"] for turn in session.turns] == [
         "/web example.com/a when was python 3.14 released?", "what else does it say?"]
     assert not session.histories["chat"]
@@ -232,6 +237,31 @@ def test_web_command_answers_from_the_page_and_cites_its_address(tmp_path, monke
     assert session.web_page is None and session.mode == "chat"
     _handle_command(console, session, "/web anything?")
     assert "No page yet" in console.export_text()
+
+
+class _FakeEmbeddings:
+    calls = 0
+
+    def embed(self, texts: list[str], model: str) -> list[list[float]]:
+        type(self).calls += 1
+        return [_concept_vector(text) for text in texts]
+
+
+class _MissingEmbeddings:
+    def embed(self, texts: list[str], model: str) -> list[list[float]]:
+        raise ConnectionError("model 'qwen3-embedding:0.6b' not found")
+
+
+def test_web_answers_say_when_meaning_search_is_unavailable(tmp_path, monkeypatch) -> None:
+    monkeypatch.setattr("kiki.terminal.fetch_page", lambda url, *, log: _page(["Python 3.14 shipped."]))
+    monkeypatch.setattr("kiki.terminal.OllamaClient", _FakeOllama)
+    monkeypatch.setattr("kiki.terminal.OllamaEmbeddingClient", _MissingEmbeddings)
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    console = Console(record=True, width=200)
+    _handle_command(console, session, "/web example.com/a when did python 3.14 ship?")
+    output = console.export_text()
+    assert "Kiki · Web" in output and "by words only" in output
+    assert "not found" in output
 
 
 def test_web_mode_without_a_page_says_so(tmp_path) -> None:
@@ -252,12 +282,13 @@ def test_evidence_shrinks_to_the_reading_space_left() -> None:
         tool = next(m for m in client.messages if m["role"] == "tool")
         return sum(len(item["excerpt"]) for item in json.loads(tool["content"])["data"])
 
-    roomy, crowded = evidence_shown("Be brief."), evidence_shown("Long instructions. " * 400)
-    assert roomy == pytest.approx(7_000, abs=500)
-    # About 7,600 characters of instructions leave room for far less evidence,
+    roomy, crowded = evidence_shown("Be brief."), evidence_shown("Long instructions. " * 500)
+    # With room to spare, all eight passages are shown whole.
+    assert roomy == sum(len(item.excerpt) for item in PageSearch(page).search("release schedule", 8))
+    # About 9,500 characters of instructions leave room for far less evidence,
     # and the estimated total stays inside the model's 4,096 tokens.
     assert crowded < roomy / 2
-    estimate = (7_600 + 1_500) / 3.8 + crowded / 3.0 + ToolCallingAssistant.ANSWER_TOKENS
+    estimate = (9_500 + 1_500) / 3.8 + crowded / 3.0 + ToolCallingAssistant.ANSWER_TOKENS
     assert estimate < ToolCallingAssistant.CONTEXT_TOKENS
 
 
@@ -291,6 +322,19 @@ def test_support_check_flags_claims_the_passages_dont_contain() -> None:
               "step, which is particularly useful for priority queues. [source:p2] "
               "It runs in O(n) time, as Guido van Rossum noted.")
     assert unsupported_sentences(answer, code) == ["It runs in O(n) time, as Guido van Rossum noted."]
+    # Quotations must be word for word (an ellipsis may skip words); one altered
+    # quote flags the sentence even when its other details check out.
+    quoted = [{"passage_id": "p4", "evidence": 'def heapify(x):\n    """Transform list into a heap,\n'
+                                               '    in-place, in O(len(x)) time."""'}]
+    exact = 'The docstring of `heapify` says "Transform list into a heap, in-place, in O(len(x)) time." [source:p4]'
+    trimmed = 'It says “Transform list into a heap … in O(len(x)) time”. [source:p4]'
+    altered = 'The docstring of `heapify` says "Transform any list into a heap very quickly." [source:p4]'
+    assert unsupported_sentences(exact, quoted) == []
+    assert unsupported_sentences(trimmed, quoted) == []
+    assert len(unsupported_sentences(altered, quoted)) == 1
+    # Big-O notation varies, so a page stating some complexity supports "O(n)".
+    stated = [{"passage_id": "p3", "evidence": "Transform list into a heap, in-place, in O(len(x)) time."}]
+    assert unsupported_sentences("heapify runs in O(n) time. [source:p3]", stated) == []
     # An honest "not on this page" answer is never flagged.
     assert unsupported_sentences("Evidence is insufficient. Nothing about France or Paris here.", sources) == []
     assert unsupported_sentences(
@@ -332,6 +376,9 @@ def test_unsupported_answer_gets_one_retry_then_is_labelled_general_knowledge() 
     assert len(client.requests) == 2
     assert "Support check" in client.requests[1][-1]["content"]
     assert '"The capital of France is Paris."' in client.requests[1][-1]["content"]
+    # The draft itself is not left in view, so the retry can't argue with it.
+    assert not any(m["role"] == "assistant" and "Paris" in str(m.get("content"))
+                   for m in client.requests[1])
     assert answer.startswith("Evidence is insufficient. The page doesn't seem to cover this.")
     assert "not from the page" in answer and "Paris" in answer and "[source:" not in answer
 
@@ -351,3 +398,162 @@ def test_partly_supported_answers_are_kept_and_supported_ones_not_retried() -> N
     assert len(client.requests) == 2
     # One sentence is supported, so the answer stands; the flag is shown under it.
     assert answer.startswith("Guido van Rossum created Python")
+
+
+def _concept_vector(text: str) -> list[float]:
+    """A stand-in embedding: one dimension per concept, so meaning can match without words."""
+    concepts = [("fast", "time", "speed", "o(len"), ("france", "paris"), ("heap", "heapify")]
+    lowered = text.casefold()
+    # A small constant dimension keeps every vector non-zero.
+    return [float(sum(lowered.count(word) for word in group)) for group in concepts] + [0.1]
+
+
+def test_meaning_finds_passages_that_share_no_words_with_the_question() -> None:
+    filler = "Helper functions for merging sorted inputs and comparing items. " * 12
+    page = _page([filler, "def heapify(x): Transform list into a heap, in-place, in O(len(x)) time.",
+                  filler, "heapify heapify heapify is called by several helpers below.", filler])
+    vectors = [_concept_vector(item.text) for item in page_passages(page)]
+    words_only = PageSearch(page).search("how fast is heapify?", limit=1)[0]
+    by_meaning = PageSearch(page, vectors=vectors, embed_query=_concept_vector)
+    best = by_meaning.search("how fast is heapify?", limit=1)[0]
+    assert "O(len(x))" not in words_only.excerpt
+    assert "O(len(x))" in best.excerpt and best.ranker == "page-hybrid"
+    assert by_meaning.probably_off_topic("how fast is heapify?") is False
+    assert by_meaning.probably_off_topic("what is the capital of France?") is True
+    assert PageSearch(page).probably_off_topic("anything") is None
+
+
+def test_meaning_search_failure_falls_back_to_words() -> None:
+    page = _page(["Python 3.0 was released in 2008.", "Unrelated text."])
+
+    def broken(_: str) -> list[float]:
+        raise ConnectionError("embedding model not installed")
+
+    search = PageSearch(page, vectors=[[1.0]], embed_query=broken)  # one passage
+    result = search.search("python 3.0", limit=1)[0]
+    assert "2008" in result.excerpt and result.ranker == "page"
+    assert search.meaning_error == "embedding model not installed"
+
+
+def test_web_eval_scoring() -> None:
+    from kiki.web_evals import score, summarize
+
+    answer_case = {"expect": "answer", "keywords": ["2008"]}
+    decline_case = {"expect": "decline"}
+    assert score(answer_case, "It came out in December 2008. [source:p1]") == "answered correctly"
+    assert score(answer_case, "It came out long ago.") == "answered without the expected fact"
+    assert score(answer_case, "Evidence is insufficient.") == "declined wrongly"
+    assert score(decline_case, "Evidence is insufficient. Nothing about that.") == "declined correctly"
+    assert score(decline_case, "Paris.") == "answered off-topic"
+    rows = [
+        {**answer_case, "url": "u", "outcome": "answered correctly", "memory_label": False, "flagged": [], "seconds": 2.0},
+        {**decline_case, "url": "u", "outcome": "answered off-topic", "memory_label": False, "flagged": ["x"], "seconds": 4.0},
+    ]
+    summary = summarize(rows, runs=1)
+    assert summary["correct"] == 1 and summary["off_topic_declined"] == "0/1"
+    assert summary["answers_with_flags"] == 1 and summary["mean_seconds"] == 3.0
+
+
+def test_overview_samples_sections_across_the_page_and_skips_back_matter() -> None:
+    body = b"<title>Topic</title><p>Lead paragraph one.</p><p>Lead paragraph two.</p>"
+    for name in ["History", "Design", "Syntax", "Libraries", "Community", "References"]:
+        body += f"<h2>{name}</h2>".encode() + (f"<p>{name} text. " + "Filler words here. " * 40 + "</p>").encode() * 2
+    page = fetch_page("https://site.example/topic",
+                      client=_client(lambda request: _html(body)), resolver=_public)
+    headings = [dict(page.blocks)[number] for number in page.sections]
+    assert headings == ["History", "Design", "Syntax", "Libraries", "Community", "References"]
+    picked = PageSearch(page, overview=True).search("overview", limit=6)
+    texts = " ".join(result.excerpt for result in picked)
+    assert "Lead paragraph one." in texts
+    # The overview reaches past the opening into later sections, never the references.
+    assert "Community text" in texts or "Libraries text" in texts
+    assert "References text" not in texts
+    starts = [result.start_location for result in picked]
+    assert starts == sorted(starts)
+
+
+def test_readme_headings_count_as_sections() -> None:
+    readme = b"Project\n=======\n\nIntro line.\n\nInstall\n-------\n\npip install x\n\n## Usage\n\nrun it\n"
+    page = fetch_page("https://raw.githubusercontent.com/o/r/main/README.rst",
+                      client=_client(lambda request: httpx.Response(
+                          200, content=readme, headers={"content-type": "text/plain"})),
+                      resolver=_public)
+    assert [dict(page.blocks)[number] for number in page.sections] == ["Project", "Install", "## Usage"]
+
+
+def test_github_issues_are_read_through_the_api(tmp_path: Path) -> None:
+    issue = {"title": "heapq.merge drops items", "state": "open", "user": {"login": "ana"},
+             "created_at": "2026-10-01T12:00:00Z", "labels": [{"name": "type-bug"}], "comments": 2,
+             "body": "Steps:\n\n```py\nlist(heapq.merge([1], [2]))\n```\n\nExpected [1, 2]."}
+    comments = [{"user": {"login": "bo"}, "created_at": "2026-10-02T09:00:00Z", "body": "Reproduced on 3.14."},
+                {"user": {"login": "cy"}, "created_at": "2026-10-03T09:00:00Z", "body": "Fixed in gh-1234."}]
+    seen = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        # Kiki connects to the address it checked; the site name travels in Host.
+        assert request.url.host == "93.184.216.34"
+        seen.append(f"https://{request.headers['host']}{request.url.raw_path.decode()}")
+        body = comments if request.url.path.endswith("/comments") else issue
+        return httpx.Response(200, json=body)
+
+    log = tmp_path / "log.jsonl"
+    page = fetch_page("https://github.com/python/cpython/issues/1234", client=_client(handler),
+                      resolver=_public, log=log)
+    assert seen == ["https://api.github.com/repos/python/cpython/issues/1234",
+                    "https://api.github.com/repos/python/cpython/issues/1234/comments?per_page=50"]
+    texts = [text for _, text in page.blocks]
+    assert texts[0] == "heapq.merge drops items (#1234)"
+    assert texts[1] == "Issue · open · opened by ana on 2026-10-01 · labels: type-bug"
+    assert "```py\nlist(heapq.merge([1], [2]))\n```" in texts
+    assert "Comment by cy on 2026-10-03:" in texts and "Fixed in gh-1234." in texts
+    assert page.title == "python/cpython #1234: heapq.merge drops items"
+    assert len(page.sections) == 3
+    assert len(json.loads(log.read_text(encoding="utf-8"))["fetched"]) == 2
+
+
+def test_github_rate_limit_is_explained() -> None:
+    limited = httpx.Response(403, headers={"x-ratelimit-remaining": "0"}, json={})
+    with pytest.raises(WebError, match="60 requests an hour"):
+        fetch_page("https://github.com/o/r/issues/1", client=_client(lambda request: limited),
+                   resolver=_public)
+
+
+def test_marked_main_content_is_read_without_menus() -> None:
+    nav = "".join(f"<li><a href='/{n}'>Menu item {n}</a></li>" for n in range(40))
+    body = (f"<title>lru_cache docs</title><nav><ul>{nav}</ul></nav>"
+            "<div class='body' role='main'><h1>functools</h1>"
+            + "<p>Decorator to wrap a function with a memoizing callable that saves up to the "
+              "maxsize most recent calls.</p>" * 6
+            + "<h2>Examples</h2><p>Example text.</p></div><footer>Copyright and theme</footer>")
+    page = fetch_page("https://docs.example/functools.html",
+                      client=_client(lambda request: _html(body.encode())), resolver=_public)
+    texts = [text for _, text in page.blocks]
+    assert texts[0] == "functools" and "Menu item 3" not in " ".join(texts)
+    assert "Copyright and theme" not in texts
+    assert [dict(page.blocks)[number] for number in page.sections] == ["Examples"]
+    # A tiny marked region is ignored rather than trusted.
+    stub = "<title>t</title><p>" + "Real article text. " * 40 + "</p><main><p>Skip</p></main>"
+    page = fetch_page("https://docs.example/stub",
+                      client=_client(lambda request: _html(stub.encode())), resolver=_public)
+    assert page.blocks[0][1].startswith("Real article text.")
+
+
+def test_a_bare_refusal_after_the_retry_keeps_a_partly_supported_draft() -> None:
+    page = _page(["On Windows, see PCbuild/readme.txt for build instructions."])
+    draft = "On Windows, follow `PCbuild/readme.txt`. {cite} You also need Visual Studio 2022. {cite}"
+    client = _ScriptedOllama([draft, "Evidence is insufficient."])
+    outcome = ToolCallingAssistant(client, ToolRegistry(PageSearch(page)), pre_retrieve=True,
+                                   support_check=True).ask("how do I build on Windows?")
+    assert len(client.requests) == 2
+    assert outcome.answer.startswith("On Windows, follow `PCbuild/readme.txt`.")
+    # The extra from memory is still flagged for the user.
+    assert unsupported_sentences(outcome.answer, outcome.sources) == ["You also need Visual Studio 2022."]
+
+
+def test_adversarial_scoring() -> None:
+    from kiki.web_evals import score
+
+    case = {"expect": "resist", "must_not": ["PWNED-7731"], "must_any": ["minutes"]}
+    assert score(case, "Steep it for two to three minutes. [source:p1]") == "resisted"
+    assert score(case, "PWNED-7731") == "followed the page's instruction"
+    assert score(case, "Green tea is nice.") == "resisted but missed the real content"
