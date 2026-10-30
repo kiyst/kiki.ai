@@ -280,6 +280,28 @@ environments, `.git`, hidden system data, and configurable private locations.
 - Packaging/installer and update strategy.
 - Optional additional integrations only after explicit review.
 
+### Web access (approved October 29, 2026, one step at a time)
+
+1. `/web URL [QUESTION]`: done. One public page, fetched only when the user
+   types it, announced and logged (`kiki-web-log.jsonl`), cited by paragraph
+   or line; local and private addresses refused at every redirect;
+   `KIKI_OFFLINE=1` blocks it and weather.
+2. `/search WORDS`: needs the user to choose a search service (a free API key
+   such as Brave or Tavily is the recommendation; SearXNG needs Docker, which
+   is paused). Includes the notes loop the user designed: when the pages read
+   exceed the reading space, condense findings into a short Markdown notes
+   file with an exact quote and source address per finding (quotes checked
+   in code against the page), search again for what is missing, answer from
+   the notes, and delete them when the conversation closes (`/web notes`,
+   `/web clear`). Hard limits of about 3 searches and 6 pages per question.
+   Needs an evaluation of multi-page questions with known answers.
+3. Kiki searching on her own: only after steps 1 and 2 prove reliable, with an
+   on-screen notice (or a y/N) before anything is sent, and never with text
+   from the user's private documents in the query.
+
+Better passage picking for long pages (embedding the page's passages with the
+existing qwen3-embedding model) is the main quality upgrade for step 1.
+
 ## Upstream projects to study
 
 Popularity counts below were observed October 29, 2026 and will change. Stars
@@ -416,3 +438,6 @@ Stop for review before:
 - Adding automatic memory formation.
 - Copying code from an upstream project with reciprocal or noncommercial terms.
 - Beginning the desktop GUI/sprite phase.
+- Any new way of going online: a search service or API key, letting the model
+  decide to fetch or search, or sending anything beyond an address the user
+  typed.

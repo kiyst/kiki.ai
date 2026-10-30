@@ -143,8 +143,19 @@ class _TextCollector(HTMLParser):
 
 
 def read_html(path: Path) -> tuple[str | None, list[str]]:
+    return html_text(path.read_bytes())
+
+
+def html_text(data: bytes, encoding: str | None = None) -> tuple[str | None, list[str]]:
+    """Title and paragraphs of an HTML page; `encoding` is a server-declared charset."""
+    text = None
+    if encoding:
+        try:
+            text = data.decode(encoding, errors="replace")
+        except LookupError:
+            pass
     collector = _TextCollector()
-    collector.feed(_decode_html(path.read_bytes()))
+    collector.feed(text if text is not None else _decode_html(data))
     collector.close()
     title = re.sub(r"\s+", " ", "".join(collector.title_parts)).strip()
     return title or collector.first_h1, collector.paragraphs

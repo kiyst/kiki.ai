@@ -17,11 +17,13 @@ from rich.text import Text
 from .model_client import (
     CHAT_SYSTEM_PROMPT,
     RAG_SYSTEM_PROMPT,
+    WEB_SYSTEM_PROMPT,
     ChatOutcome,
     OllamaClient,
     ToolCallingAssistant,
     ToolTrace,
     resolve_citations,
+    unsupported_sentences,
 )
 from .capabilities import Capability, route_prompt
 from .diagnostics import build_diagnostics, diagnostics_markdown
@@ -41,6 +43,7 @@ from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex
 from .settings import RetrievalSettings
 from .self_knowledge import COMMAND_HELP, capabilities_text, self_knowledge_prompt
 from .tools import ToolRegistry
+from .web import PageSearch, WebError, WebPage, fetch_page, looks_like_url, offline_mode
 
 
 INTERACTIVE_COMMANDS = (
@@ -51,6 +54,7 @@ INTERACTIVE_COMMANDS = (
     "/sources",
     "/find",
     "/folders",
+    "/web",
     "/run",
     "/workspace",
     "/apply",
@@ -110,7 +114,33 @@ class TerminalSession:
         self.workspace: Path | None = None
         # Candidates from the last /find, kept for follow-ups by number.
         self.last_find: FindResult | None = None
+        # The page from the last /web, kept so follow-up questions need no new download.
+        self.web_page: WebPage | None = None
         self._set_index(database)
+
+    @property
+    def web_log(self) -> Path:
+        return self.database.resolve().parent / "kiki-web-log.jsonl"
+
+    def read_web_page(self, url: str) -> WebPage:
+        self.web_page = fetch_page(url, log=self.web_log)
+        return self.web_page
+
+    def ask_web(self, command: str, question: str, *, overview: bool = False) -> ChatOutcome:
+        """Answer from the current /web page, citing its passages like documents."""
+        assert self.web_page is not None
+        self.last_model_selection = self.model_router.select(self.model_profile, Capability.RAG)
+        assistant = ToolCallingAssistant(
+            OllamaClient(),
+            ToolRegistry(PageSearch(self.web_page, overview=overview)),
+            model=self.last_model_selection.model,
+            pre_retrieve=True,
+            system_prompt=self._system_prompt(WEB_SYSTEM_PROMPT),
+            passages=self.settings.passages,
+            max_evidence_characters=self.settings.context_characters,
+        )
+        outcome = assistant.ask(question, history=self.histories[self.mode])
+        return self._remember(command, outcome, "page")[0]
 
     def _set_index(self, database: Path) -> None:
         self.index = TextIndex(database)
@@ -170,6 +200,14 @@ class TerminalSession:
                     ),
                     "none",
                 )
+        if weather_location and offline_mode():
+            self.pending_weather_choices.clear()
+            return self._remember(
+                prompt,
+                ChatOutcome("Kiki is in offline mode (KIKI_OFFLINE is set), so she can't fetch "
+                            "live weather.", [], []),
+                "none",
+            )
         if weather_location:
             registry = ToolRegistry(weather=self.weather, include_search=False)
             arguments = {"location": weather_location}
@@ -300,6 +338,8 @@ class TerminalSession:
         except Exception as exc:
             ollama = {"status": "unavailable", "error": str(exc)}
         try:
+            if offline_mode():
+                raise RuntimeError("offline mode (KIKI_OFFLINE is set); not checked")
             weather_response = httpx.get(
                 GEOCODING_URL,
                 params={"name": "Boston", "count": 1, "format": "json"},
@@ -468,7 +508,7 @@ def render_outcome(
     retrieval_mode: str,
     debug: bool = False,
 ) -> None:
-    title = "Kiki · RAG" if mode == "rag" else "Kiki · Chat"
+    title = {"rag": "Kiki · RAG", "web": "Kiki · Web"}.get(mode, "Kiki · Chat")
     console.print(Panel(Markdown(outcome.answer or "_(No response)_"), title=title, border_style="cyan"))
     render_sources(console, outcome.sources, outcome.answer)
     if debug:
@@ -501,13 +541,18 @@ def render_sources(
     for source in listed:
         table.add_row(
             str(source.get("passage_id") or source["source_id"]),
-            Path(str(source["path"])).name,
+            _source_name(str(source["path"])),
             _citation_location(str(source.get("citation") or "")),
         )
     console.print(table)
     uncited = len(sources) - len(listed)
     if uncited:
         console.print(f"[dim]{uncited} more retrieved passages were not cited. /sources all lists them.[/dim]")
+
+
+def _source_name(path: str) -> str:
+    # Web pages are cited by their full address so the user can open them.
+    return path if path.startswith(("http://", "https://")) else Path(path).name
 
 
 def render_trace(console: Console, outcome: ChatOutcome, retrieval_mode: str) -> None:
@@ -763,6 +808,8 @@ def _handle_command(
             console.print("[yellow]There is no previous message to retry.[/yellow]")
             return False, None
         console.print("[dim]Regenerating the previous response…[/dim]")
+        if previous.startswith("/web"):
+            return _handle_command(console, session, previous)
         return False, previous
     if name == "/copy":
         previous = session.last_outcomes[session.mode]
@@ -806,6 +853,9 @@ def _handle_command(
                                         default_filename=None),
         ):
             session.last_find = None
+        return False, None
+    if name == "/web":
+        _handle_web(console, session, command.strip(), rest)
         return False, None
     if name == "/run":
         previous = session.last_outcomes[session.mode]
@@ -921,6 +971,10 @@ def _handle_command(
         if not rest:
             console.print("[yellow]Usage: /weather City, State[/yellow]")
             return False, None
+        if offline_mode():
+            console.print("[yellow]Kiki is in offline mode (KIKI_OFFLINE is set), "
+                          "so she can't fetch live weather.[/yellow]")
+            return False, None
         try:
             with console.status("Contacting Open-Meteo...", spinner="dots"):
                 result = session.weather.get_weather(rest)
@@ -933,6 +987,75 @@ def _handle_command(
         return False, None
     console.print(f"[yellow]Unknown command {parts[0]}.[/yellow] Type /help.")
     return False, None
+
+
+_WEB_USAGE = ("Usage: /web URL [QUESTION] reads a page and answers from it; "
+              "/web QUESTION asks about the same page again; /web clear forgets it.")
+
+
+def _handle_web(console: Console, session: TerminalSession, command: str, rest: str) -> None:
+    words = rest.split(maxsplit=1)
+    if not words:
+        if session.web_page:
+            page = session.web_page
+            console.print(f"Current page: [cyan]{page.title}[/cyan] · {page.url}")
+        console.print(f"[dim]{_WEB_USAGE}\nEvery request is logged in {session.web_log}.[/dim]")
+        return
+    if rest.casefold() == "clear":
+        session.web_page = None
+        console.print("[dim]Forgot the page. Nothing from it was saved.[/dim]")
+        return
+    overview = False
+    if looks_like_url(words[0]):
+        question = words[1].strip() if len(words) > 1 else ""
+        console.print(f"[dim]Going online: fetching {words[0]}[/dim]")
+        try:
+            with console.status("Downloading the page...", spinner="dots"):
+                page = session.read_web_page(words[0])
+        except WebError as exc:
+            console.print(f"[yellow]{exc}[/yellow]")
+            return
+        details = f"{page.words:,} words · {page.size / 1024:,.0f} KB from {page.host}"
+        console.print(f"Read [cyan]{page.title}[/cyan] · {details}")
+        if page.note:
+            console.print(f"[dim]{page.note}[/dim]")
+        if page.truncated:
+            console.print("[yellow]The page was very large; only its first 5 MB were read.[/yellow]")
+        if not question:
+            question, overview = "Give a short overview of this page's main points.", True
+    elif session.web_page is None:
+        console.print(f"[yellow]No page yet. {_WEB_USAGE}[/yellow]")
+        return
+    else:
+        question = rest
+    try:
+        with console.status("Reading the passages that fit your question...", spinner="dots"):
+            outcome = session.ask_web(command, question, overview=overview)
+    except Exception as exc:  # terminal boundary: keep the session after model errors
+        error = exc.payload() if isinstance(exc, KikiError) else safe_error(exc)
+        console.print(Panel(f"{error['error']}\n\nCode: {error['code']} · Ref: {error['reference']}",
+                            title="Request failed", border_style="red"))
+        return
+    render_outcome(console, outcome, mode="web", retrieval_mode="page", debug=session.debug)
+    flagged = unsupported_sentences(outcome.answer, outcome.sources)
+    if flagged:
+        examples = "\n".join(f"  • {_shorten(sentence, 110)}" for sentence in flagged[:3])
+        more = f"\n  …and {len(flagged) - 3} more" if len(flagged) > 3 else ""
+        console.print(Text(
+            f"Check {'these' if len(flagged) > 1 else 'this'}: {len(flagged)} "
+            f"{'sentences use' if len(flagged) > 1 else 'sentence uses'} details that aren't in the passages "
+            f"Kiki read, so they may come from her general knowledge instead of the page:\n"
+            f"{examples}{more}",
+            style="yellow",
+        ))
+    shown = sum(len(str(source.get("evidence", ""))) for source in outcome.sources)
+    count = len(outcome.sources)
+    console.print(f"[dim]Kiki read {count} passage{'s' if count != 1 else ''} ({shown:,} characters) "
+                  "picked from the page to fit her reading space.[/dim]")
+
+
+def _shorten(text: str, width: int) -> str:
+    return text if len(text) <= width else text[: width - 1].rstrip() + "…"
 
 
 def _render_help(console: Console) -> None:

@@ -936,3 +936,63 @@ Decision or proposal: stage 2, watching with background updates: a
         plus Windows change notifications, off the chat thread.
 Human review needed: none for this stage.
 ```
+
+## Web access, step 1: `/web URL`
+
+```text
+Date: 2026-10-29
+Stage: web access step 1 of 3 (user-typed page reading); approved by the user
+Commit before change: da407fb
+Files changed: src/kiki/web.py (new), documents.py (html_text from bytes),
+        model_client.py (WEB_SYSTEM_PROMPT, reading-space budget,
+        unsupported_sentences), terminal.py (/web, offline switch for
+        weather, URL sources), self_knowledge.py, tests/test_web.py (new),
+        README.md, docs
+Behavior changed: `/web URL [QUESTION]` fetches one public page and answers
+        from it with paragraph (or line) citations; `/web QUESTION` asks about
+        the same page; `/web clear` forgets it. Only http(s); local, private,
+        and link-local addresses are refused at every redirect hop (at most
+        5); 5 MB cap; 15 s timeout; PDFs, images, and JavaScript-only pages
+        get a plain explanation. Wikipedia is read through action=render
+        (article body, footnote markers removed); GitHub repositories through
+        the README API, GitHub files through raw.githubusercontent.com. Every
+        request is announced and appended to kiki-web-log.jsonl (time,
+        address, outcome; never the question). KIKI_OFFLINE=1 blocks /web and
+        weather.
+Reading space: the first real Wikipedia question failed with "request (4099
+        tokens) exceeds the available context size (4096 tokens)". Measured
+        with Ollama: Kiki's instructions plus tool schemas take about 1,400
+        tokens; 7,000 evidence characters of dense text take about 2,100
+        more, plus per-passage labels, leaving nothing for the answer. The
+        same overflow could hit RAG answers. The evidence allowance is now
+        the smaller of the configured characters and what fits in 4,096
+        tokens after instructions, history, earlier evidence, and 700 tokens
+        kept for the answer (3.8 characters per token for instructions, 3.0
+        for evidence, both measured and rounded down).
+Passage picking: BM25 over ~1,200-character passages with a bonus for query
+        phrases. Three fixes from real pages: version numbers ("3.0") had
+        been split into too-short pieces and dropped; five-letter prefixes
+        merged "interactive" and "interpreter" (now six); lists such as
+        tables of contents won on bulk until length normalization.
+Support check: a valid citation only proves the passage exists. On
+        example.com, "What is the capital of France?" first got "Paris"
+        citing the example.com paragraph. unsupported_sentences flags
+        sentences whose distinctive words are mostly absent from the evidence
+        shown; /web lists them under the answer as "Check these". It is a word
+        check, not a meaning check, so it flags rather than deletes.
+Tests/evaluations run: pytest 279 passed (14 new, all offline with fake
+        servers). eval-rag --with-model after the budget change: identical
+        summary to receipt 06 (15/15 answerable with valid citations, 3/3
+        unsupported declined). Real pages (read-only): Wikipedia History of
+        Python, cpython README, Lib/heapq.py, What's New in 3.13,
+        example.com, Reddit (refused: JavaScript), localhost (refused),
+        a missing article (404). Answers 3-23 s each.
+Result: Kiki can read one page the user links and answers with citations.
+Known limits: lexical passage picking misses paraphrases (asked "how fast is
+        heapify", it never found "O(len(x)) time"; the model supplied O(n)
+        from memory, and the check flagged it). Long pages are seen as short
+        focused windows. No web search; no notes loop yet.
+Decision or proposal: step 2, /search with a search service the user picks and
+        the notes loop; embed page passages for better picking.
+Human review needed: choosing a search service (an account or API key).
+```

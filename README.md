@@ -59,6 +59,10 @@ RAG you > What does Paine say about hereditary succession?
   file in your indexed folders, including spreadsheets, images, and other files
   she cannot read, by name, folder, type, title, and contents
   ([Finding files](#finding-files)).
+- **Read a web page you link.** `/web en.wikipedia.org/wiki/Python when was 3.0
+  released?` downloads that one page and answers from it with citations. She
+  goes online only when you type `/web`, never on her own
+  ([Reading web pages](#reading-web-pages)).
 - **Know when to stop.** Questions the documents cannot answer get "Evidence is
   insufficient" instead of a guess.
 - **Check the weather.** Live conditions from Open-Meteo, with a follow-up
@@ -168,6 +172,7 @@ kiki --database .kiki\history.sqlite3 run
 | `/sources` | Show the last answer's sources again |
 | `/find WORDS` | Find whole files in your indexed folders; `/find` alone shows the last list again |
 | `/folders` | List indexed folders; `add PATH\|browse`, `reindex [NUMBER\|all]`, `remove NUMBER` |
+| `/web URL [QUESTION]` | Read one public web page and answer from it; `/web QUESTION` asks about it again, `/web clear` forgets it |
 | `/run [FILE.py]` | Run the last answer's Python (or a copy of a file) in the sandbox, after you confirm |
 | `/workspace [PATH\|browse]` | Choose the folder `/apply` may write into (this session only) |
 | `/apply FILE` | Save the last answer's code to a file in the workspace, after you approve the diff |
@@ -247,6 +252,44 @@ the file name is a clickable link.
 
 Indexes made before this feature know only their readable files until you run
 `/folders reindex`.
+
+### Reading web pages
+
+Give Kiki a link and, optionally, a question:
+
+```text
+/web en.wikipedia.org/wiki/History_of_Python when was Python 3.0 released?
+/web https://github.com/python/cpython            (no question: a short overview)
+/web what does it say about building on Windows?  (asks about the same page)
+/web clear                                        (forgets the page)
+```
+
+- **One page, only when you ask.** Kiki has no web search and never follows
+  links or browses by herself. Every request is announced on screen ("Going
+  online: fetching …") and recorded in `kiki-web-log.jsonl` next to the
+  library: the time, the address, and the outcome. Your question is never sent
+  anywhere; only the address is.
+- **Answers are cited like documents.** Each citation names the page address and
+  the paragraphs (or lines, for code and text files) it came from.
+- **Long pages are trimmed to fit.** The model reads about 4,000 tokens at a
+  time, and her instructions take a third of that, so Kiki cuts the page into
+  passages and shows only the ones that best match your question, as much as
+  still fits after her instructions, the conversation, and room for the answer.
+  She tells you how much she read.
+- **Unsupported sentences are flagged.** A citation proves the passage exists,
+  not that it says what the sentence claims. Sentences whose key words are not
+  in the passages she read are listed under the answer as "Check these": they
+  may come from her general knowledge rather than the page.
+- **Clean versions of popular sites.** Wikipedia articles are read without
+  menus and footnote markers; GitHub repositories are read through their README
+  and GitHub files through the raw file.
+- **What doesn't work:** pages behind a login or paywall, pages that build their
+  text with JavaScript (Reddit, many web apps), sites that block automated
+  readers, and PDFs (download those and use `/folders add`). Only public
+  addresses are read: anything that points at your own computer or local
+  network is refused, including through redirects. Pages over 5 MB are cut off.
+- **Offline switch.** Set `KIKI_OFFLINE=1` and Kiki makes no internet requests
+  at all, for web pages or weather.
 
 ### Running code
 
@@ -364,6 +407,8 @@ links in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) into
 | `KIKI_FALLBACK_MODEL` | environment | Comma-separated backups if the main model fails |
 | `kiki-persona.md` | next to the library | Kiki's editable persona, reloaded on every reply |
 | `kiki-memory.md` | next to the library | Your saved notes, plain Markdown |
+| `kiki-web-log.jsonl` | next to the library | Every web request: time, address, outcome |
+| `KIKI_OFFLINE` | environment | `1` blocks all internet requests (web pages and weather) |
 
 Document search has its own settings. Each one can be set as an environment
 variable or as a command-line flag placed before the command
@@ -380,7 +425,7 @@ shows the active values.
 | `--rerank-model NAME` | `KIKI_RAG_RERANK_MODEL` | main model | Model used by the reranker |
 | `--rerank-batch-size N` | `KIKI_RAG_RERANK_BATCH` | 4 | Cap on parallel reranker requests |
 | `--rerank-timeout S` | `KIKI_RAG_RERANK_TIMEOUT` | 90 | Seconds per reranker request before falling back to search order |
-| `--context-characters N` | `KIKI_RAG_CONTEXT_CHARACTERS` | 7000 | Evidence characters shown to the answer model |
+| `--context-characters N` | `KIKI_RAG_CONTEXT_CHARACTERS` | 7000 | Most evidence characters shown to the answer model; fewer when the model's reading space is short |
 | `--recovery` | `KIKI_RAG_RECOVERY` | off | One rewritten-query retry when reranked evidence looks weak (experimental) |
 
 ## How well it works
@@ -427,8 +472,10 @@ The full picture, including suggestions and constraints, is in
 ## Privacy and safety by design
 
 - **Local by default.** Models, documents, memories, and history stay on your
-  machine. The only network call is the weather lookup, made to a fixed address
-  the model cannot change.
+  machine. Kiki goes online in exactly two cases: a weather lookup (a fixed
+  address the model cannot change) and `/web`, which fetches only the address
+  you typed, announces it, and logs it. `KIKI_OFFLINE=1` turns both off. Web
+  pages, like documents, are treated as untrusted text, never as instructions.
 - **Documents are data, not instructions.** Retrieved text is labeled
   untrusted. The grading step can only output a single digit, so a passage
   cannot talk its way into anything beyond its own score.
@@ -451,6 +498,7 @@ src/kiki/
   documents.py       Word and web page text (standard library only)
   finding.py         /find: whole-file ranking, filters, confidence
   folders_command.py /folders: add, list, reindex, and forget folders
+  web.py             /web: fetching one public page safely, picking passages
   semantic.py        meaning-based search and hybrid merging
   rerank.py          the passage grading step
   extraction.py      turning files into citable passages
@@ -461,7 +509,7 @@ src/kiki/
   sandbox/           Python code sandbox (WebAssembly): runner, limits, setup
 evals/               question sets for retrieval, answers, behavior, and code
 docs/                design notes, the engineering log, development notes
-tests/               240 automated tests, no network or models required
+tests/               279 automated tests, no network or models required
 ```
 
 ## Development
@@ -496,17 +544,23 @@ Roughly in priority order (details in the
    ([Finding files](#finding-files)); next, watching folders so new files
    appear without a reindex, `/summarize NUMBER` for a found file, and letting
    Kiki search for files herself when you ask in plain conversation.
-2. **Run Python safely** (paused). The sandbox, `/run`, and `/apply` are done.
+2. **Web access, step by step** (in progress). `/web URL` is done
+   ([Reading web pages](#reading-web-pages)). Next: `/search WORDS` through a
+   search service you choose, with a notes file that collects key facts and
+   quotes when she reads more pages than fit at once; later, and only with
+   your approval, letting her search on her own with a visible notice.
+3. **Run Python safely** (paused). The sandbox, `/run`, and `/apply` are done.
    Left: finishing the LeetCode and MBPP+ benchmarks, and a loop in which Kiki
    fixes her own failing code.
-3. **Quote checking.** Anything in quotation marks must appear word for word
+4. **Quote checking.** Anything in quotation marks must appear word for word
    in a retrieved passage.
-4. **Claim checking.** Confirm each sentence is supported by the passage it
-   cites, and flag or remove the rest.
-5. **Rule checks in code.** When you say "don't include X", verify the answer
+5. **Claim checking.** Confirm each sentence is supported by the passage it
+   cites, and flag or remove the rest. A first word-overlap check now flags
+   unsupported sentences in `/web` answers; document answers come next.
+6. **Rule checks in code.** When you say "don't include X", verify the answer
    instead of trusting the model.
-6. **One regression gate** that runs every evaluation before a change lands.
-7. **Try a larger model** for better instruction-following, within the GPU's
+7. **One regression gate** that runs every evaluation before a change lands.
+8. **Try a larger model** for better instruction-following, within the GPU's
    8 GB.
 
 Paused for a future, optional addition: running JavaScript/TypeScript, C/C++,
