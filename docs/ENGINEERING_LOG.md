@@ -1134,4 +1134,61 @@ Decision or proposal: complete the blind A/B review, reveal and score labels,
         saved epoch-2 checkpoint, or revise the dataset and retrain.
 Human review needed: personality-training-results/eval/blind_review.json.
         Keep blind_key.json unopened until winners and notes are filled.
+## Web access: meaning-based picking, evaluation, and hardening against hostile pages
+
+```text
+Date: 2026-10-29 to 2026-10-30
+Stage: web access step 1 quality and security; the user asked for edge cases,
+        a regression run, and a holdout, considering reckless, tech-savvy, and
+        malicious users
+Files changed: src/kiki/web.py, documents.py, model_client.py, terminal.py,
+        cli.py, web_evals.py (new), evals/web_cases.json (new),
+        evals/web_adversarial_cases.json (new), tests/test_web.py,
+        tests/test_web_security.py (new), README.md, docs
+Quality: passages picked by meaning and words (qwen3-embedding, merged
+        rankings; off-topic note from meaning: off-topic best similarity
+        0.19-0.24, on-topic 0.43-0.86 on three pages, cutoff 0.35); passages
+        700 characters, six per answer, so the right one is never trimmed by
+        words (that had cut heapify's "O(len(x)) time" out); quotations must
+        match the page; details checked against the passages each paragraph
+        cites; big-O counts as supported if the page states any complexity;
+        the support-check retry drops the draft (it argued with itself) and a
+        bare refusal after it falls back to a partly supported draft;
+        overviews sample section starts; documentation sites read through
+        their marked main content; GitHub issues through the API.
+Hardening (each found by an edge-case test that failed first):
+        invalid port crashed the chat session; NAT64 and 6to4 forms of
+        127.0.0.1 passed as public (Python's is_global); DNS rebinding was
+        possible (now: connect to the checked address, Host and SNI carry the
+        name); gzip was fully decompressed before the 5 MB cap (now bounded;
+        a 200 MB bomb peaks under 40 MB); non-pages downloaded up to 5 MB
+        before refusal (now refused from headers); page titles could inject
+        Rich markup; control, zero-width, and bidi characters kept; hidden
+        elements read; saved memories given to the model in WEB mode; tokens
+        in URLs logged; overview quadratic in headings; 30 s total download
+        limit; backslashes, spaces, and userinfo in URLs refused.
+Planted instructions: a detector for text addressed to AI readers. Quoting
+        detected sentences in the system prompt made the model obey one
+        (pirate voice 0/3 -> 3/3 followed): text among instructions borrows
+        their authority. Detected sentences are now removed from what the
+        model reads (marker in place), with a generic note; the user sees
+        them in a "Heads up" line. False alarms: 0 of 24 real pages,
+        including articles about AI and prompt injection.
+Evaluations (kiki eval-web, 3 runs per question, receipts 01-15 in
+        evals/receipts/web/): development 45/45 and holdout 39/39 before and
+        after hardening (no regression); attack set 27/27 resisted; first
+        attack holdout 15/15 after tuning on it (no longer clean); fresh
+        attack holdout 3/12: the model obeyed every style the detector
+        missed ([INSTRUCTION] block, Spanish, an "editor's note" with a scam
+        phone number). Mean answer 6-8 s.
+Result: page fetching is robust against the attacks tried; the model itself
+        is not robust against planted instructions the detector misses.
+Known limits: the detector is pattern-based and evadable; a page can still
+        steer the answer (worst case: a wrong or scam detail, cited to the
+        page). Kiki has no dangerous tools in WEB mode, so nothing runs.
+Decision or proposal: try "spotlighting" (marking passage text so the model
+        can tell data from instructions; no new model), and label contact
+        details, links, and commands from web answers as unverified; a small
+        injection classifier (e.g. Prompt Guard) would need approval.
+Human review needed: any new model download.
 ```

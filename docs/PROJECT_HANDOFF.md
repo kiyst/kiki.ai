@@ -315,11 +315,12 @@ news briefing remains a separate Phase 7 idea, not part of this.
    on-screen notice (or a y/N) before anything is sent, and never with text
    from the user's private documents in the query.
 
-Quality work for these purposes, in order: meaning-based passage picking for
-pages (the existing qwen3-embedding model), quote checking, better whole-page
-summaries, coding-site handling (documentation sites and GitHub issues
-through the API), then a small claim-checking model (MiniCheck or HHEM; a new
-model download, so it needs approval).
+Quality work for these purposes: meaning-based passage picking, quote
+checking, whole-page overviews, and coding-site handling (documentation
+sites' main content, GitHub issues through the API) are done (October 29,
+2026; `kiki eval-web`, receipts in `evals/receipts/web/`). Remaining: a small
+claim-checking model (MiniCheck or HHEM; a new model download, so it needs
+approval), which would catch wrong claims that contain no names or numbers.
 
 ## Upstream projects to study
 

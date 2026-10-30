@@ -278,13 +278,20 @@ cannot see the page and says so rather than guessing what it contains.
   the paragraphs (or lines, for code and text files) it came from.
 - **Long pages are trimmed to fit.** The model reads about 4,000 tokens at a
   time, and her instructions take a third of that, so Kiki cuts the page into
-  passages and shows only the ones that best match your question, as much as
-  still fits after her instructions, the conversation, and room for the answer.
-  She tells you how much she read.
+  short passages and shows her the six that best match your question, picked
+  by meaning as well as by words (so "how fast is heapify?" finds "O(len(x))
+  time"). Preparing a page for meaning search takes a few seconds the first
+  time you ask about it; follow-up questions reuse it. She tells you how much
+  she read.
+- **Overviews cover the whole page.** `/web URL` with no question summarises
+  the opening plus the start of sections across the page, skipping references
+  and link lists.
 - **Unsupported details are flagged.** A citation proves the passage exists,
   not that it says what the sentence claims. Rewording is fine, but names,
   numbers, dates, code names, and claims like "O(n)" must appear in the
-  passages she read; sentences whose details don't are listed under the
+  passages she read (in the passages a paragraph cites, when it cites any),
+  and anything in quotation marks must match the page word for word;
+  sentences whose details don't are listed under the
   answer as "Check these", since they may come from her general knowledge
   rather than the page. Vague claims with no such details are not checked.
   When something is flagged, Kiki is asked once to rewrite from the passages
@@ -293,13 +300,37 @@ cannot see the page and says so rather than guessing what it contains.
   And when no passage contains most of your question's words, she is told the
   page probably doesn't cover it before she answers.
 - **Clean versions of popular sites.** Wikipedia articles are read without
-  menus and footnote markers; GitHub repositories are read through their README
-  and GitHub files through the raw file.
+  menus and footnote markers; GitHub repositories through their README, GitHub
+  files through the raw file, and GitHub issues and pull requests through
+  GitHub's API (the conversation and its first 50 comments). Documentation
+  sites that mark their main content (Python docs, Read the Docs, MDN) are
+  read without their menus and sidebars.
 - **What doesn't work:** pages behind a login or paywall, pages that build their
   text with JavaScript (Reddit, many web apps), sites that block automated
-  readers, and PDFs (download those and use `/folders add`). Only public
-  addresses are read: anything that points at your own computer or local
-  network is refused, including through redirects. Pages over 5 MB are cut off.
+  readers, and PDFs (download those and use `/folders add`).
+- **Built to read hostile pages safely:**
+  - Only public addresses are read. Anything pointing at your own computer
+    or local network is refused, including through redirects, disguised
+    forms (IPv4 inside IPv6, `user@host` tricks, backslashes), and DNS
+    rebinding: Kiki connects to exactly the address she checked.
+  - Downloads are capped at 5 MB and 30 seconds, even when compressed (a
+    small "zip bomb" stops at the cap), and files that aren't pages are
+    refused from their headers before anything downloads.
+  - Text a visitor can't see (hidden elements) is never read; invisible and
+    control characters are removed; page titles can't inject formatting into
+    the terminal.
+  - Text on a page aimed at AI assistants ("ignore your instructions…") is
+    detected: you see a "Heads up" line, and Kiki is told it is page content,
+    never an instruction. Your saved memories aren't given to the model in
+    WEB mode, so a page can't trick her into repeating them.
+  - A link containing a password or token gets a warning, and the value is
+    kept out of the web log.
+  - **Known limit:** the detector recognises common phrasings only. In
+    testing, the model obeyed planted instructions it missed (an
+    `[INSTRUCTION]` block, a Spanish one, an "editor's note" giving a scam
+    phone number). Nothing can run from a web page, but an answer can be
+    steered, so treat phone numbers, links, and commands in web answers
+    with care.
 - **Offline switch.** Set `KIKI_OFFLINE=1` and Kiki makes no internet requests
   at all, for web pages or weather.
 
@@ -511,6 +542,7 @@ src/kiki/
   finding.py         /find: whole-file ranking, filters, confidence
   folders_command.py /folders: add, list, reindex, and forget folders
   web.py             /web: fetching one public page safely, picking passages
+  web_evals.py       eval-web: live questions and attack pages, scored
   semantic.py        meaning-based search and hybrid merging
   rerank.py          the passage grading step
   extraction.py      turning files into citable passages
@@ -521,7 +553,7 @@ src/kiki/
   sandbox/           Python code sandbox (WebAssembly): runner, limits, setup
 evals/               question sets for retrieval, answers, behavior, and code
 docs/                design notes, the engineering log, development notes
-tests/               279 automated tests, no network or models required
+tests/               359 automated tests, no network or models required
 ```
 
 ## Development
@@ -532,6 +564,8 @@ kiki --database .kiki\history.sqlite3 eval-retrieval   # passage ranking
 kiki --database .kiki\history.sqlite3 eval-rag --with-model
 kiki --database .kiki\history.sqlite3 eval-behavior    # refusals, tone, scope
 kiki --database .kiki\history.sqlite3 eval-chat        # coding questions
+kiki eval-web --split holdout --runs 3   # /web answers on live pages (goes online)
+kiki eval-web --split adversarial        # attack pages, served from memory
 ```
 
 The sandbox's integration tests are skipped until `kiki sandbox setup` has

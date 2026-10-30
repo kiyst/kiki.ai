@@ -1,0 +1,34 @@
+{
+  "description": "Live /web questions. 'answer' cases pass when Kiki answers and the answer contains any listed keyword; 'decline' cases pass when she says the page does not cover the question. Development cases were used while tuning; holdout cases were written before any of them were run.",
+  "cases": [
+    {"split": "development", "url": "en.wikipedia.org/wiki/Python_(programming_language)", "question": "who created Python and when was it first released?", "expect": "answer", "keywords": ["Guido"]},
+    {"split": "development", "url": "en.wikipedia.org/wiki/Python_(programming_language)", "question": "is python slow?", "expect": "answer", "keywords": ["performance", "speed", "NumPy", "readability"]},
+    {"split": "development", "url": "en.wikipedia.org/wiki/Python_(programming_language)", "question": "what is the capital of France?", "expect": "decline"},
+    {"split": "development", "url": "en.wikipedia.org/wiki/History_of_Python", "question": "When was Python 3.0 released?", "expect": "answer", "keywords": ["December 3, 2008", "3 December 2008"]},
+    {"split": "development", "url": "en.wikipedia.org/wiki/History_of_Python", "question": "why did Guido step down?", "expect": "answer", "keywords": ["2018", "BDFL", "Benevolent Dictator"]},
+    {"split": "development", "url": "en.wikipedia.org/wiki/History_of_Python", "question": "what's the weather in Boston?", "expect": "decline"},
+    {"split": "development", "url": "en.wikipedia.org/wiki/History_of_Python", "question": "who won the 2022 World Cup?", "expect": "decline"},
+    {"split": "development", "url": "en.wikipedia.org/wiki/Ada_Lovelace", "question": "what did she write about the Analytical Engine?", "expect": "answer", "keywords": ["Menabrea", "notes", "Note G"]},
+    {"split": "development", "url": "en.wikipedia.org/wiki/Ada_Lovelace", "question": "", "expect": "answer", "keywords": ["Babbage", "Analytical Engine"]},
+    {"split": "development", "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py", "question": "how fast is heapify?", "expect": "answer", "keywords": ["O(len(x))", "linear", "O(n)"]},
+    {"split": "development", "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py", "question": "what does heappushpop do?", "expect": "answer", "keywords": ["push", "pop"]},
+    {"split": "development", "url": "https://github.com/python/cpython", "question": "how do I build Python on Windows?", "expect": "answer", "keywords": ["PCbuild"]},
+    {"split": "development", "url": "https://github.com/python/cpython", "question": "", "expect": "answer", "keywords": ["CPython", "build"]},
+    {"split": "development", "url": "https://docs.python.org/3/whatsnew/3.13.html", "question": "What changed about the interactive interpreter?", "expect": "answer", "keywords": ["PyPy", "multiline", "color"]},
+    {"split": "development", "url": "https://example.com", "question": "What is the capital of France?", "expect": "decline"},
+
+    {"split": "holdout", "url": "en.wikipedia.org/wiki/Alan_Turing", "question": "where did Turing work during World War II?", "expect": "answer", "keywords": ["Bletchley"]},
+    {"split": "holdout", "url": "en.wikipedia.org/wiki/Alan_Turing", "question": "what is the Turing test?", "expect": "answer", "keywords": ["imitation", "intelligen"]},
+    {"split": "holdout", "url": "en.wikipedia.org/wiki/Alan_Turing", "question": "what is the boiling point of water?", "expect": "decline"},
+    {"split": "holdout", "url": "en.wikipedia.org/wiki/Rust_(programming_language)", "question": "who originally created Rust?", "expect": "answer", "keywords": ["Graydon Hoare"]},
+    {"split": "holdout", "url": "en.wikipedia.org/wiki/Rust_(programming_language)", "question": "when was Rust 1.0 released?", "expect": "answer", "keywords": ["2015"]},
+    {"split": "holdout", "url": "en.wikipedia.org/wiki/Rust_(programming_language)", "question": "what is the population of Tokyo?", "expect": "decline"},
+    {"split": "holdout", "url": "en.wikipedia.org/wiki/Grace_Hopper", "question": "", "expect": "answer", "keywords": ["COBOL", "Navy", "compiler"]},
+    {"split": "holdout", "url": "https://github.com/psf/requests", "question": "how do I install requests?", "expect": "answer", "keywords": ["pip install requests", "python -m pip install requests"]},
+    {"split": "holdout", "url": "https://github.com/psf/requests", "question": "who maintains the Linux kernel?", "expect": "decline"},
+    {"split": "holdout", "url": "https://github.com/pallets/flask", "question": "what is Flask?", "expect": "answer", "keywords": ["WSGI", "web application", "framework"]},
+    {"split": "holdout", "url": "https://docs.python.org/3/library/functools.html", "question": "what does lru_cache do?", "expect": "answer", "keywords": ["maxsize", "least recently used", "memoiz"]},
+    {"split": "holdout", "url": "https://docs.python.org/3/whatsnew/3.12.html", "question": "what is new about f-strings?", "expect": "answer", "keywords": ["PEP 701"]},
+    {"split": "holdout", "url": "https://docs.python.org/3/whatsnew/3.12.html", "question": "how do I bake sourdough bread?", "expect": "decline"}
+  ]
+}

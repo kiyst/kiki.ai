@@ -196,6 +196,8 @@ class ToolCallingAssistant:
         reconsidered_abstention = False
         requested_citations = False
         requested_support = False
+        support_draft: str | None = None
+        draft_flagged: list[str] = []
 
         if self.pre_retrieve:
             arguments = {"query": prompt, "limit": self.passages}
@@ -296,6 +298,15 @@ class ToolCallingAssistant:
                         }
                     )
                     continue
+                if (
+                    support_draft is not None
+                    and _looks_like_insufficient(answer)
+                    and not _wholly_unsupported(support_draft, draft_flagged)
+                ):
+                    # The retry gave up, but the draft had sentences the page
+                    # supports ("see PCbuild/readme.txt"); a partly useful answer
+                    # with its extras flagged beats a bare refusal.
+                    answer = support_draft
                 flagged = (
                     unsupported_sentences(answer, list(sources.values()))
                     if self.support_check and sources
@@ -303,17 +314,23 @@ class ToolCallingAssistant:
                 )
                 if flagged and not requested_support and round_number < self.max_rounds:
                     requested_support = True
+                    support_draft, draft_flagged = answer, flagged
+                    # The draft is dropped: left in view, the model rewrites it as
+                    # an argument with itself ("the passages don't mention X"),
+                    # about details the user never saw.
+                    messages.pop()
                     quoted = "; ".join(f'"{sentence}"' for sentence in flagged[:4])
                     messages.append(
                         {
                             "role": "user",
                             "content": (
-                                "Support check: these sentences use names, numbers, or code "
-                                f"details that appear in none of the passages you were shown: {quoted}. "
-                                "Rewrite the answer using only what the passages say, with exact "
-                                "[source:ID] citations. If the passages do not answer the question, "
-                                "begin with `Evidence is insufficient.` and say briefly what they "
-                                "do cover. Do not use outside knowledge."
+                                "Support check from Kiki's code: a draft answer included details "
+                                f"found in none of the passages: {quoted}. Write a new answer to my "
+                                "question from the passages alone, with exact [source:ID] "
+                                "citations. Do not mention the draft, this check, or details the "
+                                "passages lack. If the passages point somewhere for the details "
+                                "(a file, a section, a link), saying so is an answer. Begin with "
+                                "`Evidence is insufficient.` only if nothing in the passages helps."
                             ),
                         }
                     )
@@ -600,17 +617,63 @@ def unsupported_sentences(answer: str, sources: list[dict[str, Any]]) -> list[st
     """
     if _looks_like_insufficient(answer):
         return []
-    evidence = " ".join(str(source.get("evidence", "")) for source in sources).casefold()
-    if not evidence.strip():
+
+    def joined(items: list[dict[str, Any]]) -> str:
+        text = " ".join(str(item.get("evidence", "")) for item in items)
+        return re.sub(r"\s+", " ", text).casefold()
+
+    everything = joined(sources)
+    if not everything.strip():
         return []
-    evidence = re.sub(r"\s+", " ", evidence)
+    by_id = {str(item.get("passage_id")): item for item in sources}
     flagged = []
-    for sentence in _claim_sentences(answer):
-        details = _sentence_details(sentence)
-        missing = [item for item in details if re.sub(r"\s+", " ", item.casefold()) not in evidence]
-        if missing and len(missing) * 2 >= len(details):
-            flagged.append(sentence)
+    for paragraph in re.split(r"\n\s*\n", answer):
+        # A paragraph's details must be in the passages it cites; one that
+        # cites nothing it was shown is checked against everything shown.
+        cited = [by_id[pid] for pid in dict.fromkeys(_CITATION.findall(paragraph)) if pid in by_id]
+        evidence = joined(cited) if cited else everything
+        for sentence in _claim_sentences(paragraph):
+            # A quotation must be word for word: one altered quote flags the
+            # sentence however many of its other details check out.
+            if any(not _quote_in(quote, evidence) for quote in _quotations(sentence)):
+                flagged.append(sentence)
+                continue
+            details = _sentence_details(sentence)
+            missing = [item for item in details if not _detail_in(item, evidence)]
+            if missing and len(missing) * 2 >= len(details):
+                flagged.append(sentence)
     return flagged
+
+
+_QUOTATION = re.compile(r"\"([^\"\n]+)\"|“([^”\n]+)”")
+
+
+def _quotations(sentence: str) -> list[str]:
+    """Quoted passages of four or more words; shorter quotes are usually terms."""
+    quotes = [match.group(1) or match.group(2) for match in _QUOTATION.finditer(sentence)]
+    return [quote for quote in quotes if len(quote.split()) >= 4]
+
+
+def _normalized(text: str) -> str:
+    text = text.casefold().translate(str.maketrans({"’": "'", "‘": "'", "“": '"', "”": '"',
+                                                    "—": "-", "–": "-"}))
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _quote_in(quote: str, evidence: str) -> bool:
+    # Words left out with an ellipsis are allowed; each remaining piece must match.
+    pieces = [_normalized(piece).strip(" .,;:!?'\"") for piece in re.split(r"\.\.\.|…", quote)]
+    text = _normalized(evidence)
+    return all(piece in text for piece in pieces if piece)
+
+
+def _detail_in(detail: str, evidence: str) -> bool:
+    if re.fullmatch(r"O\(.*\)", detail):
+        # Notation varies ("O(n)" for the page's "O(len(x))"), so any stated
+        # complexity counts; a complexity invented for a page that states
+        # none is still caught.
+        return re.search(r"\bo\(", evidence) is not None
+    return re.sub(r"\s+", " ", detail.casefold()) in evidence
 
 
 def _claim_sentences(answer: str) -> list[str]:
@@ -653,6 +716,8 @@ def _visible_answer(content: str) -> str:
     content = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL | re.IGNORECASE)
     if content.lstrip().lower().startswith("<think>"):
         return ""
+    # Terminal control codes (copied from a page, say) could rewrite the screen.
+    content = re.sub("[\x00-\x08\x0b-\x1f\x7f-\x9f]", "", content)
     return content.strip()
 
 
