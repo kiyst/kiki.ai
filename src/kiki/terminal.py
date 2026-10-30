@@ -41,7 +41,7 @@ from .apply_command import apply_command
 from .run_command import run_command
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex, query_instruction
 from .settings import RetrievalSettings
-from .self_knowledge import COMMAND_HELP, capabilities_text, self_knowledge_prompt
+from .self_knowledge import COMMAND_HELP, capabilities_text, self_help_hints, self_knowledge_prompt
 from .tools import ToolRegistry
 from .web import (
     WEB_PASSAGES,
@@ -351,12 +351,22 @@ class TerminalSession:
                 weather=self.weather,
                 include_search=False,
             )
+            system_prompt = self._system_prompt(CHAT_SYSTEM_PROMPT)
+            hints = self_help_hints(prompt)
+            if hints:
+                # Facts placed beside the question beat a 4B model's generic
+                # "I can't do that" replies, which won over the same facts
+                # buried in the runtime knowledge above.
+                system_prompt += (
+                    "\n\nFacts about Kiki that may bear on this message (use them only if the "
+                    "user is asking about Kiki herself):\n" + "\n".join(f"- {hint}" for hint in hints)
+                )
             assistant = ToolCallingAssistant(
                 OllamaClient(),
                 registry,
                 model=self.last_model_selection.model,
                 pre_retrieve=False,
-                system_prompt=self._system_prompt(CHAT_SYSTEM_PROMPT),
+                system_prompt=system_prompt,
             )
         outcome = assistant.ask(prompt, history=self.histories[self.mode])
         if self.mode == "rag" and isinstance(backend, HybridRetriever):

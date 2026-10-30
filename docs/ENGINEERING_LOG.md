@@ -1192,3 +1192,41 @@ Decision or proposal: try "spotlighting" (marking passage text so the model
         injection classifier (e.g. Prompt Guard) would need approval.
 Human review needed: any new model download.
 ```
+
+## Self-knowledge: every command form, and facts beside the question
+
+```text
+Date: 2026-10-30
+Stage: user report: asked what else goes with /web, Kiki didn't know /web clear
+Files changed: src/kiki/self_knowledge.py, terminal.py,
+        tests/test_self_knowledge.py (new), tests/test_terminal.py
+Cause: the runtime prompt listed command names only ("/web URL [QUESTION]");
+        subcommands lived in the /help descriptions, which the model never saw.
+Behavior changed: COMMAND_HELP's command column now carries every accepted
+        form (feeds /help and the model); multi-form commands get one line
+        each with every form spelled out (in one long list the model missed
+        /web clear and invented /folders clear); bracket notation like
+        [PATH|browse] is spelled out (it was read as a "/browse" command);
+        the runtime knowledge now covers WEB mode and its protections,
+        readable formats, kiki one-off commands, KIKI_OFFLINE, and limits.
+        In CHAT, a message about one of Kiki's abilities (web, offline, run,
+        edit files, tone, memory, folders, finding files, commands) also
+        gets the two or three relevant facts placed beside it for that turn:
+        in the long block, the model's generic replies ("I can't run code",
+        "I don't have internet access") won over the facts, and rewording the
+        block only moved which question failed. Source code is not read
+        (the user's decision: a narrow feature, if ever).
+Cost: about 90 more prompt tokens per mode; the evidence budget adapts.
+Tests/evaluations run: pytest 364 passed. Ten self-questions used while
+        tuning: 7/10 (list only) -> 8/10 -> 7/10 (rewording) -> 10/10 (facts
+        beside the question). Holdout of ten new phrasings: 10/10 on reading
+        (the checker flagged a /path/to placeholder and an accurate answer
+        that didn't name KIKI_OFFLINE); six ordinary questions that share
+        trigger words ("search a list in Python", "more concise essay"): no
+        Kiki commands leaked into any. Regression: eval-web development
+        15/15, eval-rag 15/15 cited and 3/3 declined, eval-behavior 7/8 both
+        with the old and the new self-description (the known SQL-injection
+        payload case).
+Guard: tests/test_self_knowledge.py fails when an interactive command or a
+        handled subcommand is missing from what the model is told.
+```

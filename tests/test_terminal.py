@@ -240,7 +240,7 @@ def test_help_and_capabilities_keep_bracketed_arguments(tmp_path) -> None:
     _handle_command(console, session, "/capabilities")
     rendered = console.export_text()
 
-    for usage in ("/chat [message]", "/model [auto|fast|smart|max]", "/persona [show|reset]"):
+    for usage in ("/chat [message]", "/model [auto|fast|smart|max]", "/persona [show|path|reset]"):
         assert rendered.count(usage) == 2
 
 
