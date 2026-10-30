@@ -346,6 +346,14 @@ cannot see the page and says so rather than guessing what it contains.
     numbers, links, and commands in web answers with care.
 - **Offline switch.** Set `KIKI_OFFLINE=1` and Kiki makes no internet requests
   at all, for web pages or weather.
+- **Security audit.** [docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md) lists
+  what an independent review found, how each finding was fixed and re-tested,
+  and the risks that remain. In short: the model can't run code, write files,
+  or go online on its own; anything a page, document, or the model prints is
+  shown, never acted on by the terminal; crafted files and pages are read in a
+  separate process with time and memory limits; Kiki won't index or write into
+  system, startup, or credential folders; and notes that look like passwords,
+  keys, or contact details are refused and kept out of the input history.
 
 ### Running code
 

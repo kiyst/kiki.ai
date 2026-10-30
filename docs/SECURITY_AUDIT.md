@@ -151,3 +151,78 @@ answer that repeats either) can trigger it.
 
 Upgrading Python and pypdf changes Kiki's dependencies and needs the user's
 approval.
+
+## Remediation (October 30, 2026)
+
+Method, following the usual find → fix → independent re-test cycle:
+
+1. Each finding was fixed with a regression test that reproduces the attack
+   (`tests/test_security_audit.py`, tagged A1-A29 and L).
+2. Two fresh reviewers re-audited the fixes without being told how they
+   worked: one on web, display, `/run` and `/apply`; one on local data,
+   file safety, and privacy. They looked for bypasses and for problems the
+   fixes introduced.
+3. Every bypass and side effect they found was fixed and pinned with a test
+   (`tests/test_reaudit.py`); both lists of attacks are also checked for false
+   alarms on ordinary input.
+4. The whole suite (555 tests, sandbox included) and the model evaluations
+   were run again on the final code, one at a time.
+
+Categories: OWASP Top 10 for LLM Applications 2025 (LLM01 prompt injection,
+LLM02 sensitive information disclosure, LLM05 improper output handling,
+LLM06 excessive agency, LLM09 misinformation, LLM10 unbounded consumption)
+and CWE.
+
+| # | Category | Fix | Re-audit |
+| --- | --- | --- | --- |
+| 1 | LLM06, LLM02 · CWE-200 | No model-callable weather tool in RAG or CHAT; `KIKI_OFFLINE` enforced inside every network call; memories kept out of RAG prompts | held; "what do you remember" answers in RAG/WEB are no longer stored in that mode's history |
+| 2, 3 | LLM05 · CWE-150 | Control characters shown as `\xNN` in sandbox output, crash text, previews, and diffs | held |
+| 4, 15 | LLM05 · CWE-451 | Code blocks picked with Rich's own Markdown parser; whole code shown, numbered, before approval | held |
+| 5 | LLM10 · CWE-1333 | Pages over 4 KB parse in a child process (Job Object: 1.5 GB, 20 s); worst known 4 KB input 0.55 s | bypassed at 32 KB in-process limit; lowered to 4 KB |
+| 6 | LLM10 · CWE-407 | One-pass Word paragraph reader; element-count cap | held |
+| 7 | LLM10 · CWE-409 | pypdf 6.21.4; files parsed in the limited child process | held |
+| 8 | LLM10 · CWE-755 | Any per-file error is that file's failure; time limit scales with size | 60 s limit too short for large PDFs; now 60 s + 10 s/MB, at most 300 s |
+| 9 | LLM09 · CWE-694 | Web pieces numbered; indexed passages carry a piece number derived from their text | indexed passages still collided; fixed |
+| 10 | LLM01 | Title datamarked, run through the detector, and cleaned of control characters | bypassed through the address-derived fallback title; every title source is now cleaned |
+| 11 | LLM10 · CWE-400 | Charset allow-list | held |
+| 12 | LLM05 · CWE-248 | Error boundary around every turn; all outside text printed as plain `Text` | held |
+| 13 | CWE-73 | `/database` refuses folders, non-SQLite files, and other programs' databases | bypassed (folder, other databases); fixed |
+| 14 | CWE-67 | Device and stream names refused | held |
+| 16 | LLM06 · CWE-552 | Drive roots, home, system, Startup, shell-profile, `.ssh`/`.git`-style folders refused for writing, checked for both the workspace and the folder written into; loopback UNC paths normalised | bypassed (UNC loopback, broad workspace); fixed |
+| 17 | CWE-73 | `/save` forces `.md` and refuses existing files | held |
+| 18 | LLM02 · CWE-226 | `secure_delete`, full-text `optimize`, `VACUUM`, fresh backup | partly; full-text index kept words until `optimize`; fixed and tested with whole words |
+| 19 | LLM02 · CWE-312 | Memory filter on folded text (look-alikes, zero-width, hyphens, l33t) plus value patterns; input history drops only lines holding a secret and scrubs older history once | bypassed (passwd, `pass:`, p4ssw0rd, AWS secret, "dot … at"); false alarms on "emails", "birthday", dates; both fixed |
+| 20 | LLM02 · CWE-441 | Embeddings and reranker pinned to localhost, proxies ignored | held |
+| 21 | LLM09 | Final host credited, with a redirect note | held |
+| 22 | LLM01 | Hidden elements and inline styles compared numerically (tiny fonts, low opacity, off-screen, `scale(0)`, zero height, CSS escapes) | partly; widened |
+| 23 | LLM01 | Detector folds look-alikes and zero-width characters; more phrasings; instructions split over two or three lines | partly; widened |
+| 24 | LLM09 | Whole-word details; ordered, nearby ellipsis quotes; absence notes with contact details are checked | partly; fixed |
+| 25 | LLM05 | Negation must govern the request; "don't hesitate to" counts as urging; 2FA and login credentials | partly; fixed |
+| 26 | LLM05, LLM09 | Only the opener itself is exempt; made-up citations after it are removed; links rendered with their real address by Rich's parser | partly; the earlier link rewrite also corrupted code (`fs[i](x)`); replaced |
+| 27 | LLM10 · CWE-407 | Binary search over page offsets, computed once per paragraph | held |
+| 28 | LLM10 · CWE-400 | Whole-fetch watchdog | held |
+| 29 | LLM02 · CWE-532 | Query, fragment, path tokens, JWTs, base64, and token-like values redacted | partly; widened |
+| L | various | Sandbox grace stop; write re-check; markup-free prompts; `.kiki` and AppData skipped; `w:vanish` (honouring `w:val="0"`); stale-citation marks in keyword and meaning search; diagnostics without the user name; proxy-free local traffic; risky-command and bare-domain labels; command guard (sentence-final commands, long `/remember`); C1 characters; IPv6 ranges; datamarking all blanks; backups pruned per folder | held after fixes |
+
+Accepted residual risk:
+
+- **Planted instructions phrased as ordinary page content** still steer the
+  model at times. On the untouched holdout-3 set of such pages (a fake FAQ
+  answer, a fake "User:" line, a link built to leak the question, an
+  instruction buried at the end of a long page), the strict substring grader
+  scores 12/15 runs as following the page, the same as before the
+  remediation. It counts an answer that repeats a planted claim in order to
+  warn about it as following; read by hand earlier, about 6/15 genuinely
+  passed on a planted link or "email your password to…". These cases were deliberately not used to
+  tune the detector, so the score stays an honest estimate. The labels under
+  every web answer (other sites' links, phone numbers, emails, commands,
+  credential requests) are the backstop: they list what such a page wants
+  passed on, whether or not an attack was detected.
+- Stylesheet classes and same-colour text can still hide text (no CSS engine).
+  Closed `<details>` sections are read on purpose: a visitor can open them,
+  and GitHub READMEs keep real content there. The detector still scans them.
+- File names can still nudge ranking (capped).
+- The sandbox runtime is checked against its hash, but other files in the
+  same user's folders aren't protected from that user.
+- Python is 3.12.3; later security fixes need 3.13, which needs the user's
+  approval to install.

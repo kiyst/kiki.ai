@@ -36,14 +36,33 @@ def _system_folders() -> list[Path]:
     names = ["SystemRoot", "windir", "ProgramFiles", "ProgramFiles(x86)", "ProgramW6432",
              "ProgramData", "APPDATA", "LOCALAPPDATA"]
     folders = [Path(os.environ[name]) for name in names if os.environ.get(name)]
-    home = Path.home()
-    folders += [home / "AppData"]
+    folders.append(Path.home() / "AppData")
     return folders
 
 
+# Folder names refused anywhere on a path: system areas, and (for writing)
+# places where a written file is run or trusted without being opened.
+_SYSTEM_NAMES = {"$recycle.bin", "system volume information", "windows.old", "$windows.~bt",
+                 "$windows.~ws", "appdata"}
+_AUTORUN_PARTS = {".ssh", ".gnupg", ".aws", ".azure", ".kube", ".docker", ".git", ".vscode",
+                  ".idea", "windowspowershell"}
+_LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1", "[::1]", ".", "?", os.environ.get("COMPUTERNAME", "").casefold()}
+
+
 def _normal(path: Path) -> str:
-    text = str(path.expanduser().resolve(strict=False))
-    if text.startswith("\\\\?\\"):
+    r"""A comparable local path: resolved, without \\?\, with loopback network
+    paths (\\localhost\C$\Windows) turned back into drive paths, so the same
+    folder can't be reached past the checks under another name (re-audit)."""
+    text = str(path.expanduser())
+    for prefix in ("\\\\?\\UNC\\", "\\\\.\\UNC\\"):
+        if text.casefold().startswith(prefix.casefold()):
+            text = "\\\\" + text[len(prefix):]
+    if text.startswith("\\\\") and not text.startswith(("\\\\?\\", "\\\\.\\")):
+        parts = text[2:].split("\\")
+        if len(parts) >= 2 and parts[0].casefold() in _LOCAL_HOSTS and re.fullmatch(r"[A-Za-z]\$", parts[1]):
+            text = parts[1][0] + ":\\" + "\\".join(parts[2:])
+    text = str(Path(text).resolve(strict=False))
+    if text.startswith(("\\\\?\\", "\\\\.\\")):
         text = text[4:]
     return os.path.normcase(text.rstrip("\\/")) or text
 
@@ -54,22 +73,32 @@ def _inside(path: str, folder: str) -> bool:
 
 def protected_folder_reason(path: Path, *, writing: bool = False) -> str | None:
     """Why `path` must not be indexed (or, with writing, written into), or None."""
-    resolved = Path(_normal(path))
-    if resolved == Path(resolved.anchor) or str(resolved).rstrip("\\/") in {resolved.drive, ""}:
-        return "that is a whole drive; add the folders you need instead"
-    name = resolved.name.casefold()
-    if name in {"$recycle.bin", "system volume information"}:
-        return "that is a system folder"
     normal = _normal(path)
+    resolved = Path(normal)
+    if resolved == Path(resolved.anchor) or normal.rstrip("\\/") in {resolved.drive.casefold(), ""}:
+        return "that is a whole drive; add the folders you need instead"
+    if normal.startswith("\\\\") and writing:
+        return "that is a network location; choose a folder on this computer"
     temporary = _normal(Path(tempfile.gettempdir()))
+    # Inside the temporary folder (which sits in AppData), only the part below
+    # it is judged.
+    base = Path(temporary) if _inside(normal, temporary) else Path(resolved.anchor)
+    parts = [part.casefold() for part in resolved.parts[len(base.parts):]]
+    if any(part in _SYSTEM_NAMES for part in parts) or (
+            base == Path(resolved.anchor) and parts[:1] == ["recovery"]):
+        return "that is a system folder"
     for folder in _system_folders():
         # The temporary folder sits inside AppData but holds nothing sensitive.
         if _inside(normal, _normal(folder)) and not _inside(normal, temporary):
             return f"that is inside a system or application folder ({folder})"
     if writing:
-        home = _normal(Path.home())
-        if normal == home:
+        if normal == _normal(Path.home()):
             return "that is your whole home folder; choose a project folder inside it"
-        if "startup" in Path(normal).parts[-1:] or "\\start menu\\" in normal + "\\":
-            return "files written there run automatically when you sign in"
+        if any(part in _AUTORUN_PARTS for part in parts) or (
+                "start menu" in parts and "startup" in parts):
+            return ("files written there can run or be trusted automatically (startup, "
+                    "shell profiles, SSH, git or editor settings)")
+        documents = [index for index, part in enumerate(parts) if part == "documents"]
+        if any(parts[index + 1: index + 2] == ["powershell"] for index in documents):
+            return "files written there run automatically when PowerShell starts"
     return None

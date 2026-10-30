@@ -136,7 +136,7 @@ def render_run_result(console: Console, result: RunResult, limits: RunLimits) ->
     elif result.memory_exceeded:
         status, style = f"Stopped: the {limits.memory_mib} MB memory limit was reached", "yellow"
     elif result.crashed:
-        status, style = f"Crashed: {result.crashed}", "red"
+        status, style = f"Crashed: {visible_controls(result.crashed)}", "red"
     elif result.exit_code == 0:
         status, style = "Finished", "green"
     else:

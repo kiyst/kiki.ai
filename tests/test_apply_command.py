@@ -80,7 +80,7 @@ def test_existing_file_is_backed_up_and_keeps_crlf(tmp_path: Path) -> None:
 
     assert written == target
     assert target.read_bytes() == b"def add(a, b):\r\n    return a + b\r\n"
-    saved = list(backups.iterdir())
+    saved = list(backups.rglob("*.bak"))
     assert len(saved) == 1 and saved[0].read_bytes() == b"def add(a, b):\r\n    return a - b\r\n"
     assert "Previous version saved" in output
 

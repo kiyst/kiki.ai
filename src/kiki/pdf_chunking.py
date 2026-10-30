@@ -25,6 +25,7 @@ import re
 from bisect import bisect_left, bisect_right
 from collections import Counter
 from dataclasses import dataclass
+from functools import cached_property
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,11 @@ class Paragraph:
     def end_page(self) -> int:
         return self.pages[-1][1]
 
+    @cached_property
+    def _offsets(self) -> list[int]:
+        # Built once per paragraph, not once per slice (re-audit of A27).
+        return [offset for offset, _ in self.pages]
+
     def slice(self, start: int, end: int) -> Paragraph:
         """The text in [start, end), stripped, with the pages it actually covers."""
         raw = self.text[start:end]
@@ -50,7 +56,7 @@ class Paragraph:
         end = start + len(text)
         # Binary search over the page offsets: scanning all of them for every
         # slice was quadratic on long books (audit A27).
-        offsets = [offset for offset, _ in self.pages]
+        offsets = self._offsets
         first = max(0, bisect_right(offsets, start) - 1)
         last = bisect_left(offsets, end)
         covered = [(max(offset, start) - start, page)

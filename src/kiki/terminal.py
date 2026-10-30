@@ -42,7 +42,7 @@ from .apply_command import apply_command
 from .run_command import run_command
 from .semantic import HybridRetriever, OllamaEmbeddingClient, SemanticIndex, query_instruction
 from .settings import RetrievalSettings
-from .safety import protected_folder_reason
+from .safety import protected_folder_reason, visible_controls
 from .self_knowledge import (
     COMMAND_HELP,
     capabilities_text,
@@ -296,9 +296,14 @@ class TerminalSession:
         if route.capability == Capability.MEMORY:
             memory_answer = self._handle_natural_memory(prompt)
             if memory_answer is not None:
-                return self._remember(
-                    prompt, ChatOutcome(memory_answer, [], []), "none"
-                )
+                outcome = ChatOutcome(memory_answer, [], [])
+                if self.mode in {"rag", "web"}:
+                    # Shown, but kept out of this mode's history: later RAG and
+                    # WEB prompts carry that history next to untrusted
+                    # documents and pages, and saved notes don't belong there
+                    # (re-audit; RAG and WEB already exclude memory).
+                    return outcome, "none"
+                return self._remember(prompt, outcome, "none")
         weather_location = _weather_location_from_prompt(prompt)
         if not weather_location and self.pending_weather_choices:
             if prompt.strip().casefold() in {"cancel", "never mind", "nevermind"}:
@@ -670,7 +675,7 @@ def render_outcome(
     debug: bool = False,
 ) -> None:
     title = {"rag": "Kiki · RAG", "web": "Kiki · Web"}.get(mode, "Kiki · Chat")
-    console.print(Panel(Markdown(visible_links(outcome.answer) or "_(No response)_"), title=title,
+    console.print(Panel(answer_markdown(outcome.answer or "_(No response)_"), title=title,
                         border_style="cyan"))
     invented = unknown_commands(outcome.answer)
     if invented:
@@ -717,27 +722,16 @@ def render_sources(
         console.print(f"[dim]{uncited} more retrieved {noun} not cited. /sources all lists them.[/dim]")
 
 
-_MARKDOWN_LINK = re.compile(
-    r"(!?)\[([^\]\n]{0,200})\]\(\s*(?:<([^>\n]+)>|([^)\s]+))(?:\s+\"[^\"]*\")?\s*\)")
+def answer_markdown(answer: str) -> Markdown:
+    """An answer rendered with each link's real address printed after its label.
 
-
-def visible_links(answer: str) -> str:
-    """Markdown with each link's real address shown next to its label.
-
-    Rendered Markdown shows only the label, so "[microsoft.com](http://evil
-    .example)" looked like a Microsoft link (audit A26). Images become a
-    labelled address too; Kiki never loads them."""
-    def show(match: re.Match[str]) -> str:
-        image, label, bracketed, bare = match.groups()
-        url = bracketed or bare
-        if image:
-            return f"[image: {label or 'untitled'}] {url}"
-        if label.strip().rstrip("/").casefold() in {url.rstrip("/").casefold(),
-                                                    re.sub(r"^https?://", "", url).rstrip("/").casefold()}:
-            return url
-        return f"{label} ({url})"
-
-    return _MARKDOWN_LINK.sub(show, answer)
+    Rendered Markdown otherwise shows only the label, so "[microsoft.com](http:
+    //evil.example)" looked like a Microsoft link (audit A26). Rich's own parser
+    does this (hyperlinks=False), so reference-style links, quoted titles, and
+    nested brackets are covered and code is left exactly as written; the
+    earlier regex rewrite missed those and mangled "fs[i](x)" in code
+    (re-audit). Images show only their alt text; Kiki never loads them."""
+    return Markdown(answer, hyperlinks=False)
 
 
 def _source_name(path: str) -> str:
@@ -768,8 +762,10 @@ def render_search_results(console: Console, results: list[SearchResult]) -> None
         console.print(Panel("No matching indexed passages.", border_style="yellow"))
         return
     for rank, result in enumerate(results, start=1):
-        heading = f"{rank}. {Path(result.path).name} · {_result_location(result)}"
-        console.print(Panel(Text(result.excerpt), title=escape(heading), border_style="blue"))
+        # Indexed text and names come from the user's files; their control
+        # characters are shown, not acted on (re-audit).
+        heading = visible_controls(f"{rank}. {Path(result.path).name} · {_result_location(result)}")
+        console.print(Panel(Text(visible_controls(result.excerpt)), title=Text(heading), border_style="blue"))
 
 
 _CONFIDENCE_STYLES = {"Likely": "green", "Possible": "yellow", "Weak match": "dim", "Matches filters": "cyan"}
@@ -791,17 +787,18 @@ def render_find_results(console: Console, result: FindResult) -> None:
         body = Text()
         body.append(f"{candidate.confidence}", style=f"bold {style}")
         if candidate.reasons:
-            body.append(f" · {candidate.explanation}")
-        body.append(f"\nFolder: {candidate.folder}  ·  Modified {candidate.modified}"
-                    f"  ·  {format_size(candidate.size)}")
+            body.append(visible_controls(f" · {candidate.explanation}"))
+        body.append(visible_controls(f"\nFolder: {candidate.folder}  ·  Modified {candidate.modified}"
+                                     f"  ·  {format_size(candidate.size)}"))
         if candidate.title:
-            body.append(f"\nTitle: {candidate.title}")
+            # A Markdown heading or HTML <title> can carry ESC sequences (re-audit).
+            body.append(f"\nTitle: {visible_controls(candidate.title)}")
         if not candidate.searchable:
             body.append("\nContents not readable by Kiki: found by name, folder, and type only.",
                         style="dim")
         if candidate.changed_since_indexing:
             body.append("\nChanged since it was indexed; run kiki index to refresh.", style="dim")
-        heading = Text(f"{candidate.number}. {candidate.name}",
+        heading = Text(visible_controls(f"{candidate.number}. {candidate.name}"),
                        style=f"link {Path(candidate.path).as_uri()}")
         console.print(Panel(body, title=heading, title_align="left", border_style=style))
         # Plain line, never wrapped, so the path can be copied as-is.

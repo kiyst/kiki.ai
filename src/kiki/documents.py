@@ -71,6 +71,15 @@ def _read_member(archive: zipfile.ZipFile, name: str) -> bytes:
     return archive.read(info)
 
 
+def _hidden_run(run: ElementTree.Element) -> bool:
+    """True when a run is hidden: <w:vanish/>, unless w:val turns it off
+    ("0", "false", "off"), which Word shows as normal text (re-audit)."""
+    vanish = run.find(f"{_W}rPr/{_W}vanish")
+    if vanish is None:
+        return False
+    return vanish.get(f"{_W}val", "true").strip().casefold() not in {"0", "false", "off"}
+
+
 def _docx_paragraph_text(paragraph: ElementTree.Element) -> str:
     """The paragraph's own text, in order, without paragraphs nested inside it
     (they are read separately) and without hidden text (w:vanish).
@@ -84,7 +93,7 @@ def _docx_paragraph_text(paragraph: ElementTree.Element) -> str:
         node = stack.pop()
         if node.tag == f"{_W}p":
             continue
-        if node.tag == f"{_W}r" and node.find(f"{_W}rPr/{_W}vanish") is not None:
+        if node.tag == f"{_W}r" and _hidden_run(node):
             continue  # hidden text: not visible in Word, so not read (audit L2)
         if node.tag == f"{_W}t" and node.text:
             parts.append(node.text)
@@ -126,23 +135,69 @@ _VOID_TAGS = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link"
 # narrows what a page can slip past the reader (audit A22).
 _HIDDEN_STYLE = re.compile(
     r"display\s*:\s*none|visibility\s*:\s*(?:hidden|collapse)"
-    r"|font-size\s*:\s*0(?:\.0+)?(?:px|pt|em|rem|%)?\s*(?:;|$|!)"
-    r"|opacity\s*:\s*0(?:\.0+)?\s*(?:;|$|!)"
-    r"|(?:left|top|text-indent|margin-left)\s*:\s*-\d{3,}"
-    r"|clip\s*:\s*rect\(\s*0|clip-path\s*:\s*inset\(\s*50%",
+    r"|clip\s*:\s*rect\(\s*0|clip-path\s*:\s*inset\(\s*50%"
+    r"|transform\s*:[^;]*scale[xy]?\(\s*0(?:\.0+)?\s*[,)]",
     re.IGNORECASE,
 )
 _HIDDEN_CLASSES = {"sr-only", "visually-hidden", "screen-reader-text", "hidden", "d-none",
                    "is-hidden", "invisible", "visuallyhidden"}
+_CSS_ESCAPE = re.compile(r"\\([0-9a-fA-F]{1,6})\s?|\\(.)")
+_LENGTH = re.compile(r"^(-?\d*\.?\d+)\s*([a-z%]*)")
+
+
+def _css_unescaped(style: str) -> str:
+    """Style text with CSS escapes decoded: "display:n\\6f ne" is "display:none"."""
+    def decode(match: re.Match[str]) -> str:
+        if match.group(1):
+            code = int(match.group(1), 16)
+            return chr(code) if 0 < code <= 0x10FFFF else ""
+        return match.group(2)
+
+    return _CSS_ESCAPE.sub(decode, re.sub(r"/\*.*?\*/", "", style, flags=re.DOTALL))
+
+
+def _style_hides(style: str) -> bool:
+    """True when an inline style hides its text from a visitor.
+
+    Values are compared numerically (re-audit): "font-size:1px", "0.001px",
+    "0vw", "opacity:0.01" or "0%", and "left:-99em" slipped past exact
+    matches for zero, while "font-size:0.9em" must stay visible."""
+    style = _css_unescaped(style)
+    if _HIDDEN_STYLE.search(style):
+        return True
+    properties: dict[str, str] = {}
+    for declaration in style.split(";"):
+        name, _, value = declaration.partition(":")
+        properties[name.strip().casefold()] = value.replace("!important", "").strip().casefold()
+
+    def length(name: str) -> tuple[float, str] | None:
+        match = _LENGTH.match(properties.get(name, ""))
+        return (float(match.group(1)), match.group(2)) if match else None
+
+    size = length("font-size")
+    if size and (size[0] <= 1 if size[1] in {"px", "pt", ""} else size[0] < (10 if size[1] == "%" else 0.1)):
+        return True
+    opacity = length("opacity")
+    if opacity and opacity[0] < (10 if opacity[1] == "%" else 0.1):
+        return True
+    for name in ("left", "top", "right", "text-indent", "margin-left", "margin-top"):
+        offset = length(name)
+        if offset and offset[0] <= (-100 if offset[1] in {"px", "pt", ""} else -20):
+            return True
+    if "hidden" in properties.get("overflow", "") or "clip" in properties.get("overflow", ""):
+        for name in ("height", "max-height", "width", "max-width"):
+            extent = length(name)
+            if extent and extent[0] <= 1 and extent[1] in {"px", "pt", "", "em", "rem", "%"}:
+                return True
+    return False
 
 
 def _is_hidden(tag: str, attrs: list[tuple[str, str | None]]) -> bool:
     values = {name.casefold(): (value or "") for name, value in attrs}
-    style = re.sub(r"/\*.*?\*/", "", values.get("style", ""), flags=re.DOTALL)
     return ("hidden" in values
             or values.get("aria-hidden", "").casefold() == "true"
             or (tag == "dialog" and "open" not in values)
-            or bool(_HIDDEN_STYLE.search(style))
+            or _style_hides(values.get("style", ""))
             or bool(_HIDDEN_CLASSES & set(values.get("class", "").casefold().split())))
 
 
@@ -163,6 +218,7 @@ class _TextCollector(HTMLParser):
         self._current: list[str] = []
         self._skipping: list[str] = []
         self._in_title = False
+        self._title_seen = False
         self._main_tag: str | None = None
         self._main_depth = 0
 
@@ -188,7 +244,9 @@ class _TextCollector(HTMLParser):
             # Not inside <svg>, whose icons carry their own <title> labels. Only
             # the first <title> counts, as in browsers: a second one in the body
             # isn't shown anywhere, so it was a hidden channel (audit A10).
-            self._in_title = not self.title_parts
+            # An empty first <title> still counts as the first (re-audit).
+            self._in_title = not self._title_seen
+            self._title_seen = True
         elif tag in _SKIPPED_TAGS:
             self._skipping.append(tag)
         elif tag in _BLOCK_TAGS:
@@ -266,8 +324,13 @@ def html_document(
     if encoding:
         text = data.decode(encoding, errors="replace")
     collector = _TextCollector(skip_hidden=skip_hidden)
-    collector.feed(text if text is not None else _decode_html(data))
-    collector.close()
+    try:
+        collector.feed(text if text is not None else _decode_html(data))
+        collector.close()
+    except AssertionError:
+        # Python's parser asserts on some malformed markup ("<![" repeated);
+        # what was read before that point is kept (re-audit).
+        pass
     title = re.sub(r"\s+", " ", "".join(collector.title_parts)).strip()
     paragraphs, sections = collector.paragraphs, collector.section_starts
     main = sorted(collector.in_main)

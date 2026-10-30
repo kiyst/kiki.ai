@@ -19,8 +19,8 @@ EXTRACTION_VERSION = "paragraph-v3"
 # Versioned separately so a change to one format re-extracts only that format;
 # other files keep their source IDs and embeddings.
 PDF_EXTRACTION_VERSION = "pdf-continuous-v1"
-DOCX_EXTRACTION_VERSION = "docx-v2"  # v2: hidden (w:vanish) text skipped
-HTML_EXTRACTION_VERSION = "html-v2"  # v2: hidden elements skipped
+DOCX_EXTRACTION_VERSION = "docx-v3"  # v2: hidden (w:vanish) text skipped; v3: w:val="0" is visible
+HTML_EXTRACTION_VERSION = "html-v3"  # v2: hidden elements skipped
 # Roughly what the RAG evidence budget shows the model per result, so retrieved
 # chunks are seen whole and embeddings stay focused on one passage.
 TEXT_CHUNK_CHARACTERS = 1_400
@@ -105,7 +105,17 @@ def _chunk_lines(lines: list[str], kind: str) -> Iterable[ExtractedChunk]:
 
 def document_title(path: Path) -> str | None:
     """Human title for citations: Gutenberg Title/Author, a Markdown H1, a Word
-    document's title property or Title/Heading 1, or an HTML <title>/<h1>."""
+    document's title property or Title/Heading 1, or an HTML <title>/<h1>.
+
+    Control characters are removed: titles are printed in /find and citations,
+    and an ESC sequence in a heading reached the terminal (re-audit)."""
+    title = _raw_document_title(path)
+    if title is None:
+        return None
+    return re.sub("[\x00-\x1f\x7f-\x9f]", " ", title).strip() or None
+
+
+def _raw_document_title(path: Path) -> str | None:
     if path.suffix.lower() in DOCX_EXTENSIONS | HTML_EXTENSIONS:
         try:
             return _read_document(path)[0]

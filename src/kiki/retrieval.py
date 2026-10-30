@@ -7,7 +7,7 @@ import os
 import re
 import sqlite3
 from contextlib import contextmanager
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime
 from pathlib import Path
 from time import sleep
@@ -73,6 +73,29 @@ def location_label(kind: str, start: int, end: int) -> str:
     return f"{label} {start}" + (f"-{end}" if end != start else "")
 
 
+def _is_kiki_database(path: Path) -> bool:
+    """True for a SQLite file with Kiki's tables, or none at all (a new, empty
+    one). Another program's database has tables and none of Kiki's. A file too
+    damaged to list tables is treated as Kiki's, so corruption recovery runs."""
+    try:
+        connection = sqlite3.connect(f"file:{path.as_posix()}?mode=ro", uri=True, timeout=2)
+        try:
+            tables = {row[0] for row in connection.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'")}
+        finally:
+            connection.close()
+    except sqlite3.DatabaseError:
+        return True
+    return not tables or {"files", "chunks"} <= tables
+
+
+def content_piece(content: str) -> int:
+    """The piece number of an indexed passage: derived from its text, because
+    one long line split into several chunks gave every chunk the same span
+    and so the same ID, and citations resolved to the wrong excerpt (re-audit)."""
+    return int.from_bytes(hashlib.sha256(content.encode("utf-8", "replace")).digest()[:4], "big") or 1
+
+
 def passage_identifier(source_id: str, location_kind: str, start: int, end: int, piece: int = 0) -> str:
     """Derived from stored fields, so existing indexes need no migration.
 
@@ -87,6 +110,9 @@ def passage_identifier(source_id: str, location_kind: str, start: int, end: int,
 class ChunkForEmbedding:
     chunk_id: int
     text: str
+
+
+STALE_NOTE = "(changed since indexing; /folders reindex)"
 
 
 class TextIndex:
@@ -109,11 +135,18 @@ class TextIndex:
         # Only a SQLite file (or nothing) can become a library. Anything else is
         # the user's own file: "recovering" it used to rename it aside and put
         # a database in its place (/database notes.md, audit A13).
+        if self.database.exists() and not self.database.is_file():
+            # A folder can't be opened as a database, and "recovering" it
+            # renamed the user's folder aside (re-audit).
+            raise ValueError(f"{self.database} is a folder, not a Kiki library.")
         if self.database.is_file() and self.database.stat().st_size:
             with self.database.open("rb") as handle:
                 if handle.read(16) != b"SQLite format 3\x00":
                     raise ValueError(f"{self.database} is not a Kiki library (not a SQLite "
                                      "database); Kiki won't use or change it.")
+            if not _is_kiki_database(self.database):
+                raise ValueError(f"{self.database} belongs to another program (a SQLite "
+                                 "database without Kiki's tables); Kiki won't change it.")
         self.database.parent.mkdir(parents=True, exist_ok=True)
         self.recovery_notice: str | None = None
         try:
@@ -222,7 +255,12 @@ class TextIndex:
         for root in roots:
             path = Path(root)
             if path.is_dir():
-                self.index_root(path)
+                try:
+                    self.index_root(path)
+                except (ValueError, OSError, KikiError) as exc:
+                    # One folder now refused (or unreadable) must not abort the
+                    # recovery of the others (re-audit).
+                    self.recovery_notice = (self.recovery_notice or "") + f" Skipped {path}: {exc}"
 
     def _initialize(self) -> None:
         with self._session() as connection:
@@ -485,6 +523,10 @@ class TextIndex:
         # backup, which used to keep the forgotten text (audit A18).
         connection = self._connect()
         try:
+            # FTS5 keeps deleted words in its index segments until they are
+            # merged; 'optimize' rewrites them, then VACUUM drops free pages.
+            connection.execute("INSERT INTO chunks_fts(chunks_fts) VALUES('optimize')")
+            connection.commit()
             connection.execute("VACUUM")
         finally:
             connection.close()
@@ -613,26 +655,18 @@ class TextIndex:
                 # Large documents can fill the whole BM25 candidate pool; make sure a
                 # document the user names by title still contributes candidates.
                 named = self._named_sources(connection, query)
-                seen = {(row["source_id"], row["start_location"]) for row in rows}
+                seen = {(row["source_id"], row["start_location"], row["content"]) for row in rows}
                 for row in self._fts_rows(connection, fts_query, limit, named):
-                    if (row["source_id"], row["start_location"]) not in seen:
+                    if (row["source_id"], row["start_location"], row["content"]) not in seen:
                         rows.append(row)
             else:
                 rows = self._fts_rows(connection, fts_query, candidate_limit, source_ids)
-            files = {row["source_id"]: (row["title"], row["modified_ns"]) for row in connection.execute(
-                "SELECT source_id, title, modified_ns FROM files").fetchall()}
+            titles = {row["source_id"]: row["title"] for row in connection.execute(
+                "SELECT source_id, title FROM files").fetchall()}
         rows = sorted(rows, key=lambda row: _lexical_rank(row, tokens), reverse=True)[:limit]
         results = []
         for row in rows:
-            path = Path(row["path"])
-            try:
-                modified = path.stat().st_mtime_ns
-            except OSError:
-                continue  # gone since indexing
-            title, indexed = files.get(row["source_id"], (None, None))
-            if indexed is not None and modified != indexed:
-                # The passage may no longer match the file (audit L4).
-                title = f"{title or path.name} (changed since indexing; /folders reindex)"
+            title = titles.get(row["source_id"])
             results.append(SearchResult(
                 source_id=row["source_id"],
                 path=row["path"],
@@ -642,8 +676,31 @@ class TextIndex:
                 excerpt=row["content"],
                 score=float(-row["rank"]) + 100.0 * _filename_hits(row["path"], tokens),
                 title=title,
+                piece=content_piece(row["content"]),
             ))
-        return results
+        return self.fresh_results(results)
+
+    def fresh_results(self, results: list[SearchResult]) -> list[SearchResult]:
+        """Drop results whose file is gone and mark those whose file changed
+        since indexing, so a stale passage isn't cited as current (audit L4).
+        Shared by the keyword and meaning-based searches (re-audit)."""
+        if not results:
+            return results
+        with self._session() as connection:
+            indexed = {row["source_id"]: row["modified_ns"] for row in connection.execute(
+                "SELECT source_id, modified_ns FROM files").fetchall()}
+        fresh = []
+        for result in results:
+            path = Path(result.path)
+            try:
+                modified = path.stat().st_mtime_ns
+            except OSError:
+                continue  # gone since indexing
+            known = indexed.get(result.source_id)
+            if known is not None and modified != known and STALE_NOTE not in (result.title or ""):
+                result = replace(result, title=f"{result.title or path.name} {STALE_NOTE}")
+            fresh.append(result)
+        return fresh
 
     @staticmethod
     def _fts_rows(

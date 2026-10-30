@@ -25,6 +25,7 @@ from typing import Any
 from .extraction import ExtractedChunk, ExtractionError
 
 FILE_TIMEOUT_S = 60.0
+MAX_FILE_TIMEOUT_S = 300.0
 PAGE_TIMEOUT_S = 20.0
 MEMORY_MIB = 1536
 
@@ -46,7 +47,16 @@ class IsolatedParser:
         self.close()
 
     def extract_file(self, path: Path) -> tuple[list[ExtractedChunk], str | None]:
-        """Passages and title of one file, or ExtractionError (including time/memory limits)."""
+        """Passages and title of one file, or ExtractionError (including time/memory limits).
+
+        The time limit grows with the file (60 s plus 10 s per MB, at most
+        300 s): pypdf reads large books at a few pages a second, and a flat
+        60 s would fail legitimate 1,000-page PDFs."""
+        try:
+            megabytes = path.stat().st_size / 2**20
+        except OSError:
+            megabytes = 0
+        self._file_timeout = min(MAX_FILE_TIMEOUT_S, self.timeout_s + 10 * megabytes)
         reply = self._request({"op": "file", "path": str(path)})
         chunks = [ExtractedChunk(**chunk) for chunk in reply["chunks"]]
         return chunks, reply.get("title")
@@ -80,11 +90,13 @@ class IsolatedParser:
         except OSError as exc:
             self._kill()
             raise ExtractionError("the parser stopped unexpectedly") from exc
+        limit = getattr(self, "_file_timeout", None) or self.timeout_s
+        self._file_timeout = None
         try:
-            line = self._lines.get(timeout=self.timeout_s)
+            line = self._lines.get(timeout=limit)
         except queue.Empty:
             self._kill()
-            raise ExtractionError(f"took longer than {self.timeout_s:.0f} s to read; skipped") from None
+            raise ExtractionError(f"took longer than {limit:.0f} s to read; skipped") from None
         if line is None:
             self._kill()
             raise ExtractionError("used too much memory or crashed while being read; skipped")
@@ -102,12 +114,14 @@ class IsolatedParser:
             from .sandbox.jobs import Job
 
             self._job = Job(self.memory_mib * 2**20)
-            process = self._job.start(argv, stdin=True)
+            # stderr discarded: an unread pipe filled with pypdf warnings and
+            # stalled the worker until the timeout (re-audit).
+            process = self._job.start(argv, stdin=True, stderr=False)
         except (ImportError, OSError, AttributeError):
             # No job objects here: still a separate process with a time limit.
             self._job = None
             process = subprocess.Popen(argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                                       stderr=subprocess.DEVNULL)
+                                       stderr=subprocess.DEVNULL)  # never an unread pipe
         self._process = process
         self._lines = queue.Queue()
         threading.Thread(target=self._read, args=(process, self._lines), daemon=True).start()

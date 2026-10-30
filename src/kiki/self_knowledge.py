@@ -123,9 +123,11 @@ _UNIX_FOLDERS = {"/bin", "/boot", "/dev", "/etc", "/home", "/lib", "/mnt", "/opt
 # "use", "run", "enter", or "try". Paths (/usr/bin, /r/python) never match.
 _PRESENTED = re.compile(
     r"`(/[a-z][a-z-]*)(?:\s+([a-z][a-z-]*))?[^`]*`"
-    r"|\b(?:type|use|run|enter|try|command)\s+(/[a-z][a-z-]*)(?:\s+([a-z][a-z-]*))?(?![\w/.-])"
+    r"|\b(?:type|use|run|enter|try|command)\s+(/[a-z][a-z-]*)(?:\s+([a-z][a-z-]*))?(?![\w/-]|\.\w)"
     # A command alone at the start of a line ("/folders clear all" as the whole answer).
-    r"|^[ \t]*[-*]?[ \t]*(/[a-z][a-z-]*)(?:[ \t]+([a-z][a-z-]*))?(?![\w/.-])",
+    # A full stop may end the sentence ("Just type /unlock-pro."), but not
+    # continue a path (/x.txt); the stop used to hide the command (re-audit).
+    r"|^[ \t]*[-*]?[ \t]*(/[a-z][a-z-]*)(?:[ \t]+([a-z][a-z-]*))?(?![\w/-]|\.\w)",
     re.IGNORECASE | re.MULTILINE,
 )
 _SUBCOMMAND_WORDS = {"add", "all", "browse", "clear", "copy", "delete", "disable", "enable", "list",
@@ -160,7 +162,7 @@ def unknown_commands(answer: str) -> list[str]:
 # Real commands that change Kiki's memory, folders, files, or settings.
 _STATE_CHANGING = re.compile(
     r"(?<![\w/.])(/(?:remember|forget|folders\s+(?:add|remove)|database|workspace|apply|run|"
-    r"persona\s+reset|personality))\b[^\n`;]{0,60}?(?=[.!?](?:\s|$)|[\n`;]|$)",
+    r"persona\s+reset|personality))\b[^\n`;]*?(?=[.!?](?:\s|$)|[\n`;]|$)",
     re.IGNORECASE,
 )
 

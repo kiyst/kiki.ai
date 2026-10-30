@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from typing import Any, Protocol
 from pathlib import Path
@@ -24,18 +25,65 @@ def history_line(line: str) -> str | None:
 
     Notes for /remember and /forget, and anything that looks like a secret,
     never reach the file (the memory filter rejected them, but the history
-    used to keep them); tokens in /web links are redacted (audit A19, A29)."""
-    from .memory import is_sensitive
+    used to keep them); tokens in /web links are redacted (audit A19, A29).
+    Only a secret actually present counts, so ordinary questions about email
+    or passwords stay recallable (re-audit)."""
+    from .memory import looks_like_secret_value
     from .web import _redacted_text
 
-    stripped = line.strip()
-    if stripped.casefold().startswith(("/remember", "/forget")) or is_sensitive(stripped):
+    if line.strip().casefold().startswith(("/remember", "/forget")):
         return None
-    return _redacted_text(line)
+    # Link tokens are redacted first, so a /web line stays recallable without them.
+    redacted = _redacted_text(line)
+    return None if looks_like_secret_value(redacted.replace("REDACTED", "")) else redacted
+
+
+def scrub_history_file(path: Path) -> int:
+    """Rewrite a prompt_toolkit history file without the entries history_line
+    drops, so secrets typed before the filter existed don't linger (re-audit).
+
+    Returns how many entries were removed."""
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return 0
+    # Entries look like "\n# <timestamp>\n+line\n+line\n".
+    entries: list[list[str]] = []
+    for line in raw.splitlines():
+        if line.startswith("# ") or not entries:
+            entries.append([])
+        entries[-1].append(line)
+    kept: list[list[str]] = []
+    changed = 0
+    for entry in entries:
+        body = [line[1:] for line in entry if line.startswith("+")]
+        if not body:
+            kept.append(entry)
+            continue
+        text = "\n".join(body)
+        cleaned = history_line(text)
+        if cleaned == text:
+            kept.append(entry)
+            continue
+        changed += 1
+        if cleaned is not None:
+            header = [line for line in entry if not line.startswith("+")]
+            kept.append(header + ["+" + part for part in cleaned.split("\n")])
+    if changed:
+        temporary = path.with_name(path.name + ".tmp")
+        temporary.write_text("\n".join("\n".join(entry) for entry in kept) + "\n", encoding="utf-8")
+        os.replace(temporary, path)
+    return changed
 
 
 class PrivateFileHistory(FileHistory):
-    """FileHistory that stores only what history_line allows."""
+    """FileHistory that stores only what history_line allows.
+
+    History written before the filter existed is scrubbed when opened."""
+
+    def __init__(self, filename: str) -> None:
+        scrub_history_file(Path(filename))
+        super().__init__(filename)
 
     def store_string(self, string: str) -> None:
         kept = history_line(string)

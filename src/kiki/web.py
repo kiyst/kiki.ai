@@ -40,9 +40,11 @@ from .isolation import parse_html_isolated
 from .retrieval import SearchResult
 from .safety import offline_mode
 
-# Pages up to this size parse in-process (the slowest known input takes under
-# a second); larger ones go to a limited child process.
-IN_PROCESS_HTML_BYTES = 32 * 1024
+# Pages up to this size parse in-process; larger ones go to a limited child
+# process. At 32 KB a crafted page ("<a" and a tab, repeated) took about a minute in
+# Python's parser (re-audit); at 4 KB the worst known input takes well under
+# a second.
+IN_PROCESS_HTML_BYTES = 4 * 1024
 
 MAX_PAGE_BYTES = 5 * 1024 * 1024
 MAX_REDIRECTS = 5
@@ -80,7 +82,9 @@ _INVISIBLE = re.compile(
 )
 # Query parameters whose values look like secrets; kept out of the log.
 _SECRET_PARAMETER = re.compile(
-    r"(?i)(token|key|secret|pass(word|wd)?|pwd|auth|sig(nature)?|session|code|credential|jwt)"
+    r"(?i)(token|key|secret|pass(word|wd)?|pwd|auth|sig(nature)?|session|code|credential|jwt|access)"
+    # Short names commonly carrying tokens (?t=…, ?k=…; re-audit).
+    r"|^(?:t|k|at|st|sid|tk|pw)$"
 )
 
 
@@ -148,22 +152,33 @@ _INJECTION = re.compile(
     rf"|\bdear\s+(?:{_AI}|assistant|model)\b"
     r"|\bbefore (?:you )?(?:answer|respond|reply)(?:ing)?\b[^.\n]{0,15},?\s*(?:add|say|include|tell|mention|"
     r"print|state|recommend)\b"
-    r"|\b(?:important|attention|note)\s+(?:for|to)\s+(?:the\s+)?(?:model|assistant|ai)\b",
+    r"|\b(?:important|attention|note)\s+(?:for|to)\s+(?:the\s+)?(?:model|assistant|ai)\b"
+    # Added after the re-audit's bypasses.
+    r"|\b(?:ignore|disregard|forget)\s+(?:the|everything|anything|all)\s+(?:text\s+)?"
+    r"(?:above|before|previous|prior|earlier)\s*(?:[.,;:!]|$|and\b)"
+    r"|\bforget (?:everything|all|what) you (?:were|have been|'ve been|was) (?:told|given|instructed)\b"
+    rf"|\b(?:hey|hi|hello|ok|okay|yo)\s+(?:{_AI}|assistant|kiki|chatgpt|claude|gemini|copilot)\s*[,:!.]?\s*"
+    rf"(?:please\s+)?{_ORDER}\b"
+    rf"|\bif you(?:'re| are)\s+(?:an?\s+)?(?:{_AI}|assistant|bot|language model)\b"
+    r"|\bsystem\s+(?:override|prompt|instructions?)\s*:",
     re.IGNORECASE,
 )
 REMOVED_MARKER = "[Kiki removed a sentence aimed at AI assistants]"
 # Latin look-alikes from Cyrillic and Greek, which NFKC leaves alone
 # ("Іgnore" with a Cyrillic І slipped past the detector, audit A23).
 _CONFUSABLES = str.maketrans(
-    "АВЕКМНОРСТХаеорсухіІјЈѕЅԁӏΑΒΕΖΗΙΚΜΝΟΡΤΥΧαοριυνκ",
-    "ABEKMHOPCTXaeopcyxiIjJsSdlABEZHIKMNOPTYXaopiuvk",
+    "АВЕКМНОРСТХаеорсухіІјЈѕЅԁӏΑΒΕΖΗΙΚΜΝΟΡΤΥΧαοριυνκпгһԝɡ",
+    "ABEKMHOPCTXaeopcyxiIjJsSdlABEZHIKMNOPTYXaopiuvknrhwg",
 )
 
 
 def _is_planted(sentence: str) -> bool:
     # NFKC folds width variants (full-width "Ａｓｓｉｓｔａｎｔ："); the table
     # folds letters from other scripts that look Latin.
-    return bool(_INJECTION.search(unicodedata.normalize("NFKC", sentence).translate(_CONFUSABLES)))
+    # Zero-width characters are dropped first: "Ign​ore" in an indexed
+    # document reached the detector intact (re-audit; web pages strip them earlier).
+    folded = unicodedata.normalize("NFKC", _INVISIBLE.sub("", sentence)).translate(_CONFUSABLES)
+    return bool(_INJECTION.search(folded))
 
 
 def _sentences(text: str) -> list[str]:
@@ -179,20 +194,42 @@ def suspicious_instructions(page: WebPage, limit: int = 3) -> list[str]:
                 found.append(sentence.strip()[:240])
                 if len(found) >= limit:
                     return found
-    found.extend(f"{first} {second}"[:240] for _, first, _, second in _split_instructions(page.blocks))
+    found.extend(" ".join(fragment for _, fragment, _ in split)[:240]
+                 for split in _split_instructions(page.blocks))
     return found[:limit]
 
 
-def _split_instructions(blocks: list[tuple[int, str]]) -> list[tuple[int, str, int, str]]:
-    """Instructions split across two blocks (a line break or <br> between halves):
-    (block index, end of the first, next index, start of the second)."""
-    found = []
+# A middle block this short can be one piece of an instruction split over
+# three lines; longer ones are ordinary paragraphs.
+_SPLIT_MIDDLE_CHARACTERS = 80
+
+
+def _split_instructions(blocks: list[tuple[int, str]]) -> list[list[tuple[int, str, str]]]:
+    """Instructions split across two or three blocks (line breaks or <br>
+    between the pieces). Each is a list of (block index, fragment, where):
+    "tail" ends its block, "whole" is the block, "head" starts it."""
+    found: list[list[tuple[int, str, str]]] = []
+    used: set[int] = set()
     for index in range(len(blocks) - 1):
+        if index in used:
+            continue
         first = _sentences(blocks[index][1])[-1]
-        second = _sentences(blocks[index + 1][1])[0]
-        if (first and second and not _is_planted(first) and not _is_planted(second)
-                and _is_planted(f"{first} {second}")):
-            found.append((index, first, index + 1, second))
+        if not first or _is_planted(first):
+            continue
+        candidates = [[(index, first, "tail"), (index + 1, _sentences(blocks[index + 1][1])[0], "head")]]
+        middle = blocks[index + 1][1]
+        if (index + 2 < len(blocks) and len(middle) <= _SPLIT_MIDDLE_CHARACTERS
+                and len(_sentences(middle)) == 1):
+            candidates.append([(index, first, "tail"), (index + 1, middle, "whole"),
+                               (index + 2, _sentences(blocks[index + 2][1])[0], "head")])
+        # The longest split first, so "Note to" / "AI" / "assistants: ..." loses all three pieces.
+        for pieces in reversed(candidates):
+            if (all(fragment for _, fragment, _ in pieces)
+                    and not any(_is_planted(fragment) for _, fragment, _ in pieces[1:])
+                    and _is_planted(" ".join(fragment for _, fragment, _ in pieces))):
+                found.append(pieces)
+                used.update(position for position, _, _ in pieces)
+                break
     return found
 
 
@@ -209,12 +246,17 @@ def without_planted(page: WebPage) -> tuple[WebPage, int]:
         cleaned, count = remove_planted_text(text)
         removed += count
         blocks.append((number, cleaned))
-    # An instruction split over two blocks: both halves go (audit A23).
-    for first_index, first, second_index, second in _split_instructions(blocks):
-        number, text = blocks[first_index]
-        blocks[first_index] = (number, text[: len(text) - len(first)] + REMOVED_MARKER)
-        number, text = blocks[second_index]
-        blocks[second_index] = (number, REMOVED_MARKER + text[len(second):])
+    # An instruction split over two or three blocks: every piece goes (audit A23).
+    for split in _split_instructions(blocks):
+        for position, fragment, where in split:
+            number, text = blocks[position]
+            if where == "tail":
+                text = text[: len(text) - len(fragment)] + REMOVED_MARKER
+            elif where == "head":
+                text = REMOVED_MARKER + text[len(fragment):]
+            else:
+                text = REMOVED_MARKER
+            blocks[position] = (number, text)
         removed += 1
     # The title travels with every passage, so it is checked too (audit A10).
     title, count = remove_planted_text(page.title)
@@ -245,14 +287,26 @@ _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 _LINK = re.compile(
     r"\bhttps?://[^\s)\]>\"'`]+|\bwww\.[^\s)\]>\"'`]+"
     # A bare domain with a path ("evil.example/login"): a link without its scheme.
-    r"|(?<![\w@/.-])(?:[a-z0-9-]+\.)+[a-z]{2,24}/[^\s)\]>\"'`]*",
+    r"|(?<![\w@/.-])(?:[a-z0-9-]+\.)+[a-z]{2,24}/[^\s)\]>\"'`]*"
+    # A bare domain the user is sent to ("visit evil.example"; re-audit). Only
+    # after such a verb: on its own "config.json" or "main.py" looks the same.
+    r"|(?<=visit )(?:[a-z0-9-]+\.)+[a-z]{2,24}\b|(?<=go to )(?:[a-z0-9-]+\.)+[a-z]{2,24}\b"
+    r"|(?<=open )(?:[a-z0-9-]+\.)+[a-z]{2,24}\b(?!\.)|(?<=log in at )(?:[a-z0-9-]+\.)+[a-z]{2,24}\b"
+    r"|(?<=sign in at )(?:[a-z0-9-]+\.)+[a-z]{2,24}\b|(?<=download from )(?:[a-z0-9-]+\.)+[a-z]{2,24}\b"
+    r"|(?<=navigate to )(?:[a-z0-9-]+\.)+[a-z]{2,24}\b|(?<=head to )(?:[a-z0-9-]+\.)+[a-z]{2,24}\b",
     re.IGNORECASE)
 # Commands that download and run something, or need administrator rights.
 _RISKY_COMMAND = re.compile(
     r"\b(?:curl|wget|iwr|invoke-webrequest|invoke-expression|iex|certutil|bitsadmin|mshta|"
     r"regsvr32|sudo|chmod\s+777|rm\s+-rf|del\s+/[sq]|format\s+[a-z]:|reg\s+add|msiexec|rundll32|"
     r"powershell(?:\.exe)?\s+[^\n]*-(?:e|enc|encodedcommand|w|windowstyle)\b|pwsh\s+[^\n]*-(?:e|enc)\b|"
-    r"cmd(?:\.exe)?\s+/[ck]|python3?\s+-c|bash\s+-c)\b|\|\s*(?:ba)?sh\b",
+    r"cmd(?:\.exe)?\s+/[ck]|python3?\s+-c|bash\s+-c)\b|\|\s*(?:ba)?sh\b"
+    # Added after the re-audit: switching off script protection, elevating,
+    # Defender exclusions, and installing packages from somewhere other than
+    # the package index.
+    r"|-executionpolicy\s+(?:bypass|unrestricted)\b|\bset-executionpolicy\b|-verb\s+runas\b|\brunas\s+/"
+    r"|\b(?:add|set)-mppreference\b"
+    r"|\bpip3?\s+install\b[^\n`]*(?:https?://|git\+|--(?:extra-)?index-url|--trusted-host)",
     re.IGNORECASE,
 )
 
@@ -292,9 +346,11 @@ def risky_details(answer: str, page_url: str) -> list[str]:
 _CREDENTIAL_REQUEST = re.compile(
     r"\b(?:send(?:ing)?|e-?mail(?:ing)?|enter(?:ing)?|typ(?:e|ing)|shar(?:e|ing)|text(?:ing)?|"
     r"giv(?:e|ing)|submit(?:ting)?|provid(?:e|ing)|reply(?:ing)? with)\b(?:[^.!?\n]|\.(?=\S)){0,60}"
-    r"\b(?:password|passcode|pin|one-time code|verification code|card number|credit card|"
+    r"\b(?:password|passwd|passcode|pin|one-time code|verification code|(?:2fa|mfa|otp|sms|security|login) code|"
+    r"login credentials|login details|card number|credit card|"
     r"bank details|account number|social security|seed phrase|recovery phrase)\b"
-    r"|\b(?:password|passcode|pin|card number|bank details|seed phrase)\b(?:[^.!?\n]|\.(?=\S)){0,40}"
+    r"|\b(?:password|passwd|passcode|pin|card number|bank details|seed phrase|credentials|"
+    r"(?:2fa|mfa|otp) code)\b(?:[^.!?\n]|\.(?=\S)){0,40}"
     r"\b(?:to|at|via)\b[^.!?\n]{0,20}(?:@|https?://|\+?\d{3})",
     re.IGNORECASE,
 )
@@ -312,8 +368,11 @@ def asks_for_credentials(answer: str) -> bool:
             # password"); any "not" anywhere used to disable the warning, as in
             # "Do not delay: email your password to…" (audit A25).
             before = sentence[:match.start()]
-            if not re.search(r"\b(?:never|don't|do not|not|avoid|without)\s+(?:[A-Za-z']+\s+){0,2}$",
-                             before, re.IGNORECASE):
+            negated = re.search(r"\b(?:never|don't|do not|not|avoid|without)\s+(?:[A-Za-z']+\s+){0,2}$",
+                                before, re.IGNORECASE)
+            # "Don't hesitate to send…" and "not forget to" urge the request (re-audit).
+            urged = re.search(r"\b(?:hesitate|forget|wait|delay)\b[^.!?\n]{0,20}$", before, re.IGNORECASE)
+            if not negated or urged:
                 return True
     return False
 
@@ -760,11 +819,15 @@ def _page(
     if not blocks:
         raise WebError("The page has no readable text. It may build its content with JavaScript, "
                        "which Kiki doesn't run.")
-    title = _INVISIBLE.sub("", title or "").strip()[:200]
+    # Every source of the title is cleaned, including the fallback taken from
+    # the address, which a redirect controls ("%1b%5d52;..." was printed raw;
+    # re-audit).
+    title = next((cleaned for candidate in (title, fallback_title, urlsplit(requested).hostname, requested)
+                  if (cleaned := _INVISIBLE.sub("", candidate or "").strip()[:200])), "page")
     return WebPage(
         url=requested,
         fetched_from=fetched_from,
-        title=title or fallback_title or (urlsplit(requested).hostname or requested),
+        title=title,
         blocks=blocks,
         location_kind=kind,
         size=len(data),
@@ -788,15 +851,27 @@ def _text_sections(lines: list[str]) -> list[int]:
 
 # A path segment that looks like a key: long, letters and digits mixed, no dots
 # (Slack webhooks, bot tokens, signed share links).
-_TOKEN_SEGMENT = re.compile(r"^(?=[^.]*\d)(?=[^.]*[A-Za-z])[A-Za-z0-9_:-]{20,}$")
+_TOKEN_SEGMENT = re.compile(
+    r"^(?=[^.]*\d)(?=[^.]*[A-Za-z])[A-Za-z0-9_:-]{20,}$"
+    # A JWT (dots between its parts) and base64 with + / = or their %-escapes,
+    # which the pattern above missed (re-audit).
+    r"|^eyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}(?:\.[A-Za-z0-9_-]*)?$"
+    r"|^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*(?:%2[BbFf]|%3[Dd]|[+=]))(?:[A-Za-z0-9+/=_-]|%2[BbFf]|%3[Dd]){20,}$"
+)
+
+
+def _secret_value(name: str, value: str) -> bool:
+    """A query parameter to hide: a secret-sounding name, or a value that looks
+    like a random token whatever it is called."""
+    return bool(_SECRET_PARAMETER.search(name) or _TOKEN_SEGMENT.match(value))
 
 
 def secret_parameters(url: str) -> list[str]:
     """Where the address seems to carry a password or token: query names, the
     fragment, or a key-like path segment."""
     parts = urlsplit(url)
-    found = [name for name, _ in parse_qsl(parts.query, keep_blank_values=True)
-             if _SECRET_PARAMETER.search(name)]
+    found = [name for name, value in parse_qsl(parts.query, keep_blank_values=True)
+             if _secret_value(name, value)]
     if any(_SECRET_PARAMETER.search(name) for name, _ in parse_qsl(parts.fragment, keep_blank_values=True)):
         found.append("#fragment")
     if any(_TOKEN_SEGMENT.match(segment) for segment in parts.path.split("/")):
@@ -809,7 +884,7 @@ def _redacted(url: str) -> str:
     parts = urlsplit(url)
     path = "/".join("REDACTED" if _TOKEN_SEGMENT.match(segment) else segment
                     for segment in parts.path.split("/"))
-    query = urlencode([(name, "REDACTED" if _SECRET_PARAMETER.search(name) else value)
+    query = urlencode([(name, "REDACTED" if _secret_value(name, value) else value)
                        for name, value in parse_qsl(parts.query, keep_blank_values=True)])
     # Fragments never reach the server, so a logged one is only a leak.
     return parts._replace(path=path, query=query if parts.query else "",

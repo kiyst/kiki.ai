@@ -8,6 +8,8 @@ Everything here is offline: KIKI_OFFLINE is set, and no model is called.
 """
 import random
 
+import re
+
 import pytest
 from rich.console import Console
 
@@ -613,13 +615,39 @@ def test_a26_text_after_an_insufficient_opening_is_still_checked() -> None:
     assert unsupported_sentences("Evidence is insufficient. Nothing about France or Paris here.", sources) == []
 
 
-def test_a26_link_labels_cannot_hide_their_targets() -> None:
-    from kiki.terminal import visible_links
+def _rendered(answer: str) -> str:
+    import io
 
-    shown = visible_links("Log in at [microsoft.com/account](http://evil.example/login). "
-                          "![logo](http://track.example/p.gif) [docs](<https://d.example/a b>)")
-    assert "(http://evil.example/login)" in shown and "http://track.example/p.gif" in shown
-    assert "https://d.example/a b" in shown
+    from rich.console import Console
+
+    from kiki.terminal import answer_markdown
+
+    stream = io.StringIO()
+    Console(file=stream, width=200, force_terminal=True, color_system="truecolor",
+            legacy_windows=False).print(answer_markdown(answer))
+    return stream.getvalue()
+
+
+def _plain(rendered: str) -> str:
+    return re.sub(r"\x1b\[[0-9;]*m", "", rendered)
+
+
+def test_a26_link_labels_cannot_hide_their_targets() -> None:
+    shown = _rendered("Log in at [microsoft.com/account](http://evil.example/login). "
+                      "[docs](<https://d.example/a b>) [microsoft.com](http://evil2.example 'x') "
+                      "[[microsoft.com]](http://evil3.example) [microsoft.com][1]\n\n"
+                      "[1]: http://evil4.example\n")
+    for target in ("http://evil.example/login", "https://d.example/a%20b", "http://evil2.example",
+                   "http://evil3.example", "http://evil4.example"):
+        assert f"({target})" in _plain(shown)
+    assert "\x1b]8" not in shown  # no clickable link hidden behind a label
+
+
+def test_a26_link_display_leaves_code_untouched() -> None:
+    # Re-audit: the regex rewrite turned "handlers[name](name)" into "handlersname".
+    shown = _rendered("```python\nhandlers[name](name)\nfs[i](x)\n```\nand `fs[i](x)` inline")
+    plain = re.sub(r"\x1b\[[0-9;]*m", "", shown)
+    assert "handlers[name](name)" in plain and plain.count("fs[i](x)") == 2
 
 
 # L · risky-detail labels and address ranges added after the audit.
@@ -704,12 +732,19 @@ def test_a18_forgotten_folders_leave_no_text_in_the_database_or_backup(tmp_path)
     from kiki.retrieval import TextIndex
 
     (tmp_path / "docs").mkdir()
-    (tmp_path / "docs" / "note.txt").write_text("orchid-lantern secret phrase " * 50, encoding="utf-8")
+    # Whole words, as the full-text index stores them: the hyphenated
+    # "orchid-lantern" was never stored whole, so the test passed whatever the
+    # database kept (re-audit).
+    words = [b"zebrasecretpassphrase", b"quokkamagicword", b"99887766"]
+    (tmp_path / "docs" / "note.txt").write_text(" ".join(w.decode() for w in words) + " " * 50,
+                                                encoding="utf-8")
     index = TextIndex(tmp_path / "index.sqlite3")
     index.index_root(tmp_path / "docs")
+    assert index.search("quokkamagicword")  # indexed before it is forgotten
     index.remove_root((tmp_path / "docs").resolve())
     for name in ["index.sqlite3", "index.sqlite3.backup"]:
-        assert b"orchid-lantern" not in (tmp_path / name).read_bytes(), name
+        data = (tmp_path / name).read_bytes()
+        assert not [word for word in words if word in data], name
 
 
 # A19 · OWASP LLM02 · CWE-312: secrets stay out of memory and the input history.
@@ -768,7 +803,7 @@ def test_l_apply_backups_are_pruned(tmp_path) -> None:
     for n in range(KEEP_BACKUPS + 5):
         target.write_text(f"print({n})\n", encoding="utf-8")
         write_change(plan_change(target, f"print({n + 1000})\n", workspace), tmp_path / "backups")
-    assert len(list((tmp_path / "backups").glob("a.py.*.bak"))) == KEEP_BACKUPS
+    assert len(list((tmp_path / "backups").rglob("a.py.*.bak"))) == KEEP_BACKUPS
 
 
 def test_l4_citations_say_when_a_file_changed_after_indexing(tmp_path) -> None:

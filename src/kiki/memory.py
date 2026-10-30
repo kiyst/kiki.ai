@@ -6,34 +6,65 @@ from pathlib import Path
 
 
 MEMORY_HEADER = "# Kiki memory\n\nUser-approved, non-sensitive notes:\n"
-# Plurals and other forms count ("passwords", "pins"), as do common shorthand
-# and key formats; the audit got "my passwords are hunter2", "pw: …", an AWS key,
-# and an email address past the old list (audit A19).
-_SENSITIVE = re.compile(
-    r"\b(?:pass(?:word|phrase|code)s?|pins?|pw|pwd|credit cards?|card numbers?|cvv|cvc|"
-    r"bank accounts?|account numbers?|routing numbers?|iban|social security|ssn|passports?|"
-    r"driver'?s licen[cs]es?|api[ _-]?keys?|secret keys?|private keys?|access keys?|"
+# What a secret is *about*: checked on folded text (look-alike letters, zero-width
+# characters, hyphens inside words, and l33t digits undone) so "p4ssw0rd",
+# "pass-word", and "my pаssword" count (audit A19, re-audit).
+_SECRET_TOPICS = re.compile(
+    r"pass(?:word|wd|phrase|code)|\bpass\s*[:=]|\bpw\b|\bpwd\b|\bsecret\s*[:=]|"
+    r"\bpins?\s*(?:is|was|code|number|no\.?|[:=#]|\d)|\bcvv\b|\bcvc\b|credit cards?|card numbers?|"
+    r"bank (?:accounts?|logins?|details)|account numbers?|routing numbers?|\biban\b|"
+    r"social security|\bssn\b|passport (?:number|no)|driver'?s licen[cs]es?|"
+    r"api[ _]?keys?|secret keys?|private keys?|access keys?|"
     r"(?:access|auth|api|bearer|refresh|session) tokens?|credentials?|seed phrases?|"
-    r"recovery (?:phrase|code)s?|one-time codes?|"
-    r"date of birth|dob|birthday|home address|street address|(?:i|we) live at|"
-    r"phone numbers?|mobile numbers?|email(?: address)?s?)\b"
-    r"|\b\d{3}-\d{2}-\d{4}\b"
+    r"recovery (?:phrase|code)s?|one-time codes?|security (?:question|answer)s?|"
+    r"wi-?fi (?:key|password|code)|date of birth|\bdob\b|born on|"
+    r"home address|street address|(?:i|we) live at|phone numbers?|mobile numbers?|"
+    r"email address|my e-?mail is",
+    re.IGNORECASE,
+)
+# What a secret *looks like*, on the text as written.
+_SECRET_VALUES = re.compile(
+    r"\b\d{3}-\d{2}-\d{4}\b"
     r"|\b(?:sk|pk|rk)-[A-Za-z0-9_-]{12,}\b|\bAKIA[0-9A-Z]{16}\b|\bgh[pousr]_[A-Za-z0-9]{20,}\b"
     r"|\bxox[abpr]-[A-Za-z0-9-]{10,}\b|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"
     r"|[\w.+-]+@[\w-]+\.[\w.]+"
+    r"|\b\w+(?:\s+dot\s+\w+)*\s+(?:at|\[at\])\s+\w+\s+(?:dot|\[dot\])\s+(?:com|org|net|edu|gov|io|co|uk)\b"
     r"|\b\d{1,5}\s+\w+\s+(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|boulevard|blvd|court|ct)\b"
-    r"|\b\w+[_-]?(?:key|token|secret)\s*[:=]",
+    r"|\b\w+[_-](?:key|token|secret)\s*[:=]"
+    # A long random-looking token (an AWS secret key has no telltale prefix).
+    r"|(?<![\w/+])(?=[A-Za-z0-9/+]*\d)(?=[A-Za-z0-9/+]*[a-z])(?=[A-Za-z0-9/+]*[A-Z])[A-Za-z0-9/+]{32,}",
     re.IGNORECASE,
 )
 # Cyrillic and Greek letters that look Latin ("pаssword" with a Cyrillic а).
 _LOOKALIKES = str.maketrans("АВЕКМНОРСТХаеорсухіІјЈѕЅΑΒΕΖΗΙΚΜΝΟΡΤΥΧαοριυν",
                             "ABEKMHOPCTXaeopcyxiIjJsSABEZHIKMNOPTYXaopiuv")
+_LEET = str.maketrans("4@0$5l1|3", "aaossiiie")
+_INVISIBLE = re.compile("[\u00ad\u200b-\u200f\u2060-\u2064\ufeff]")
+
+
+def _folded(text: str) -> list[str]:
+    plain = _INVISIBLE.sub("", unicodedata.normalize("NFKC", text)).translate(_LOOKALIKES)
+    joined = re.sub(r"(?<=[A-Za-z])[-_.](?=[A-Za-z])", "", plain)
+    return [plain, joined, joined.casefold().translate(_LEET)]
 
 
 def is_sensitive(text: str) -> bool:
     """True for text that looks like a secret, identity number, or contact detail."""
-    folded = unicodedata.normalize("NFKC", text).translate(_LOOKALIKES)
-    return bool(_SENSITIVE.search(folded)) or _looks_like_long_number(folded)
+    variants = _folded(text)
+    return (any(_SECRET_TOPICS.search(variant) for variant in variants)
+            or bool(_SECRET_VALUES.search(variants[0]))
+            or _looks_like_long_number(variants[0]))
+
+
+def looks_like_secret_value(text: str) -> bool:
+    """A narrower test for the input history: a secret actually present (a key,
+    an email, "password: …"), not just a mention of the topic, so ordinary
+    prompts about email or dates stay in the history (re-audit)."""
+    variants = _folded(text)
+    stated = re.compile(r"(?:pass(?:word|wd|phrase|code)|\bpin|\bpw|secret|token|key)s?\s*(?:is|was|[:=])\s*\S",
+                        re.IGNORECASE)
+    return (bool(_SECRET_VALUES.search(variants[0])) or any(stated.search(v) for v in variants)
+            or _looks_like_long_number(variants[0]))
 
 
 class SensitiveMemoryError(ValueError):
@@ -113,5 +144,6 @@ class MemoryStore:
 
 
 def _looks_like_long_number(text: str) -> bool:
-    digits = re.sub(r"\D", "", text)
-    return len(digits) >= 7
+    # Dates, times, and version numbers aren't identity numbers (re-audit).
+    text = re.sub(r"\b\d{4}-\d{1,2}-\d{1,2}\b|\b\d{1,2}:\d{2}(?::\d{2})?\b|\b\d+(?:\.\d+)+\b", " ", text)
+    return any(len(re.sub(r"\D", "", run)) >= 7 for run in re.findall(r"\+?\d[\d ()./-]*\d", text))

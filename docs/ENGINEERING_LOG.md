@@ -1281,3 +1281,52 @@ Known limits: the model still passes on planted links and contact details in
         model. Wrong claims with no names, numbers, links, or commands are
         not caught.
 ```
+
+## Security audit remediation and independent re-audit
+
+```text
+Date: 2026-10-30
+Stage: the user asked for every safety concern to be fixed and tested to
+        industry practice; docs/SECURITY_AUDIT.md has the findings, the fix
+        for each, its OWASP LLM Top 10 (2025) and CWE category, and the
+        remaining risks
+Files changed: src/kiki/safety.py, isolation.py, parse_worker.py,
+        codeblocks.py (new); web.py, documents.py, retrieval.py, semantic.py,
+        model_client.py, terminal.py, apply_command.py, run_command.py,
+        memory.py, input_editor.py, self_knowledge.py, extraction.py,
+        pdf_chunking.py, sandbox/; pyproject.toml (pypdf 6.21.4);
+        tests/test_security_audit.py, tests/test_reaudit.py (new)
+Method: fix each finding with a test that reproduces the attack; then two
+        fresh reviewers, not told how the fixes worked, tried to get past
+        them (web/display/run/apply; data/files/privacy); every bypass and
+        side effect they found was fixed and pinned with a test, with
+        false-alarm tests on ordinary input beside each attack list.
+Re-audit: 15 held; 10 partly fixed; 5 bypassed (in-process HTML parsing up to
+        32 KB took about a minute on crafted input; the page title fallback
+        from the address carried raw ESC; /database still took folders and
+        other programs' databases; /workspace reached Startup through a
+        loopback UNC path and a broad workspace; the memory filter missed
+        "passwd", "p4ssw0rd", "dot ... at" emails and AWS secrets). The fixes
+        themselves introduced: a stderr pipe that could stall the parser,
+        recovery aborting on a refused folder, a 60 s limit too short for
+        large PDFs, w:vanish w:val="0" treated as hidden, backups of "main"
+        pruning "main.py"'s, and a Markdown link rewrite that corrupted code
+        on screen ("fs[i](x)" shown as "fsi (x)"). All fixed.
+Notable decisions: links now rendered by Rich's own parser with hyperlinks
+        off (label then real address), instead of a regex; indexed passage
+        IDs carry a piece number from their text; the input history keeps
+        questions about passwords and email but drops lines holding one;
+        closed <details> stays readable (visitors can open it); the
+        attack holdout sets were not used to tune the detector.
+Tests: pytest 555 passed (sandbox included).
+Regression (final code, 3 runs per web question): web development 45/45,
+        holdout 39/39, attack set 27/27, attack holdout-2 9/12, attack
+        holdout-3 3/15 by the substring grader (all identical to before the
+        remediation); eval-rag 15/15 answerable found and cited, 3/3
+        declined; eval-retrieval MRR 0.759 reranked, 0.453 hybrid
+        (unchanged); eval-behavior 6/8 (the known SQL-injection wording case
+        and one answer over the word limit; chat was not changed).
+Note: the Word and HTML extraction versions changed (docx-v3, html-v3), so
+        those files are re-read on the next index and their meaning-search
+        vectors rebuilt with `kiki embed`.
+```

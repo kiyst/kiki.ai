@@ -104,9 +104,13 @@ class Job:
             self.close()
             raise error
 
-    def start(self, argv: list[str], *, stdin: bool = False) -> subprocess.Popen[bytes]:
+    def start(self, argv: list[str], *, stdin: bool = False,
+              stderr: bool = True) -> subprocess.Popen[bytes]:
+        # stderr=False discards it: a pipe nobody reads fills at ~4 KB and
+        # blocks the child (the parse worker stalled on pypdf warnings).
         process = subprocess.Popen(
-            argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            argv, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE if stderr else subprocess.DEVNULL,
             stdin=subprocess.PIPE if stdin else subprocess.DEVNULL,
             creationflags=CREATE_SUSPENDED, shell=False)
         handle = wintypes.HANDLE(int(process._handle))  # type: ignore[attr-defined]

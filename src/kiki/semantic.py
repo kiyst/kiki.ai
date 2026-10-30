@@ -11,7 +11,7 @@ from typing import Any, Protocol
 from .resilience import KikiError, ErrorCode
 
 from .rerank import Reranker
-from .retrieval import SearchResult, TextIndex
+from .retrieval import SearchResult, TextIndex, content_piece
 
 
 class EmbeddingClient(Protocol):
@@ -142,9 +142,11 @@ class SemanticIndex:
                     excerpt=row["content"],
                     score=score,
                     title=row["title"],
+                    piece=content_piece(row["content"]),
                 )
             )
-        return sorted(scored, key=lambda result: result.score, reverse=True)[:limit]
+        ranked = sorted(scored, key=lambda result: result.score, reverse=True)[:limit]
+        return self.index.fresh_results(ranked)
 
     def _query_vector(self, query: str) -> list[float]:
         # Named-document coverage re-searches the same query; embed it once.
@@ -359,8 +361,9 @@ class HybridRetriever:
                     result.location_kind,
                     result.start_location,
                     result.end_location,
+                    result.piece,
                 )
-                by_key[key] = result
+                by_key.setdefault(key, result)  # keep the first (keyword) copy's title
                 scores[key] = scores.get(key, 0.0) + 1.0 / (60 + rank)
         ranked = sorted(scores, key=scores.get, reverse=True)
         return [replace(by_key[key], score=scores[key], ranker="fused") for key in ranked]

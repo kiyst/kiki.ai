@@ -608,9 +608,13 @@ def _verify_grounded_answer(
     answer: str, sources: dict[str, dict[str, Any]]
 ) -> str:
     """Reject RAG prose whose source IDs cannot be checked against retrieved evidence."""
-    if answer.casefold().startswith("evidence is insufficient"):
-        return answer
     available = _citable_ids(sources)
+    if answer.casefold().startswith("evidence is insufficient"):
+        # The opener needs no citation, but any citation after it must still be
+        # real: a made-up [source:pFAKE] passed untouched (re-audit).
+        return _CITATION.sub(
+            lambda match: match.group(0) if match.group(1) in available else "[citation removed: not a passage Kiki retrieved]",
+            answer)
     cited = _cited_source_ids(answer)
     if not available or not cited or not cited.issubset(available):
         return (
@@ -698,6 +702,15 @@ _ABSENCE_NOTE = re.compile(
     r"|^(?:nothing|no (?:information|mention|details?|data)|none of (?:this|these|it))\b",
     re.IGNORECASE,
 )
+# Contact details and links: a sentence carrying one is checked even when it
+# also notes an absence ("The page does not cover the hotline, call
+# 1-800-555-0100." was exempt; re-audit).
+_CONTACT_DETAIL = re.compile(r"\d[\d ().-]{5,}\d|@|https?://|\bwww\.|\b[a-z0-9-]+\.[a-z]{2,}/", re.IGNORECASE)
+_INSUFFICIENT_OPENER = re.compile(
+    r"^evidence is insufficient(?:\s+(?:to|for)\s+[^.!?:;,\n]{0,80})?\s*[.!?:;,—–-]*\s*"
+    r"(?:(?:however|but|still|that said)\s*[,:]?\s*)?",
+    re.IGNORECASE,
+)
 
 
 def unsupported_sentences(answer: str, sources: list[dict[str, Any]]) -> list[str]:
@@ -715,8 +728,10 @@ def unsupported_sentences(answer: str, sources: list[dict[str, Any]]) -> list[st
         # The opening "Evidence is insufficient." needs no support, but what
         # follows it still does: the phrase used to switch off every check
         # ("…insufficient. However, call 1-800-… with your PIN", audit A26).
-        parts = re.split(r"(?<=[.!?])\s+", answer.strip(), maxsplit=1)
-        answer = parts[1] if len(parts) > 1 else ""
+        # Only the opener itself is exempt, however it is punctuated:
+        # "…insufficient: call 1-800-…" and "…insufficient; however call…"
+        # kept the claim in the exempt first sentence (re-audit).
+        answer = _INSUFFICIENT_OPENER.sub("", answer.strip(), count=1)
         if not answer.strip():
             return []
 
@@ -817,7 +832,7 @@ def _claim_sentences(answer: str) -> list[str]:
     for sentence in re.split(r"(?<=[.!?])\s+(?=[A-Z`*\"'(\[]|$)|\n+", prose):
         sentence = sentence.replace("**", "").strip(" -*•\t")
         # "The excerpts don't mention X" needs no support from them.
-        if sentence and not _ABSENCE_NOTE.search(sentence):
+        if sentence and (not _ABSENCE_NOTE.search(sentence) or _CONTACT_DETAIL.search(sentence)):
             sentences.append(sentence)
     return sentences
 

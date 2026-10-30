@@ -9,6 +9,7 @@ this; it is a slash command.
 from __future__ import annotations
 
 import difflib
+import hashlib
 import os
 import re
 import tempfile
@@ -26,7 +27,7 @@ from rich.text import Text
 
 from .codeblocks import displayed_blocks, hidden_code
 from .permissions import LOCAL_WRITE, requires_confirmation
-from .safety import has_controls, visible_controls
+from .safety import has_controls, protected_folder_reason, visible_controls
 
 MAX_BYTES = 2 * 1024 * 1024
 # Names Windows treats as devices in any folder and with any extension.
@@ -92,6 +93,12 @@ def resolve_target(workspace: Path, argument: Path) -> Path:
         raise ApplyError(f"{argument} is a folder; name a file")
     if not target.parent.is_dir():
         raise ApplyError(f"Folder does not exist: {target.parent}")
+    # The folder actually written into is checked too, not just the workspace:
+    # a broad workspace (C:\Users) otherwise reached the Startup folder or a
+    # PowerShell profile inside it (re-audit).
+    refused = protected_folder_reason(target.parent, writing=True)
+    if refused and target.parent != root:
+        raise ApplyError(f"Kiki won't write into {target.parent}: {refused}")
     return target
 
 
@@ -135,9 +142,13 @@ def write_change(change: Change, backups: Path) -> Path | None:
     if change.before is not None:
         backups.mkdir(parents=True, exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        backup = backups / f"{change.target.name}.{stamp}.bak"
+        # One folder of backups per target folder, so same-named files in
+        # different places don't share (or prune) each other's backups.
+        folder = backups / hashlib.sha256(str(change.target.parent).casefold().encode()).hexdigest()[:12]
+        folder.mkdir(parents=True, exist_ok=True)
+        backup = folder / f"{change.target.name}.{stamp}.bak"
         backup.write_bytes(change.target.read_bytes())
-        _prune_backups(backups, change.target.name)
+        _prune_backups(folder, change.target.name)
     handle, temporary = tempfile.mkstemp(prefix=".kiki-apply-", dir=change.target.parent)
     try:
         with os.fdopen(handle, "w", encoding="utf-8", newline="") as stream:
@@ -153,8 +164,12 @@ KEEP_BACKUPS = 20
 
 
 def _prune_backups(backups: Path, name: str) -> None:
-    """Keep the newest KEEP_BACKUPS backups of one file name (audit L: they grew forever)."""
-    stamped = sorted(backups.glob(f"{glob_escape(name)}.*.bak"), key=lambda path: path.name, reverse=True)
+    """Keep the newest KEEP_BACKUPS backups of one file name (audit L: they grew forever).
+
+    Matched exactly ("main" must not match "main.py"'s backups; re-audit)."""
+    exact = re.compile(re.escape(name) + r"\.\d{8}-\d{6}-\d{6}\.bak")
+    stamped = sorted((path for path in backups.glob(f"{glob_escape(name)}.*.bak") if exact.fullmatch(path.name)),
+                     key=lambda path: path.name, reverse=True)
     for old in stamped[KEEP_BACKUPS:]:
         try:
             old.unlink()
