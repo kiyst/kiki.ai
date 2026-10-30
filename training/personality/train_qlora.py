@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import platform
 import random
 import subprocess
+import sys
 from pathlib import Path
 
 BASE_MODEL = "Qwen/Qwen3-4B-Instruct-2507"
@@ -105,7 +107,7 @@ def main() -> None:
         bias="none",
         target_modules="all-linear",
     )
-    config = SFTConfig(
+    config_kwargs = dict(
         output_dir=str(args.output),
         seed=args.seed,
         data_seed=args.seed,
@@ -117,7 +119,6 @@ def main() -> None:
         gradient_checkpointing=True,
         learning_rate=args.learning_rate,
         lr_scheduler_type="cosine",
-        warmup_ratio=0.05,
         logging_steps=1,
         save_strategy="no" if args.smoke else "epoch",
         save_total_limit=2,
@@ -128,6 +129,15 @@ def main() -> None:
         packing=False,
         report_to="none",
     )
+    # Transformers 5 / TRL 1 renamed warmup_ratio to warmup_steps and allow
+    # a float below 1.0 to represent the same fraction of total train steps.
+    warmup_name = (
+        "warmup_ratio"
+        if "warmup_ratio" in inspect.signature(SFTConfig).parameters
+        else "warmup_steps"
+    )
+    config_kwargs[warmup_name] = 0.05
+    config = SFTConfig(**config_kwargs)
     trainer = SFTTrainer(
         model=model,
         args=config,
@@ -137,7 +147,7 @@ def main() -> None:
     )
 
     packages = subprocess.run(
-        ["python", "-m", "pip", "freeze"],
+        [sys.executable, "-m", "pip", "freeze"],
         check=True,
         capture_output=True,
         text=True,
