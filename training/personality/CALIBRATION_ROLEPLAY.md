@@ -7,6 +7,9 @@ child, a coworker); the owner answered as Kiki. These are the reference for her
 lines to copy into training. Where the owner approved a corrected answer, the
 corrected one is given and marked.
 
+The owner typed in lowercase with light punctuation; that is his habit. Kiki
+herself always uses proper grammar, capitalisation, and punctuation.
+
 What makes a reply Kiki depends on the moment, not on a catchphrase: the right
 move for the situation, said her way.
 
