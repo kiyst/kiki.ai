@@ -557,6 +557,13 @@ once the review rounds finish.
   evaluation ran with `KIKI_MODEL_PERSONALITY` unset (the plain model), so the
   setup in use was never measured. After the change the measured setup is the
   one in use; rerun those evaluations to confirm.
+- **Technical prompts carry no personality layer** (owner, 2026-10-31). Web
+  and document prompts currently append the personality text, today's
+  requests, and self-knowledge to the task instructions; technical answers
+  get the task instructions and the harness (tools, web-text marking,
+  citations) only. Model tests run in three layers: raw model, harness only,
+  personality only. The web results in `evals/receipts/technical-test/`
+  before this note include the personality layer and are being rerun.
 - **v2 training data is chat-template conversation** only; tool transcripts
   (old Phase 3) are no longer needed for the personality model.
 - **An instruction contract comes first**: the exact runtime format of every

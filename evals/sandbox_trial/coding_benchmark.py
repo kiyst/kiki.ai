@@ -47,6 +47,7 @@ RESULTS = ROOT / "evals" / "results" / "coding-benchmarks"
 RECEIPTS = ROOT / "evals" / "receipts" / "coding-benchmarks"
 MODEL = "qwen3:4b-instruct"
 OPTIONS = {"num_ctx": 4096, "temperature": 0}
+THINK = False  # Kiki runs with thinking off; --think measures what thinking buys
 GRADE_TIMEOUT = float(os.environ.get("KIKI_BENCH_TIMEOUT", "60"))
 GRADE_MEMORY_MIB = int(os.environ.get("KIKI_BENCH_MEMORY_MIB", "512"))
 GRADE_JOB_MIB = GRADE_MEMORY_MIB + 512
@@ -246,7 +247,7 @@ def generate(client: httpx.Client, style: str, prompt: str) -> dict:
     messages.append({"role": "user", "content": prompt})
     started = time.perf_counter()
     response = client.post("/api/chat", json={
-        "model": MODEL, "messages": messages, "stream": False, "think": False, "options": OPTIONS})
+        "model": MODEL, "messages": messages, "stream": False, "think": THINK, "options": OPTIONS})
     response.raise_for_status()
     body = response.json()
     return {
@@ -356,8 +357,13 @@ def main() -> None:
     parser.add_argument("--style", choices=["kiki", "bare"], default="kiki")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--model", default=MODEL, help="Ollama model (results kept per model)")
+    parser.add_argument("--think", action="store_true", help="Let a hybrid model think first")
+    parser.add_argument("--num-ctx", type=int, default=OPTIONS["num_ctx"])
     arguments = parser.parse_args()
     MODEL = arguments.model
+    global THINK
+    THINK = arguments.think
+    OPTIONS["num_ctx"] = arguments.num_ctx
 
     problems = load(arguments.benchmark)[: arguments.limit]
     RESULTS.mkdir(parents=True, exist_ok=True)
@@ -366,6 +372,8 @@ def main() -> None:
     if MODEL != "qwen3:4b-instruct":
         # Saved answers resume by name, so another model must not reuse them.
         name += "-" + re.sub(r"[^A-Za-z0-9.]+", "-", MODEL).strip("-")
+    if THINK:
+        name += "-think"
     log_path = RESULTS / f"{name}.jsonl"
     done = {}
     if log_path.exists():
