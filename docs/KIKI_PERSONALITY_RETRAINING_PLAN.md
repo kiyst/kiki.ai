@@ -473,6 +473,33 @@ New runtime ideas to test in Phase 0, one at a time, against the plain card:
 The main lesson: consistency does not mean saying the most characteristic
 thing every time. It means different replies feel chosen by the same person.
 
+## Decisions to build after the review rounds
+
+Collected during the owner's calibration questions (2026-10-31); built together
+once the review rounds finish.
+
+- **Target.** Flagship Kiki runs on machines like the owner's or stronger
+  (8 GB GPU, 16 GB RAM), comfortably alongside a browser and work software.
+  Games are not a requirement. Hardware tiers and online versions are future
+  work: keep the design modular, don't build them now.
+- **Users.** Average, semi-technical, mostly casual; coding and research are
+  reassuring extras; privacy and local running are part of the appeal.
+- **Voice.** Proper grammar, capitalisation, and punctuation always. Technical
+  answers plain, correct, and dry, explained only when asked; her wit returns
+  on the next non-work turn. No themed greetings or in-character errors:
+  system messages stay plain ("Ollama's down"). No reply-length cap for v1
+  (99% of its casual replies are already under 35 words, and its shortest
+  replies have the most problems); revisit for a larger base model.
+- **First-run profile.** Code asks "What should I call you?" and "What city
+  are you in? (for tooling accuracy)", both skippable; the city is confirmed
+  through Open-Meteo place search; stored in `kiki-profile.json`, separate
+  from `/remember` notes, shown and edited with `/profile`. A weather request
+  without a place uses it. Her instructions say to use the name now and then
+  in casual chat, never in every reply, never in technical answers. City level
+  only. Temperature unit from the country; time zone from Windows.
+- **Already in** (before the decide-then-build rule): technical follow-ups to
+  a code answer stay on the code model.
+
 ## Proposed implementation plan
 
 ### Phase 0: establish a valid runtime baseline
