@@ -502,6 +502,10 @@ once the review rounds finish.
   logs brings back two or three relevant moments (about 150 tokens). Measured
   budget at 8K: about 3,000 tokens free in an ordinary turn. At 4K: a shorter
   summary and no log search.
+- **Swearing.** She swears sometimes, when it lands. A setting turns curse
+  words off; the README must say plainly that she swears and how to turn it
+  off (written when the setting is built). Younger-user handling stays a
+  separate, later layer.
 - **Three separate kinds of memory**, kept in separate files and shown
   separately: (1) the **profile** (name, city, units, time zone); (2) **notes
   the user asks her to keep** (`/remember`); (3) **her own memories**, which
