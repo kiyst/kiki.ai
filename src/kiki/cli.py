@@ -24,6 +24,14 @@ from .model_client import (
 from .providers.weather import OpenMeteoWeatherProvider
 from .context import context_name, context_tokens
 from .personality import PersonalitySettings, personality_prompt
+from .personality_evals import (
+    CARD_PATH,
+    CONDITIONS,
+    SHEET_PATH,
+    blind_review,
+    load_personality_cases,
+    run_personality_evaluation,
+)
 from .rerank import build_reranker
 from .retrieval import TextIndex
 from .retrieval_evals import (
@@ -258,6 +266,27 @@ def _parser() -> argparse.ArgumentParser:
     )
     behavior.add_argument("--limit", type=int, default=0, help="Run only the first N cases")
     behavior.add_argument("--output", type=Path, help="Optional JSON receipt path")
+    personality = commands.add_parser(
+        "eval-personality",
+        help="Phase 0: multi-turn personality conversations under runtime conditions",
+    )
+    personality.add_argument(
+        "--cases", type=Path, default=Path("evals/personality_cases.json")
+    )
+    personality.add_argument(
+        "--conditions",
+        default="current,balanced-greedy,balanced-t0.7,lively-t0.7,card-t0.7",
+        help=f"Comma-separated; any of: {', '.join(CONDITIONS)}",
+    )
+    personality.add_argument("--seeds", type=int, default=3, help="Runs per sampled condition")
+    personality.add_argument(
+        "--case", action="append", dest="case_ids", help="Run a named case (repeatable)"
+    )
+    personality.add_argument("--personality-model", default="kiki-personality:v1")
+    personality.add_argument(
+        "--blind", help="FIRST,SECOND: also write a blind side-by-side review of two conditions"
+    )
+    personality.add_argument("--output", type=Path, help="JSON receipt path")
     return parser
 
 
@@ -522,6 +551,49 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
                 json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8"
             )
         return receipt, "behavior_evaluation"
+    if arguments.command == "eval-personality":
+        import os
+
+        cases = load_personality_cases(arguments.cases)
+        if arguments.case_ids:
+            requested = set(arguments.case_ids)
+            cases = [case for case in cases if case.identifier in requested]
+            missing = requested - {case.identifier for case in cases}
+            if missing:
+                raise ValueError(f"Unknown personality case(s): {', '.join(sorted(missing))}")
+        names = [name.strip() for name in arguments.conditions.split(",") if name.strip()]
+        unknown = [name for name in names if name not in CONDITIONS]
+        if unknown:
+            raise ValueError(f"Unknown condition(s): {', '.join(unknown)}")
+        os.environ["KIKI_MODEL_PERSONALITY"] = arguments.personality_model
+        receipt = run_personality_evaluation(
+            cases,
+            [CONDITIONS[name] for name in names],
+            seeds=max(1, arguments.seeds),
+            session_factory=lambda database: TerminalSession(database, model=DEFAULT_MODEL),
+            card_text=CARD_PATH.read_text(encoding="utf-8"),
+            sheet_text=SHEET_PATH.read_text(encoding="utf-8"),
+        )
+        receipt["configuration"] = {
+            "cases": str(arguments.cases),
+            "personality_model": arguments.personality_model,
+            "smart_model": DEFAULT_MODEL,
+            "context": "8192 tokens",
+            "seeds": arguments.seeds,
+        }
+        if arguments.output:
+            arguments.output.parent.mkdir(parents=True, exist_ok=True)
+            arguments.output.write_text(
+                json.dumps(receipt, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+            if arguments.blind:
+                first, second = [name.strip() for name in arguments.blind.split(",")]
+                review, key = blind_review(receipt, first, second)
+                arguments.output.with_suffix(".review.md").write_text(review, encoding="utf-8")
+                arguments.output.with_suffix(".key.json").write_text(
+                    json.dumps(key, indent=2), encoding="utf-8"
+                )
+        return receipt["summary"], "personality_evaluation"
     raise ValueError(f"Unknown command: {arguments.command}")
 
 

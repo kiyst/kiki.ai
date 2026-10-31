@@ -182,8 +182,12 @@ class ToolCallingAssistant:
         reminder: bool = False,
         strip_planted: bool = False,
         context_tokens: int | None = None,
+        sampling: dict[str, Any] | None = None,
     ) -> None:
         self.context_tokens = context_tokens or self.CONTEXT_TOKENS
+        # Decoding for the visible answer (temperature, top_p, top_k,
+        # repeat_penalty, seed). Tool planning always stays at temperature 0.
+        self.sampling = dict(sampling or {})
         # strip_planted: sentences in evidence written to instruct AI assistants
         # are replaced with a marker before the model sees them (web pages and
         # indexed documents are both untrusted).
@@ -298,7 +302,11 @@ class ToolCallingAssistant:
                 ),
                 stream=False,
                 think=False,
-                options={"num_ctx": self.context_tokens, "temperature": 0},
+                options={
+                    "num_ctx": self.context_tokens,
+                    "temperature": 0,
+                    **({} if planning else self.sampling),
+                },
             )
             message = _message_dict(response)
             calls = message.get("tool_calls") or []

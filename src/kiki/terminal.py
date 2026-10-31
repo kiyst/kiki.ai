@@ -147,6 +147,12 @@ class TerminalSession:
         self.today = TodayFile(database.resolve().parent / "kiki-today.json")
         self._tone_event: str | None = None
         self._tone_until = ""
+        # Phase 0 of the personality retraining plan: decoding for CHAT answers
+        # ({} keeps temperature 0) and an optional character card that replaces
+        # the persona file and personality sliders. Neither is switched on until
+        # the blind comparison picks a winner.
+        self.chat_sampling: dict[str, Any] = {}
+        self.character_card: str | None = None
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": [], "web": []}
         self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None, "web": None}
         self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None, "web": None}
@@ -435,6 +441,7 @@ class TerminalSession:
                 # document answers were slower (models no longer fit the GPU
                 # together) and no better (evals/receipts/context/).
                 context_tokens=self.context_tokens,
+                sampling=self.chat_sampling,
                 pre_retrieve=False,
                 system_prompt=system_prompt,
             )
@@ -468,7 +475,7 @@ class TerminalSession:
     def _system_prompt(self, base: str, *, include_memory: bool = True) -> str:
         sections = [
             base,
-            personality_prompt(self.personality, self.persona.load()),
+            self.character_card or personality_prompt(self.personality, self.persona.load()),
             self.today.prompt(),
             self_knowledge_prompt(
                 mode=self.mode, model_profile=self.model_profile
