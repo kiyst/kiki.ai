@@ -550,6 +550,34 @@ once the review rounds finish.
   without a place uses it. Her instructions say to use the name now and then
   in casual chat, never in every reply, never in technical answers. City level
   only. Temperature unit from the country; time zone from Windows.
+- **Technical work is the plain model's** (owner, 2026-10-31). Document
+  (RAG), `/web`, and search answers are written by the plain model, like code:
+  they are technical work. Audit finding behind it: AUTO sent RAG and web
+  answers to the personality model, while every RAG, web, and security
+  evaluation ran with `KIKI_MODEL_PERSONALITY` unset (the plain model), so the
+  setup in use was never measured. After the change the measured setup is the
+  one in use; rerun those evaluations to confirm.
+- **v2 training data is chat-template conversation** only; tool transcripts
+  (old Phase 3) are no longer needed for the personality model.
+- **An instruction contract comes first**: the exact runtime format of every
+  section (card, rules, sheet entries, profile, notes, her own memories,
+  familiarity level, swearing setting, today's requests, danger note, the
+  note after the user's message), fixed before data is written, including
+  sections not yet built.
+- **The trainer is reworked and smoke-tested** on the owner's pod with a few
+  examples before any real run.
+- **Holdout.** About 150 conversations for the 500-conversation pilot, grown
+  toward 250 as the data scales, never trained on.
+- **Fewer models.** The plain model does every technical job (code, documents,
+  web, planning, grading, the danger judge); only the voice model and the
+  small search model are separate. Next step to try: one base model in
+  llama.cpp with the Kiki adapter switched on per request.
+- **Ollama leak (note).** The runner's committed memory grows about 35 MB per
+  request (4.4 to 11.3 GB over about 250 requests in the coding benchmark) and
+  resets when the model unloads (five idle minutes). It is RAM and page-file
+  growth inside the Ollama process, not data leaving the PC. Measure it in a
+  long Kiki session.
+- **Pilot first.** Train on 500 v2 conversations, judge progress, then scale.
 - **Already in** (before the decide-then-build rule): technical follow-ups to
   a code answer stay on the code model.
 
