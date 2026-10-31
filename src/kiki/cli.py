@@ -577,7 +577,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
         receipt["configuration"] = {
             "cases": str(arguments.cases),
             "personality_model": arguments.personality_model,
-            "smart_model": DEFAULT_MODEL,
+            "smart_model": os.getenv("KIKI_MODEL_SMART", DEFAULT_MODEL),
             "context": "8192 tokens",
             "seeds": arguments.seeds,
         }

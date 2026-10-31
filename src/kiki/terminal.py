@@ -175,6 +175,9 @@ class TerminalSession:
         self._tone_until = ""
         # The false claim the last CHAT reply was sent back for, if any (claims.py).
         self.last_correction: str | None = None
+        # The last CHAT turn's capability: a question referring back to a code
+        # answer stays with the code model (capabilities.technical_follow_up).
+        self._last_chat_capability: Capability | None = None
         # Phase 0 of the personality retraining plan: decoding for CHAT answers
         # ({} keeps temperature 0) and an optional character card that replaces
         # the persona file and personality sliders. Neither is switched on until
@@ -373,7 +376,12 @@ class TerminalSession:
             # Answered by Kiki's code; RAG and WEB questions go to documents
             # and pages, and this isn't one.
             return ChatOutcome(self._tone_event_text(), [], []), "none"
-        route = route_prompt(prompt, mode=self.mode)
+        route = route_prompt(
+            prompt, mode=self.mode,
+            after_code=self.mode == "chat" and self._last_chat_capability == Capability.CODE,
+        )
+        if self.mode == "chat":
+            self._last_chat_capability = route.capability
         self.last_model_selection = self.model_router.select(
             self.model_profile, route.capability
         )

@@ -48,3 +48,43 @@ def test_code_requests_go_to_the_code_model(prompt: str) -> None:
 ])
 def test_ordinary_conversation_keeps_her_personality(prompt: str) -> None:
     assert route_prompt(prompt).capability == Capability.CHAT
+
+
+@pytest.mark.parametrize("prompt", [
+    "why did that even happen",
+    "explain why that fix works",
+    "how does it handle empty lists",
+    "wait, what does this line do",
+    "is the regex case sensitive",
+])
+def test_follow_ups_to_code_stay_with_the_code_model(prompt: str) -> None:
+    assert route_prompt(prompt, after_code=True).capability == Capability.CODE
+    assert route_prompt(prompt).capability == Capability.CHAT  # not after code: Kiki
+
+
+@pytest.mark.parametrize("prompt", [
+    "thanks", "ty that worked", "lol finally", "nice, that did it",
+    "what's your favorite season", "how are you", "why are you like this",
+    "what should i eat for lunch",
+])
+def test_small_talk_after_code_goes_back_to_kiki(prompt: str) -> None:
+    assert route_prompt(prompt, after_code=True).capability == Capability.CHAT
+
+
+def test_the_session_keeps_a_follow_up_on_the_code_model(tmp_path, monkeypatch) -> None:
+    from kiki.model_client import ChatOutcome
+    from kiki.terminal import TerminalSession
+
+    models = []
+
+    def fake_ask(self, prompt, history=None):
+        models.append(self.model)
+        return ChatOutcome("ok", [], [])
+
+    monkeypatch.setattr("kiki.terminal.ToolCallingAssistant.ask", fake_ask)
+    monkeypatch.setenv("KIKI_MODEL_PERSONALITY", "kiki-personality:v1")
+    session = TerminalSession(tmp_path / "index.sqlite3")
+    for prompt in ["Review this Python: def f(x): return x", "why did that break", "thanks", "why did that break"]:
+        session.ask(prompt)
+    # code, follow-up (code), thanks (Kiki), then the same words after Kiki: Kiki
+    assert models == ["qwen3:4b-instruct", "qwen3:4b-instruct", "kiki-personality:v1", "kiki-personality:v1"]

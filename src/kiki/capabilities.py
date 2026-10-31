@@ -50,8 +50,39 @@ _MEMORY = re.compile(
 )
 
 
-def route_prompt(prompt: str, *, mode: str = "chat") -> Route:
-    """Classify a turn without granting permission or executing anything."""
+# A question that refers back to the previous turn ("why did that happen",
+# "explain why that fix works"). After a code answer it stays with the code
+# model; thanks, banter, and questions about anything else go back to Kiki.
+_FOLLOW_UP = re.compile(
+    r"^\s*(?:ok(?:ay)?[,\s]+|so[,\s]+|but[,\s]+|wait[,\s]+)?"
+    r"(?:why|how|what|explain|does|did|is|can|could|should|would|where|which|when)\b",
+    re.IGNORECASE,
+)
+_REFERS_BACK = re.compile(
+    r"\b(?:that|it|this|those|these|the (?:fix|code|bug|error|loop|function|query|change|regex|line))\b",
+    re.IGNORECASE,
+)
+_SMALL_TALK = re.compile(
+    r"^\s*(?:thanks|thank you|ty|thx|lol|lmao|haha|nice|cool|great|perfect|awesome)\b", re.IGNORECASE
+)
+
+
+def technical_follow_up(prompt: str) -> bool:
+    """A question about the previous (technical) answer rather than new small talk."""
+    return bool(
+        _FOLLOW_UP.search(prompt)
+        and _REFERS_BACK.search(prompt)
+        and not _SMALL_TALK.search(prompt)
+        and not re.search(r"\b(?:you|your|yourself|kiki)\b", prompt, re.IGNORECASE)
+    )
+
+
+def route_prompt(prompt: str, *, mode: str = "chat", after_code: bool = False) -> Route:
+    """Classify a turn without granting permission or executing anything.
+
+    after_code: the previous turn in this mode was answered as code, so a
+    question referring back to it stays with the code model.
+    """
     if _WEATHER.search(prompt):
         return Route(Capability.WEATHER, "explicit live-weather language")
     if _MEMORY.search(prompt):
@@ -60,4 +91,6 @@ def route_prompt(prompt: str, *, mode: str = "chat") -> Route:
         return Route(Capability.RAG, "RAG mode or document-search language")
     if _CODE.search(prompt):
         return Route(Capability.CODE, "code or algorithm language")
+    if after_code and technical_follow_up(prompt):
+        return Route(Capability.CODE, "follow-up to a code answer")
     return Route(Capability.CHAT, "ordinary conversation")

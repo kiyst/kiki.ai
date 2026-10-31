@@ -246,7 +246,7 @@ def generate(client: httpx.Client, style: str, prompt: str) -> dict:
     messages.append({"role": "user", "content": prompt})
     started = time.perf_counter()
     response = client.post("/api/chat", json={
-        "model": MODEL, "messages": messages, "stream": False, "options": OPTIONS})
+        "model": MODEL, "messages": messages, "stream": False, "think": False, "options": OPTIONS})
     response.raise_for_status()
     body = response.json()
     return {
@@ -354,12 +354,18 @@ def main() -> None:
     parser.add_argument("benchmark", choices=["humaneval", "mbpp", "leetcode"])
     parser.add_argument("--style", choices=["kiki", "bare"], default="kiki")
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--model", default=MODEL, help="Ollama model (results kept per model)")
     arguments = parser.parse_args()
+    global MODEL
+    MODEL = arguments.model
 
     problems = load(arguments.benchmark)[: arguments.limit]
     RESULTS.mkdir(parents=True, exist_ok=True)
     RECEIPTS.mkdir(parents=True, exist_ok=True)
     name = f"{arguments.benchmark}-{arguments.style}"
+    if MODEL != "qwen3:4b-instruct":
+        # Saved answers resume by name, so another model must not reuse them.
+        name += "-" + re.sub(r"[^A-Za-z0-9.]+", "-", MODEL).strip("-")
     log_path = RESULTS / f"{name}.jsonl"
     done = {}
     if log_path.exists():
