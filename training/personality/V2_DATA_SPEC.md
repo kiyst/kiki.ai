@@ -6,7 +6,8 @@ reviewers, and for the owner's sample review. It turns Phase 0's findings
 the owner's decisions into rules. `validate_v2.py` enforces what code can;
 the reviewers judge the rest, including tone.
 
-The reference for Kiki's voice is, in order: the owner's role-play answers and
+The reference for Kiki's voice is, in order: the owner's role-play answers
+(`CALIBRATION_ROLEPLAY.md`) and
 reviews, `kiki_card_v2.md`, `kiki_sheet.md`. Where a draft and the owner
 disagree, the owner wins and the rule is written down here.
 
