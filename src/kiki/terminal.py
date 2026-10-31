@@ -28,6 +28,7 @@ from .model_client import (
     unsupported_sentences,
 )
 from .capabilities import Capability, route_prompt
+from .claims import CORRECTION, false_claim
 from .danger import NOTE_TURNS, NOTES, DangerDetector, ollama_judge
 from .context import CONTEXT_MEMORY, CONTEXT_SIZES, context_name, context_tokens, history_limits
 from .diagnostics import build_diagnostics, diagnostics_markdown
@@ -172,6 +173,8 @@ class TerminalSession:
         self.today = TodayFile(database.resolve().parent / "kiki-today.json")
         self._tone_event: str | None = None
         self._tone_until = ""
+        # The false claim the last CHAT reply was sent back for, if any (claims.py).
+        self.last_correction: str | None = None
         # Phase 0 of the personality retraining plan: decoding for CHAT answers
         # ({} keeps temperature 0) and an optional character card that replaces
         # the persona file and personality sliders. Neither is switched on until
@@ -364,6 +367,7 @@ class TerminalSession:
         return self.index, "lexical"
 
     def ask(self, prompt: str) -> tuple[ChatOutcome, str]:
+        self.last_correction = None
         self._tone_event = self._handle_tone_request(prompt)
         if self._tone_event and self.mode in {"rag", "web"}:
             # Answered by Kiki's code; RAG and WEB questions go to documents
@@ -515,6 +519,16 @@ class TerminalSession:
                 system_prompt=system_prompt,
             )
         outcome = assistant.ask(prompt, history=self.histories[self.mode])
+        if self.mode == "chat":
+            claim = false_claim(outcome.answer, saved_request=self._tone_event == "saved")
+            if claim:
+                # One retry with the correction placed after the message; the
+                # retry stands even if imperfect, so a turn never loops.
+                assistant.late_note = "\n".join(
+                    note for note in (assistant.late_note, CORRECTION.format(claim=claim)) if note
+                )
+                outcome = assistant.ask(prompt, history=self.histories[self.mode])
+                self.last_correction = claim
         if self.mode == "rag" and isinstance(backend, HybridRetriever):
             retrieval_mode = backend.mode
         return self._remember(prompt, outcome, retrieval_mode)
