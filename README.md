@@ -248,7 +248,7 @@ kiki --database .kiki\history.sqlite3 run
 | `/forget NUMBER` | Delete a note by number (or by matching text) |
 | `/personality` | Adjust warmth, wit, opinions, and verbosity |
 | `/persona [show\|reset]` | View or reset the editable persona file |
-| `/today [TEXT\|clear]` | Temporary tone requests ("be nicer today"); they reset at midnight |
+| `/today [TEXT\|clear]` | Temporary tone requests ("be nicer today", "no jokes for an hour"); most end at 4 AM |
 | `/model [auto\|fast\|smart\|max]` | Choose a model profile |
 | `/context [small\|standard\|large\|max]` | Show or choose how much of the conversation Kiki keeps in mind |
 | `/status` | Mode, library, models, and settings at a glance |
@@ -529,7 +529,7 @@ links in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) into
 | `KIKI_FALLBACK_MODEL` | environment | Comma-separated backups if the main model fails |
 | `kiki-persona.md` | next to the library | Kiki's editable persona, reloaded on every reply |
 | `kiki-memory.md` | next to the library | Your saved notes, plain Markdown |
-| `kiki-today.json` | next to the library | Today's temporary tone requests; ignored after midnight |
+| `kiki-today.json` | next to the library | Temporary tone requests, each with its end time (4 AM unless you gave one) |
 | `kiki-web-log.jsonl` | next to the library | Every web request: time, address, outcome |
 | `KIKI_OFFLINE` | environment | `1` blocks all internet requests (web pages and weather) |
 | `KIKI_CONTEXT` | environment | Reading space: `small`, `standard` (default), `large`, or `max`; see [Fitting Kiki to your computer](#fitting-kiki-to-your-computer) |

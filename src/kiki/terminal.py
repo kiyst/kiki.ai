@@ -146,6 +146,7 @@ class TerminalSession:
         self.memory = MemoryStore(database.resolve().parent / "kiki-memory.md")
         self.today = TodayFile(database.resolve().parent / "kiki-today.json")
         self._tone_event: str | None = None
+        self._tone_until = ""
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": [], "web": []}
         self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None, "web": None}
         self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None, "web": None}
@@ -410,9 +411,9 @@ class TerminalSession:
             if self._tone_event:
                 system_prompt += (
                     "\n\nKiki's code just " + (
-                        "saved the user's latest message as a temporary request for today "
-                        "(it resets at midnight; /today shows it, /today clear lifts it). "
-                        "Acknowledge it briefly in your own voice, then follow it."
+                        "saved the user's latest message as a temporary request "
+                        f"(until {self._tone_until}; /today shows it, /today clear lifts it). "
+                        "Acknowledge it briefly in Kiki's voice, then follow it."
                         if self._tone_event == "saved"
                         else "cleared today's temporary requests. Acknowledge it briefly."
                     )
@@ -449,9 +450,10 @@ class TerminalSession:
             return "cleared"
         if is_tone_request(prompt):
             try:
-                self.today.add(prompt)
+                entry = self.today.add(prompt)
             except ValueError:
                 return None
+            self._tone_until = self.today.describe(entry).rsplit("(until ", 1)[1].rstrip(")")
             return "saved"
         return None
 
@@ -459,8 +461,8 @@ class TerminalSession:
         if self._tone_event == "cleared":
             return "Back to normal."
         return (
-            f"Saved for today: {self.today.requests()[-1]}. "
-            "It resets at midnight; /today clear lifts it sooner."
+            f"Saved until {self._tone_until}: {self.today.requests()[-1]}. "
+            "/today clear lifts it sooner."
         )
 
     def _system_prompt(self, base: str, *, include_memory: bool = True) -> str:
@@ -961,12 +963,12 @@ def _handle_command(
         return False, None
     if name == "/today":
         if not rest:
-            requests = session.today.requests()
+            entries = session.today.entries()
             console.print(
                 Panel(
-                    Text("\n".join(f"- {item}" for item in requests) if requests
-                         else "No temporary requests today."),
-                    title="Today's temporary requests · reset at midnight · /today clear",
+                    Text("\n".join(f"- {session.today.describe(entry)}" for entry in entries)
+                         if entries else "No temporary requests right now."),
+                    title="Temporary requests · most end at 4 AM · /today clear",
                     border_style="cyan",
                 )
             )
@@ -980,7 +982,7 @@ def _handle_command(
             except ValueError as exc:
                 console.print(f"[yellow]{escape(str(exc))}[/yellow]")
             else:
-                console.print(f"[green]Saved for today:[/green] {escape(saved)}")
+                console.print(f"[green]Saved:[/green] {escape(session.today.describe(saved))}")
         return False, None
     if name == "/persona":
         action = parts[1].casefold() if len(parts) > 1 else "show"

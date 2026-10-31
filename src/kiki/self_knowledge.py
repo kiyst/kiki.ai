@@ -27,7 +27,7 @@ COMMAND_HELP = (
     ("/debug", "Toggle search steps and tool calls under each answer."),
     ("/personality · /personality preset NAME · /personality TRAIT 0-3", "Show or set warmth, wit, opinions, and verbosity."),
     ("/persona [show|path|reset]", "Show, locate, or reset the editable persona file."),
-    ("/today · /today TEXT · /today clear", "Show, add, or lift temporary tone requests; they reset at midnight."),
+    ("/today · /today TEXT · /today clear", "Show, add, or lift temporary tone requests; most end at 4 AM."),
     ("/remember TEXT", "Save an explicit, non-sensitive note."),
     ("/memory", "List saved notes, numbered."),
     ("/forget NUMBER|TEXT", "Delete a saved note by number or matching text."),
@@ -53,7 +53,8 @@ COMMAND_FORMS = (
     "/remember TEXT saves a note; /memory lists notes; /forget NUMBER or TEXT deletes one",
     "/today shows temporary tone requests; /today TEXT adds one; /today clear lifts them; saying "
     "\"be nicer today\" or \"no jokes while we work\" saves one too, and \"back to normal\" lifts them; "
-    "all reset at midnight",
+    "they end at 4 AM unless the user gave a time (\"for an hour\", \"until 5pm\"); a newer request on the "
+    "same topic replaces the older one",
     "/persona show, path, or reset; /sources (cited passages) or /sources all; "
     "/diagnostics, /diagnostics copy, or /diagnostics save",
 )
