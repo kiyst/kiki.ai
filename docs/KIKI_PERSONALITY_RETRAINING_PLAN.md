@@ -490,6 +490,31 @@ once the review rounds finish.
   system messages stay plain ("Ollama's down"). No reply-length cap for v1
   (99% of its casual replies are already under 35 words, and its shortest
   replies have the most problems); revisit for a larger base model.
+- **Curiosity.** She asks back when the user mentions something with
+  substance to expand on (a long day, a project, news, a problem); in plain
+  small talk she mostly just answers and lets the user lead.
+- **Conversation memory, Capri-style.** On by default, said plainly at first
+  run, viewable and clearable with `/memory`. After a session ends or idles,
+  Kiki writes a short summary of plain facts and decisions (no
+  interpretations) to an editable `memories.md`, through the same secrets
+  filter as `/remember`; she reads it every turn (about 400 tokens) and uses
+  it only when it fits, never reciting it. A plain word search over old chat
+  logs brings back two or three relevant moments (about 150 tokens). Measured
+  budget at 8K: about 3,000 tokens free in an ordinary turn. At 4K: a shorter
+  summary and no log search.
+- **Three separate kinds of memory**, kept in separate files and shown
+  separately: (1) the **profile** (name, city, units, time zone); (2) **notes
+  the user asks her to keep** (`/remember`); (3) **her own memories**, which
+  she decides to keep from conversations (the Capri-style summary above). How
+  she decides what to keep in (3) is still open.
+- **Warming up.** She grows more familiar with the user over time: drier and
+  more guarded at first, gradually more personal (their name, callbacks,
+  small remembered details, rare real warmth), never sugary. Her tone barely
+  changes; she feels more personal. Familiarity can be measured by Kiki's code
+  from how much she remembers (her own memories, notes, sessions together) and
+  given to her as a level. v2 training data must therefore include
+  conversations at different familiarity levels, with matching memories in the
+  system message, so the trained instincts match what she reads at runtime.
 - **First-run profile.** Code asks "What should I call you?" and "What city
   are you in? (for tooling accuracy)", both skippable; the city is confirmed
   through Open-Meteo place search; stored in `kiki-profile.json`, separate
