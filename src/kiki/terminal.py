@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from datetime import datetime
 from pathlib import Path
@@ -117,6 +118,7 @@ INTERACTIVE_COMMANDS = (
 # Stage B (personality retraining plan, Phase 0). The generic chat rules
 # without their opening "You are a concise local conversational assistant",
 # which told the model who it was before the persona could.
+CARD_PATH = Path(__file__).resolve().parents[2] / "training" / "personality" / "kiki_card_v2.md"
 CHAT_RULES = CHAT_SYSTEM_PROMPT.split("\n", 1)[1].strip()
 SHORT_SELF_KNOWLEDGE = (
     "About Kiki: she runs locally on this computer, in CHAT, RAG (the user's indexed documents, "
@@ -192,6 +194,18 @@ class TerminalSession:
         # next to the user's message.
         self.prompt_layout = "v1"
         self.sheet = load_sheet()
+        # KIKI_PERSONALITY_TRIAL=1 turns on everything Phase 0 is testing, so
+        # the owner can try it: the v2 character card in place of the persona
+        # file and sliders, t0.7 sampling for chat, and the stage-B layout.
+        self.personality_trial = os.getenv("KIKI_PERSONALITY_TRIAL", "").strip() in {"1", "true", "yes"}
+        if self.personality_trial:
+            try:
+                self.character_card = CARD_PATH.read_text(encoding="utf-8")
+            except OSError:
+                self.personality_trial = False
+            else:
+                self.chat_sampling = {"temperature": 0.7, "top_p": 0.8, "top_k": 20}
+                self.prompt_layout = "stage-b"
         self.danger_kind: str | None = None
         self._danger_turns_left = 0
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": [], "web": []}
@@ -1353,6 +1367,9 @@ def _handle_command(
                 "database": session.database.resolve(),
                 "embeddings": session.index.embedding_count(session.embedding_model),
                 "model_profile": session.model_profile,
+                "personality_trial": (
+                    "on (v2 card, t0.7, stage-B layout)" if session.personality_trial else "off"
+                ),
                 "context": f"{context_name(session.context_tokens)} ({session.context_tokens} tokens)",
                 "last_model": session.last_model_selection.model,
                 "model_reason": session.last_model_selection.reason,

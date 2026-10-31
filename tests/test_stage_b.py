@@ -113,6 +113,16 @@ def test_v1_layout_is_unchanged(tmp_path, monkeypatch) -> None:
     assert late == ""
 
 
+def test_personality_trial_switch(tmp_path, monkeypatch) -> None:
+    assert TerminalSession(tmp_path / "a.sqlite3").personality_trial is False
+    monkeypatch.setenv("KIKI_PERSONALITY_TRIAL", "1")
+    session = TerminalSession(tmp_path / "b.sqlite3")
+    assert session.personality_trial
+    assert session.character_card.startswith("You are Kiki")
+    assert session.chat_sampling["temperature"] == 0.7
+    assert session.prompt_layout == "stage-b"
+
+
 def test_assistant_without_a_note_sends_the_message_alone() -> None:
     sent = []
 
