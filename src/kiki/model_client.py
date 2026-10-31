@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from time import sleep
 from typing import Any, Protocol
 
+from .context import history_limits
 from .resilience import KikiError, ErrorCode
 from .retrieval import location_label
 from .tools import ToolRegistry
@@ -151,7 +152,8 @@ class OllamaClient:
 
 class ToolCallingAssistant:
     MAX_EVIDENCE_CHARACTERS = 7_000
-    # The model's whole reading space, prompt plus answer, in tokens.
+    # The model's whole reading space, prompt plus answer, in tokens: the
+    # baseline every computer can run; context_tokens chooses a larger one.
     CONTEXT_TOKENS = 4_096
     # Kept free for the answer itself.
     ANSWER_TOKENS = 700
@@ -179,7 +181,9 @@ class ToolCallingAssistant:
         spotlight: str | None = None,
         reminder: bool = False,
         strip_planted: bool = False,
+        context_tokens: int | None = None,
     ) -> None:
+        self.context_tokens = context_tokens or self.CONTEXT_TOKENS
         # strip_planted: sentences in evidence written to instruct AI assistants
         # are replaced with a marker before the model sees them (web pages and
         # indexed documents are both untrusted).
@@ -222,7 +226,7 @@ class ToolCallingAssistant:
             {"role": "system", "content": self.system_prompt + self._spotlight_note()},
         ]
         if history:
-            messages.extend(_bounded_history(history))
+            messages.extend(_bounded_history(history, *history_limits(self.context_tokens)))
         messages.append({"role": "user", "content": prompt})
         trace: list[ToolTrace] = []
         sources: dict[str, dict[str, Any]] = {}
@@ -294,7 +298,7 @@ class ToolCallingAssistant:
                 ),
                 stream=False,
                 think=False,
-                options={"num_ctx": self.CONTEXT_TOKENS, "temperature": 0},
+                options={"num_ctx": self.context_tokens, "temperature": 0},
             )
             message = _message_dict(response)
             calls = message.get("tool_calls") or []
@@ -513,7 +517,7 @@ class ToolCallingAssistant:
             + evidence / rate
             + overhead_tokens
         )
-        room = int((self.CONTEXT_TOKENS - self.ANSWER_TOKENS - spent) * rate)
+        room = int((self.context_tokens - self.ANSWER_TOKENS - spent) * rate)
         return max(0, min(self.max_evidence_characters - used, room))
 
     @staticmethod
@@ -883,10 +887,12 @@ def _visible_answer(content: str) -> str:
     return content.strip()
 
 
-def _bounded_history(history: list[dict[str, str]], budget: int = 4_000) -> list[dict[str, str]]:
+def _bounded_history(
+    history: list[dict[str, str]], messages: int = 12, budget: int = 4_000
+) -> list[dict[str, str]]:
     selected: list[dict[str, str]] = []
     used = 0
-    for message in reversed(history[-12:]):
+    for message in reversed(history[-messages:]):
         role, content = message.get("role"), message.get("content")
         if role not in {"user", "assistant"} or not isinstance(content, str):
             continue

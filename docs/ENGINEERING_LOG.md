@@ -1441,3 +1441,41 @@ Note: the Word and HTML extraction versions changed (docx-v3, html-v3), so
         those files are re-read on the next index and their meaning-search
         vectors rebuilt with `kiki embed`.
 ```
+
+## Context size setting, temporary tone requests, and personality calibration
+
+```text
+Date: 2026-10-30
+Stage: personality retraining prep (docs/KIKI_PERSONALITY_RETRAINING_PLAN.md);
+        the user asked for context sizes that scale with hardware, a daily
+        temporary persona file, and dev notes for a passcode lock and notes
+Files changed: src/kiki/context.py (new), today.py (new), model_client.py,
+        terminal.py, cli.py, self_knowledge.py; tests/test_context.py,
+        tests/test_today.py (new), tests/test_self_knowledge.py; README.md,
+        docs/DEVELOPMENT_NOTES.md, the retraining plan, and
+        training/personality/kiki_card_v2.md (draft, awaiting approval)
+Context: KIKI_CONTEXT / /context = small 4K, standard 8K (default), large
+        16K, max 32K. Measured on an 8 GB GTX 1080 with kiki-personality:v1:
+        3.2, 3.9, 5.1 GB on the GPU; 7.9 GB at 32K with a fifth on the CPU.
+        Conversation kept scales with it (12 messages and 4,000 characters
+        per 4K). Applies to CHAT only: at 8K, web development was 43/45 (4K:
+        45/45; heappushpop and Python-build pages declined wrongly) and
+        document answers were identical in quality (15/15, 16 cited, 3/3
+        declined) but slower (search 13.5 s and answer 17.4 s, against 8.1 s
+        and 11.3 s at 4K in the same session), because the chat, embedding,
+        and grading models no longer fit the 8 GB GPU together. Web and RAG
+        stay at 4K, so their earlier receipts still hold.
+        Receipts: evals/receipts/context/.
+Today: kiki-today.json beside the library holds up to five tone requests
+        ("be nicer today", "no jokes while we work") taken from what the user
+        typed, never from the model, a page, or a document; ignored after
+        midnight; "back to normal" or /today clear lifts them. Matching needs
+        a request aimed at Kiki plus a time limit, so "I need to be nicer to
+        my coworkers today" doesn't trigger it.
+Calibration: about forty role-played conversations set Kiki's voice; the
+        decisions are recorded in the retraining plan, which now also maps the
+        roleplay-system layers (character note, situation-picked examples,
+        persona lorebook, overlays) onto Kiki.
+Tests: pytest 599 passed (sandbox included; one earlier failure was memory
+        pressure from running tests beside an evaluation).
+```

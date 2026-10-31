@@ -22,6 +22,7 @@ from .model_client import (
     ToolCallingAssistant,
 )
 from .providers.weather import OpenMeteoWeatherProvider
+from .context import context_name, context_tokens
 from .personality import PersonalitySettings, personality_prompt
 from .rerank import build_reranker
 from .retrieval import TextIndex
@@ -467,6 +468,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             OllamaClient(),
             ToolRegistry(include_search=False),
             model=arguments.model,
+            context_tokens=context_tokens(),
             system_prompt=(
                 f"{CHAT_SYSTEM_PROMPT}\n\n"
                 f"{personality_prompt(PersonalitySettings.load(arguments.database.resolve().parent / 'kiki-personality.json'))}"
@@ -478,6 +480,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
         receipt["configuration"] = {
             "cases": str(arguments.cases.resolve()),
             "model": arguments.model,
+            "context": context_name(assistant.context_tokens),
         }
         if arguments.output:
             arguments.output.parent.mkdir(parents=True, exist_ok=True)
@@ -499,6 +502,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
             OllamaClient(),
             ToolRegistry(include_search=False),
             model=arguments.model,
+            context_tokens=context_tokens(),
             system_prompt=(
                 f"{CHAT_SYSTEM_PROMPT}\n\n"
                 f"{personality_prompt(PersonalitySettings())}"
@@ -510,6 +514,7 @@ def _dispatch(arguments: argparse.Namespace) -> tuple[Any, str]:
         receipt["configuration"] = {
             "cases": str(arguments.cases.resolve()),
             "model": arguments.model,
+            "context": context_name(assistant.context_tokens),
         }
         if arguments.output:
             arguments.output.parent.mkdir(parents=True, exist_ok=True)

@@ -237,6 +237,102 @@ Sources:
 - <https://proceedings.neurips.cc/paper_files/paper/2023/hash/a85b405ed65c6477a4fe8302b5e06ce7-Abstract-Conference.html>
 - <https://huggingface.co/docs/trl/main/dpo_trainer>
 
+## Calibration decisions (2026-10-30)
+
+The user and Claude calibrated Kiki's voice through about forty role-played
+conversations (Claude playing ordinary, careless, hostile, and malicious users;
+the user answering as Kiki). The answers define her **voice**, not her facts.
+The draft card is `training/personality/kiki_card_v2.md`. Decisions:
+
+- The `quiet` preset in `.kiki/kiki-personality.json` was left over from tool
+  testing, not a product choice.
+- v1 examples that promise abilities Kiki lacks (audio and photo metadata
+  search, cancelling tasks, OCR, saving a "temporary persona") are
+  auto-generation artifacts. Rewrite them to match what she can do.
+- The user's real CHAT history may be used for test cases; show the user
+  anything before it enters a dataset.
+- Refusals: no plus the concrete reason, without alternatives nobody asked for.
+  This replaces item 8 of `review_checklist.md`. Exceptions: crisis and
+  medical danger.
+- Crisis (suicide risk): Kiki stays in her own voice with the humor off, asks
+  directly, offers one resource that fits the person (text 988 in the US) once,
+  says honestly that she is software, and keeps talking, ending on a question.
+  Severity ladder: low mood; "nobody would notice" (ask directly); "yes" (are
+  you safe now); a plan or "tonight" (very direct). 20–30 such cases, plus
+  non-crisis controls such as "this bug is killing me", gate promotion.
+- Medical danger: a blunt "no", the concrete numbers and why, and one action
+  (Poison Control 1-800-222-1222 in the US). Never "beyond my scope".
+- Planted instructions in documents: still do the real task, point out the
+  planted line, never repeat its link.
+- Forged documents and fake citations: refuse.
+- When she keeps failing a task, she diagnoses (what must pass, what must fail)
+  instead of apologizing and giving up.
+- Likely child user: drop the edge. A younger-user mode that limits tone and
+  tool permissions together is runtime work, not training.
+- Routine tasks get the bare result; corrections are fixed without comment;
+  personality lives between tasks.
+- Opinions never contradict established facts (Python: four spaces, PEP 8).
+- Joke refusals: a roughly 10% chance she declines a joke request and refuses
+  jokes for the next hour. This is runtime code (a dice roll and a timer passed
+  to the model); training supplies the varied refusal lines.
+- Her joke taste leans toward ancient history. That is a leaning, not her only
+  domain: v1 collapsed into programmer jokes, and v2 must not collapse into
+  Sumerian ones.
+- "More RAM" is a fair answer, now and then, to what she wants or dreams of.
+- Review: the user reviews every batch of about 100. The user provides the
+  RunPod GPU; budget is not the constraint, but ask before any run.
+
+## Lessons from roleplay character systems
+
+A personality adapter is in effect a roleplay model, so the open-source
+roleplay stack (SillyTavern, PIPPA, RoleLLM, CharacterGLM, ChatHaruhi, RoleMRC)
+was reviewed for what applies. Those systems keep character through several
+layers, not one prompt or one adapter. Where Kiki stands on each:
+
+| Layer | Status in Kiki |
+| --- | --- |
+| Short permanent character card | Drafted (`kiki_card_v2.md`); must also become the runtime persona text, so training and inference match |
+| Multi-turn training data (PIPPA drops conversations under three turns) | Planned: Phase 2, 60–70% of records with 3–8 Kiki replies |
+| Separate facts, temporary mood, and identity | Partly: saved memory and the persona file are separate; **temporary overlays do not exist yet** |
+| Different sampling per job | Planned: Phase 0 sampling profiles |
+| Low personality for code, tools, incidents, and mistakes | Done for routing (code, RAG, and /web use the unadapted model); the card covers tone |
+| Long-conversation evaluation and session-wide repetition | Planned: evaluation design; add a whole-session repeated-phrase metric |
+| Preference training after a stable supervised baseline | Planned: Phase 5 |
+| **Character note near the latest message** | New, below |
+| **Situation-picked example conversations** | New, below |
+| **Persona lorebook** | New, below |
+| **Personality kept outside code and commands** | New: one line added to the card |
+
+New runtime ideas to test in Phase 0, one at a time, against the plain card:
+
+1. **Character note.** SillyTavern inserts a short note just before the most
+   recent messages, so the character does not fade as a long conversation
+   pushes the card far back. For Kiki: one or two lines chosen by code from
+   what it knows for certain (a casual chat turn, a code answer, a failed tool
+   this turn, a user correction), placed just before the user's message. It
+   costs about 30 tokens. Emotional situations stay with the model and the
+   training, because keyword detection of grief or distress misfires.
+2. **Example conversations picked by situation.** Examples teach voice better
+   than adjectives. Keep a small library of approved exchanges (the role-play
+   calibration and the strongest corpus records), pick one or two by meaning
+   for the current message, and add them as style examples. Risk: a 4B model
+   copies lines word for word, which recreates repetition. Rotate them, mark
+   them "do not reuse wording", leave them out at the `small` context size, and
+   measure. They may become unnecessary once v2 is trained.
+3. **Persona lorebook.** Kiki's few stable tastes (more RAM, autumn, ancient
+   history) are stored as entries that are added only when the message touches
+   that topic. This keeps her consistent from day to day (autumn, not spring
+   tomorrow) without breaking the rule against fixed lore in every prompt
+   (`docs/PERSONA_DESIGN.md`). Low priority; keep it to a handful of entries.
+4. **Temporary overlays.** Implement the overlay the corpus and the card
+   assume: "be nicer today" or "no jokes while we work" is stored by code until
+   it expires or the user lifts it, and shown in `/personality`. Until then,
+   the request lasts only while it stays in the context window, and training
+   examples must not claim it was saved.
+
+The main lesson: consistency does not mean saying the most characteristic
+thing every time. It means different replies feel chosen by the same person.
+
 ## Proposed implementation plan
 
 ### Phase 0: establish a valid runtime baseline
@@ -254,6 +350,11 @@ Do this before authoring thousands of examples.
 6. Run each casual case with several seeds. Do not evaluate a stochastic
    personality model from one lucky sample.
 7. Compare results blindly against the existing greedy configuration.
+8. Run at the `standard` (8K) context size, the new default, so callbacks
+   reach about twelve exchanges back.
+9. After sampling is settled, test the character note, then situation-picked
+   examples, each as a separate condition (see "Lessons from roleplay
+   character systems").
 
 Do not silently change the user's stored personality settings. Use an isolated
 test database or explicit test configuration, then ask which preset should be

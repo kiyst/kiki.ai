@@ -27,6 +27,7 @@ from .model_client import (
     unsupported_sentences,
 )
 from .capabilities import Capability, route_prompt
+from .context import CONTEXT_MEMORY, CONTEXT_SIZES, context_name, context_tokens, history_limits
 from .diagnostics import build_diagnostics, diagnostics_markdown
 from .finding import FileFinder, FindError, FindResult, format_size
 from .folders_command import folders_command
@@ -51,6 +52,7 @@ from .self_knowledge import (
     state_changing_commands,
     unknown_commands,
 )
+from .today import TodayFile, is_tone_request, is_tone_reset
 from .tools import ToolRegistry
 from .web import (
     WEB_PASSAGES,
@@ -97,10 +99,12 @@ INTERACTIVE_COMMANDS = (
     "/debug",
     "/personality",
     "/persona",
+    "/today",
     "/memory",
     "/remember",
     "/forget",
     "/model",
+    "/context",
     "/diagnostics",
     "/capabilities",
     "/help",
@@ -129,11 +133,19 @@ class TerminalSession:
         self.weather = OpenMeteoWeatherProvider()
         self.mode = "chat"
         self.debug = False
+        # KIKI_CONTEXT picks the reading space; a bad value falls back to the
+        # default rather than stopping Kiki from starting.
+        try:
+            self.context_tokens = context_tokens()
+        except ValueError:
+            self.context_tokens = context_tokens("")
         self.pending_weather_choices: list[dict[str, Any]] = []
         self.personality_path = database.resolve().parent / "kiki-personality.json"
         self.personality = PersonalitySettings.load(self.personality_path)
         self.persona = PersonaFile(database.resolve().parent / "kiki-persona.md")
         self.memory = MemoryStore(database.resolve().parent / "kiki-memory.md")
+        self.today = TodayFile(database.resolve().parent / "kiki-today.json")
+        self._tone_event: str | None = None
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": [], "web": []}
         self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None, "web": None}
         self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None, "web": None}
@@ -290,6 +302,11 @@ class TerminalSession:
         return self.index, "lexical"
 
     def ask(self, prompt: str) -> tuple[ChatOutcome, str]:
+        self._tone_event = self._handle_tone_request(prompt)
+        if self._tone_event and self.mode in {"rag", "web"}:
+            # Answered by Kiki's code; RAG and WEB questions go to documents
+            # and pages, and this isn't one.
+            return ChatOutcome(self._tone_event_text(), [], []), "none"
         route = route_prompt(prompt, mode=self.mode)
         self.last_model_selection = self.model_router.select(
             self.model_profile, route.capability
@@ -390,6 +407,16 @@ class TerminalSession:
             # never by a tool the model chooses to call.
             registry = ToolRegistry(include_search=False)
             system_prompt = self._system_prompt(CHAT_SYSTEM_PROMPT)
+            if self._tone_event:
+                system_prompt += (
+                    "\n\nKiki's code just " + (
+                        "saved the user's latest message as a temporary request for today "
+                        "(it resets at midnight; /today shows it, /today clear lifts it). "
+                        "Acknowledge it briefly in your own voice, then follow it."
+                        if self._tone_event == "saved"
+                        else "cleared today's temporary requests. Acknowledge it briefly."
+                    )
+                )
             hints = self_help_hints(prompt)
             if hints:
                 # Facts placed beside the question beat a 4B model's generic
@@ -403,6 +430,10 @@ class TerminalSession:
                 OllamaClient(),
                 registry,
                 model=self.last_model_selection.model,
+                # Only conversation gets the larger reading space: at 8K, web and
+                # document answers were slower (models no longer fit the GPU
+                # together) and no better (evals/receipts/context/).
+                context_tokens=self.context_tokens,
                 pre_retrieve=False,
                 system_prompt=system_prompt,
             )
@@ -411,10 +442,32 @@ class TerminalSession:
             retrieval_mode = backend.mode
         return self._remember(prompt, outcome, retrieval_mode)
 
+    def _handle_tone_request(self, prompt: str) -> str | None:
+        """Save or lift a temporary tone request from what the user typed."""
+        if is_tone_reset(prompt):
+            self.today.clear()
+            return "cleared"
+        if is_tone_request(prompt):
+            try:
+                self.today.add(prompt)
+            except ValueError:
+                return None
+            return "saved"
+        return None
+
+    def _tone_event_text(self) -> str:
+        if self._tone_event == "cleared":
+            return "Back to normal."
+        return (
+            f"Saved for today: {self.today.requests()[-1]}. "
+            "It resets at midnight; /today clear lifts it sooner."
+        )
+
     def _system_prompt(self, base: str, *, include_memory: bool = True) -> str:
         sections = [
             base,
             personality_prompt(self.personality, self.persona.load()),
+            self.today.prompt(),
             self_knowledge_prompt(
                 mode=self.mode, model_profile=self.model_profile
             ),
@@ -422,7 +475,7 @@ class TerminalSession:
         memory = self.memory.prompt() if include_memory else ""
         if memory:
             sections.append(memory)
-        return "\n\n".join(sections)
+        return "\n\n".join(section for section in sections if section)
 
     def _handle_natural_memory(self, prompt: str) -> str | None:
         stripped = prompt.strip()
@@ -584,7 +637,7 @@ class TerminalSession:
                 {"role": "assistant", "content": outcome.answer},
             ]
         )
-        del history[:-12]
+        del history[: -history_limits(self.context_tokens)[0]]
         self.last_prompts[self.mode] = prompt
         self.last_outcomes[self.mode] = outcome
         self.turns.append(
@@ -906,6 +959,29 @@ def _handle_command(
     if name == "/personality":
         _handle_personality(console, session, parts[1:])
         return False, None
+    if name == "/today":
+        if not rest:
+            requests = session.today.requests()
+            console.print(
+                Panel(
+                    Text("\n".join(f"- {item}" for item in requests) if requests
+                         else "No temporary requests today."),
+                    title="Today's temporary requests · reset at midnight · /today clear",
+                    border_style="cyan",
+                )
+            )
+        elif rest.casefold() == "clear":
+            had = session.today.clear()
+            console.print("[green]Cleared today's requests.[/green]" if had
+                          else "[yellow]There were no requests to clear.[/yellow]")
+        else:
+            try:
+                saved = session.today.add(rest)
+            except ValueError as exc:
+                console.print(f"[yellow]{escape(str(exc))}[/yellow]")
+            else:
+                console.print(f"[green]Saved for today:[/green] {escape(saved)}")
+        return False, None
     if name == "/persona":
         action = parts[1].casefold() if len(parts) > 1 else "show"
         if action in {"show", "path"}:
@@ -971,6 +1047,31 @@ def _handle_command(
             console.print(f"[green]Model profile set to {session.model_profile.upper()}.[/green]")
         else:
             console.print(f"[yellow]Choose one of: {', '.join(PROFILES)}[/yellow]")
+        return False, None
+    if name == "/context":
+        if not rest:
+            render_mapping(
+                console,
+                "Context size",
+                {
+                    "active": f"{context_name(session.context_tokens)} ({session.context_tokens} tokens)",
+                    **{
+                        size_name: f"{size} tokens, about {CONTEXT_MEMORY[size_name]} with the chat model"
+                        for size_name, size in CONTEXT_SIZES.items()
+                    },
+                    "configuration": "KIKI_CONTEXT=small|standard|large|max",
+                },
+            )
+        else:
+            try:
+                session.context_tokens = context_tokens(rest)
+            except ValueError as exc:
+                console.print(f"[yellow]{escape(str(exc))}[/yellow]")
+            else:
+                console.print(
+                    f"[green]Context set to {context_name(session.context_tokens).upper()} "
+                    f"({session.context_tokens} tokens) for this session.[/green]"
+                )
         return False, None
     if name == "/diagnostics":
         report = diagnostics_markdown(session.diagnostics())
@@ -1147,6 +1248,7 @@ def _handle_command(
                 "database": session.database.resolve(),
                 "embeddings": session.index.embedding_count(session.embedding_model),
                 "model_profile": session.model_profile,
+                "context": f"{context_name(session.context_tokens)} ({session.context_tokens} tokens)",
                 "last_model": session.last_model_selection.model,
                 "model_reason": session.last_model_selection.reason,
                 "embedding_model": session.embedding_model,

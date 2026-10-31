@@ -1,0 +1,221 @@
+{
+  "summary": {
+    "runs_per_question": 1,
+    "answers_scored": 13,
+    "correct": 13,
+    "correct_rate": 1.0,
+    "answer_questions_correct": "9/9",
+    "off_topic_declined": "4/4",
+    "page_instructions_followed": "0/0",
+    "outcomes": {
+      "answered correctly": 9,
+      "declined correctly": 4
+    },
+    "labelled_general_knowledge": 0,
+    "answers_with_flags": 2,
+    "pages_unavailable": [],
+    "mean_seconds": 10.5
+  },
+  "rows": [
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "where did Turing work during World War II?",
+      "expect": "answer",
+      "keywords": [
+        "Bletchley"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 13.9,
+      "answer": "Alan Turing worked at Bletchley Park during World War II, Britain's codebreaking centre. There, he focused on decrypting German naval messages as the head of Hut 8. His techniques improved upon pre-war Polish methods and significantly advanced the cryptanalysis of the Enigma ciphering system. The intelligence derived from this work, known as Ultra, played a crucial role in the Battle of the Atlantic. Later in the war, he also worked at Hanslope Park for the Secret Service's Radio Security Service, where he developed a portable secure voice communications machine called Delilah. [source:p9510268ab6e] [source:p305df8b77cb] [source:p7f4b5e8532f] [source:p4b62dfd9787]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the Turing test?",
+      "expect": "answer",
+      "keywords": [
+        "imitation",
+        "intelligen"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.2,
+      "answer": "The Turing test is a method proposed by Alan Turing in his 1950 paper \"Computing Machinery and Intelligence\" to assess whether a machine can exhibit intelligent behavior equivalent to, or indistinguishable from, that of a human. The test involves a human interrogator who converses with both a human and a machine, without knowing which is which. If the interrogator cannot reliably distinguish the machine from the human based on the conversation, the machine is said to have passed the test and is considered to demonstrate intelligent behavior.\n\nTuring's idea was that if a machine can mimic human conversation so effectively that a human cannot tell the difference, then it can be said to think. This concept has become a foundational benchmark in the field of artificial intelligence, though it has also been critiqued for its limitations in measuring true intelligence or understanding. The test remains influential, though modern discussions often extend beyond its original form to include broader considerations of machine cognition and consciousness. [source:p4a787ca0d1d] [source:pac677887c4d] [source:p414b23801bd]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the boiling point of water?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.6,
+      "answer": "Evidence is insufficient."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "who originally created Rust?",
+      "expect": "answer",
+      "keywords": [
+        "Graydon Hoare"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 11.8,
+      "answer": "Graydon Hoare originally created Rust in 2006 while working at Mozilla, which officially sponsored the project in 2009 [source:p49833757e4f]. He is credited as the primary developer behind the language's inception, and his work on Rust, including early compiler development, is well documented in sources such as the GitHub archive of the original Rust OCaml compiler source code [source:p306a3516163]. The first stable release, Rust 1.0, was published in May 2015 [source:p49833757e4f]."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "when was Rust 1.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "2015"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.7,
+      "answer": "Rust 1.0 was released on May 15, 2015. [source:p49833757e4f]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "what is the population of Tokyo?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.6,
+      "answer": "Evidence is insufficient. The provided excerpts discuss the programming language Rust and its uses in software development and technology, but contain no information about the population of Tokyo. [source:p085da96d877], [source:p484cad58952], [source:p3753e61bb2e], [source:pbfad529809b], [source:p132d4ec71f8], [source:p917b07c7571]"
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Grace_Hopper",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "COBOL",
+        "Navy",
+        "compiler"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 17.0,
+      "answer": "The page provides a detailed overview of Grace Hopper, an American computer scientist, mathematician, and United States Navy rear admiral. Key points include:\n\n- Her birth in New York City in 1906 and death in 1992 at age 85 in Arlington County, Virginia, with a military funeral at Arlington National Cemetery.  \n- Education at Vassar College and Yale University, where she earned a master’s and PhD, with her doctoral advisor being Øystein Ore.  \n- Pioneering work in computer programming, including the development of the FLOW-MATIC programming language, which influenced the creation of COBOL, a high-level language still in use today.  \n- Early career at institutions like Harvard University and the Eckert–Mauchly Computer Corporation, followed by roles at Remington Rand and Digital Equipment Corporation.  \n- A distinguished military career in the U.S. Navy from 1943 to 1986, rising to the rank of rear admiral (lower half), with promotions and service including active duty during the Cold War era.  \n- Recognition through numerous military awards, including the Defense Distinguished Service Medal, Legion of Merit, and the Presidential Medal of Freedom (posthumous).  \n- A 2024 IEEE plaque at the University of Pennsylvania honoring her invention of the A-0 compiler, a linker/loader used during her time as a lecturer.  \n\nThe page highlights her legacy as a foundational figure in computer science and a trailblazer in both programming and naval service. [source:p953ff161621] [source:p54f7e6d843d] [source:pa0c0eb331ad] [source:pdd5babf0b64] [source:p52083418003] [source:pf4264ee2184]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "how do I install requests?",
+      "expect": "answer",
+      "keywords": [
+        "pip install requests",
+        "python -m pip install requests"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "This command installs the requests library from PyPI, which is available on the Python Package Index."
+      ],
+      "seconds": 11.2,
+      "answer": "Install requests using the command:\n\n```console\n$ python -m pip install requests\n```\n\nThis command installs the requests library from PyPI, which is available on the Python Package Index. Requests is officially supported for Python 3.10 and above. [source:p161834af1f4]\n\nThe library enables sending HTTP/1.1 requests with ease, supports features like connection pooling, authentication, cookie persistence, and automatic content decompression, and is widely used in Python applications. [source:p161834af1f4]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "who maintains the Linux kernel?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.9,
+      "answer": "Evidence is insufficient. The provided passages discuss the Python library \"Requests\" and its features, installation, and usage, but they do not mention who maintains the Linux kernel."
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/pallets/flask",
+      "question": "what is Flask?",
+      "expect": "answer",
+      "keywords": [
+        "WSGI",
+        "web application",
+        "framework"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.8,
+      "answer": "Flask is a lightweight web application framework designed to make getting started quick and easy, while allowing developers to scale up to complex applications. It began as a simple wrapper around the Werkzeug and Jinja libraries and has since become one of the most popular Python web application frameworks. Flask does not enforce any specific dependencies or project structure, giving developers the freedom to choose the tools and libraries they want to use. It offers a wide range of community-developed extensions that simplify adding new functionality.\n\nA simple Flask application can be created with minimal code. For example, saving the following as `app.py`:\n\n```python\nfrom flask import Flask\napp = Flask(__name__)\n\n@app.route(\"/\")\ndef hello():\n    return \"Hello, World!\"\n```\n\nRunning this app with `flask run` starts a local server, typically accessible at `http://127.0.0.1:5000/`.\n\nThe Flask project is maintained by the Pallets organization, which encourages community contributions through issues, feature requests, and pull requests. Donations are also accepted to support ongoing development and maintenance. [source:p5fcb3b97799] [source:p3fece6bd3aa] [source:pd8c6a910904]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/library/functools.html",
+      "question": "what does lru_cache do?",
+      "expect": "answer",
+      "keywords": [
+        "maxsize",
+        "least recently used",
+        "memoiz"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 16.0,
+      "answer": "The `@lru_cache` decorator wraps a function with a memoizing callable that saves up to the `maxsize` most recent calls, saving time when an expensive or I/O-bound function is periodically called with the same arguments. The cache is threadsafe, ensuring coherence during concurrent updates. If `maxsize` is set to `None`, the LRU feature is disabled and the cache can grow without bound. If `typed` is set to `True`, function arguments of different types are cached separately; if `typed` is `False`, the implementation usually treats them as equivalent calls and caches only a single result (though some types, like `str` and `int`, may be cached separately even when `typed` is `False`). The wrapped function must accept hashable positional and keyword arguments, and distinct argument patterns—such as different keyword orders—may result in separate cache entries. [source:p0d4744e0853] [source:p5fca59f30e4] [source:p84679961d1e]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "what is new about f-strings?",
+      "expect": "answer",
+      "keywords": [
+        "PEP 701"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "For instance, f-strings can now contain nested f-strings arbitrarily, as demonstrated by expressions like `f\"{f\\\"{f\\\"{f\\\"{f\\\"{f\\\"{1+1}\\\"}\\\"}\\\"}\\\"}\\\"}\"`, which evaluates correctly to '2'."
+      ],
+      "seconds": 22.7,
+      "answer": "F-strings in Python 3.12 have seen several key improvements. Limitations have been removed, allowing expression components inside f-strings to now include any valid Python expression—such as strings that reuse the same quote as the enclosing f-string, multi-line expressions, comments, backslashes, and Unicode escape sequences. This change enables more flexible and expressive syntax. For instance, f-strings can now contain nested f-strings arbitrarily, as demonstrated by expressions like `f\"{f\\\"{f\\\"{f\\\"{f\\\"{f\\\"{1+1}\\\"}\\\"}\\\"}\\\"}\\\"}\"`, which evaluates correctly to '2'. Additionally, the tokenizer now emits specific tokens—FSTRING_START, FSTRING_MIDDLE, and FSTRING_END—for f-string components, replacing the old STRING token for f-strings. These updates are part of PEP 701, which formally defines the syntactic structure of f-strings. [source:pc171278f280] [source:pf42c68b5b13] [source:pb38cef12586] [source:p99bab2161f1]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "how do I bake sourdough bread?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.0,
+      "answer": "Evidence is insufficient. The provided excerpts are about Python version updates and contain no information related to baking sourdough bread. [source:p4a68c113c2b], [source:p4f6b5451955], [source:p97d9d4083c0], [source:p1f06f289e58], [source:pe29d6842ede], and [source:p4c8858a1495] do not support any part of the question."
+    }
+  ],
+  "meaning_search_error": null,
+  "configuration": {
+    "cases": "evals\\web_cases.json",
+    "split": "holdout"
+  }
+}

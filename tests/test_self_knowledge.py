@@ -22,7 +22,7 @@ def test_every_subcommand_the_code_handles_is_in_her_self_knowledge() -> None:
         "smaller:", "/find alone", "/sources all", "/personality preset", "/personality TRAIT",
         "/persona show, path, or reset", "/diagnostics copy", "/diagnostics save",
         "/database browse", "/workspace browse", "/model [auto|fast|smart|max]",
-        "/forget NUMBER or TEXT", "/run [FILE.py]", "/apply FILE", "/new · /clear", "/quit · /exit",
+        "/forget NUMBER or TEXT", "/today shows", "/today TEXT", "/today clear", "/run [FILE.py]", "/apply FILE", "/new · /clear", "/quit · /exit",
     ]
     missing = [form for form in handled if form not in PROMPT]
     assert not missing

@@ -204,6 +204,122 @@ live sessions.
     the share of questions with the answer somewhere in the pool from 20/25 to
     22/25, at about 3 more seconds per question.
 
+## Future add-on: taking notes
+
+*Requested October 30, 2026. Not started.*
+
+**What the owner wants.** Say "can you note this for me: …" (or "jot down",
+"take a note", `/note TEXT`) and Kiki saves it to a dated, readable notes file.
+Later, "what did I note about our work yesterday?" makes Kiki read the notes for
+that date and answer from them.
+
+**How it differs from `/remember`.** Memory is a short list of standing facts
+that goes into every prompt. Notes are a growing, dated log that Kiki reads only
+when asked, so they cost nothing in ordinary conversation and can be long.
+
+**Sketch:**
+
+1. **Saving.** Kiki's code decides that a message is a note request, the same
+   way it handles "remember …" and "be nicer today". The model gets no
+   file-writing tool. The model may tidy the wording (typos, stray words), but
+   the user sees the tidied version and the original is kept beside it, so a
+   "correction" can never quietly change what was said. Notes containing
+   passwords, card numbers, or other secrets go through the same filter as
+   memory.
+2. **The file.** Plain Markdown next to the library (`kiki-notes.md`), or one
+   file per month once it grows: a `## 2026-10-30 (Friday)` heading per day, a
+   time and the note beneath it. It stays readable and editable by hand.
+3. **Reading.** "What did I note yesterday / on Tuesday / about the demo?"
+   Kiki's code resolves the dates from the message (yesterday, last week, a
+   named day) and, for topics, searches the notes the way RAG searches
+   documents. Only the matching days go to the model, which answers in Kiki's
+   voice and cites the date and time of each note. If nothing matches, she says
+   so rather than guessing.
+4. **Commands:** `/notes` (today), `/notes DATE`, `/notes search WORDS`,
+   `/note TEXT`, and a way to delete a note by number.
+
+**Approval needed:** it writes files, so it passes the human-review checkpoint
+for tools that modify files. It also shares the passcode lock's privacy
+concerns: notes are personal and would be among the first files to encrypt.
+
+## Future add-on: locking Kiki with a passcode
+
+*Proposed October 30, 2026. Not started; needs the owner's approval, and a new
+dependency (`cryptography`) that needs its own approval.*
+
+**The problem.** Anyone using the owner's unlocked computer can open Kiki and
+ask what's in the saved notes, the conversations, or the indexed documents. In
+the calibration role-play, a coworker on a borrowed laptop asked exactly that.
+Kiki's character refuses, but a refusal from the model is not security. The
+person can rephrase, or open the files directly.
+
+**What is actually worth protecting.** Kiki's source code holds nothing secret:
+it is public on GitHub. The private material is the data folder next to the
+library (`.kiki/` by default):
+
+- the library databases (`*.sqlite3`), which hold the extracted text of every
+  indexed document, including the backup copies; this is the most sensitive
+  part;
+- `kiki-memory.md`, `kiki-persona.md`, and `kiki-personality.json`;
+- `kiki-input-history` (past prompts) and `kiki-web-log.jsonl`;
+- anything saved with `/save` or `/diagnostics save`.
+
+**Why hashing alone won't do it.** A hash is one-way: good for checking a
+passcode, useless for hiding data Kiki must read back. This needs encryption:
+
+1. Turn the passcode into a key with a deliberately slow function (Argon2id or
+   scrypt; Python's `hashlib.scrypt` is built in) and a random salt.
+2. Encrypt each file with an authenticated cipher (AES-GCM or
+   ChaCha20-Poly1305 from the `cryptography` package). Authentication also
+   detects tampering.
+3. At start, Kiki asks for the passcode, decrypts into memory, and re-encrypts
+   on every write. Plain text never touches the disk.
+4. Lock again after a period of inactivity and on `/lock`.
+5. At setup, show a recovery key once. Without the passcode or recovery key,
+   the data is gone. The library can be rebuilt from the original documents;
+   saved notes cannot.
+
+**The hard part.** The library database. SQLite has no built-in encryption.
+The options:
+
+- SQLCipher: a different SQLite build, and awkward to install on Windows;
+- encrypting the text columns inside Kiki: works, but every search and index
+  path changes;
+- decrypting to a temporary file: leaves plain text on disk, so rejected.
+
+Encrypting files also gives up a design promise: notes and persona are plain
+files you can edit by hand. Editing would move inside Kiki (`/persona edit`,
+`/memory`), or to an explicit `kiki unlock --export` that you delete afterwards.
+
+**What a lock would still not stop.**
+
+- Anyone at the logged-in Windows account can still open the original
+  documents in File Explorer. Kiki's lock protects Kiki's copy, not your
+  folders.
+- Malware running as you while Kiki is unlocked.
+- Someone watching the screen.
+
+The real first line of defence is Windows itself:
+
+- lock the screen (`Win+L`) whenever you step away;
+- give other people their own Windows account;
+- turn on BitLocker in case the device is stolen.
+
+**Suggested stages, if built:**
+
+1. **Passcode gate.** Kiki asks for a passcode (stored as a slow hash) before
+   starting a session. This stops the borrowed-laptop case through Kiki. It
+   takes about a day, needs no new dependency, and does not protect the files
+   themselves.
+2. **Encrypt the small files**: memory, persona, personality, input history,
+   web log.
+3. **Encrypt the library**, after choosing between SQLCipher and column
+   encryption, with a full evaluation rerun.
+
+**Until then, the accepted risk:** Kiki assumes whoever is typing is the
+owner. Someone with access to the logged-in computer can use her, or read her
+data folder directly. Lock the screen.
+
 ## Housekeeping
 
 - The pre-upgrade search library is kept at `.kiki/history.pre-v4.sqlite3`

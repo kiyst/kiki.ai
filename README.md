@@ -131,7 +131,7 @@ A few details make this work better on a small model:
 - About 3.5 GB of disk for the two default models; a GPU with 6–8 GB is
   comfortable
 - 16 GB of RAM. Kiki is designed for 16 GB machines with everyday apps open
-  and does not assume more
+  and does not assume more; see [Fitting Kiki to your computer](#fitting-kiki-to-your-computer)
 
 ### Steps
 
@@ -152,6 +152,61 @@ Check that everything is reachable:
 ```powershell
 kiki doctor
 ```
+
+### Fitting Kiki to your computer
+
+Kiki runs entirely on your machine, so how much she can hold in mind depends on
+your memory. Her **context** is everything she reads for one reply: her
+instructions, the recent conversation, any document or web passages, and room
+for the answer. A bigger context lets her remember further back in a long
+conversation. It does not make her smarter, and nothing carries over between
+sessions except notes saved with `/remember`.
+
+The setting applies to ordinary conversation (CHAT). Document and web answers
+stay at 4K: at 8K they were no better, and about half again slower on an 8 GB
+card, because the chat, search, and grading models no longer fit on it together
+([receipts](evals/receipts/context/)).
+
+| Size | Tokens | Memory for the chat model | For |
+| --- | ---: | ---: | --- |
+| `small` | 4,096 | about 3.2 GB | any computer that runs Kiki at all; about the last six exchanges |
+| `standard` (default) | 8,192 | about 3.9 GB | most 16 GB computers; about the last twelve exchanges |
+| `large` | 16,384 | about 5.1 GB | a graphics card with 6 GB or more |
+| `max` | 32,768 | about 7.9 GB | a graphics card with more than 8 GB |
+
+Measured with `kiki-personality:v1` on an 8 GB GTX 1080. `small` through
+`large` fit entirely on that card; `max` spilled a fifth onto the processor,
+which makes every reply slower. Without a graphics card the same amounts come
+out of ordinary RAM.
+
+Choose a size for the current session with `/context large`, or for every
+session:
+
+```powershell
+setx KIKI_CONTEXT standard     # small, standard, large, or max; open a new terminal after
+```
+
+Other things that use memory:
+
+- Document questions (RAG) also load the search (embedding) model, about 1.2 GB
+  once loaded, and the grader. `--no-rerank` skips the grader.
+- Ollama keeps a model loaded for five minutes after its last reply.
+  `ollama ps` shows what is loaded, how big it is, and whether any of it spilled
+  onto the processor (`CPU/GPU`); `ollama stop MODEL` frees it at once.
+- Long conversations at a large size take longer before the first word appears,
+  because Kiki rereads everything she keeps in mind.
+
+If Kiki is slow or Ollama reports it is out of memory:
+
+1. Close memory-heavy apps first: browsers with many tabs, games, video
+   editors, virtual machines, and Docker.
+2. Check Task Manager → Performance → Memory (and GPU) to see what's left.
+3. Drop one size with `/context`, or start a fresh conversation with `/new`.
+4. Avoid indexing large folders or running evaluations while you work in other
+   heavy apps; run one heavy job at a time.
+
+A larger context is one way to give Kiki more on bigger hardware; the other is a
+larger model, set with `KIKI_MODEL_MAX` (see [Configuration](#configuration)).
 
 ## Usage
 
@@ -193,7 +248,9 @@ kiki --database .kiki\history.sqlite3 run
 | `/forget NUMBER` | Delete a note by number (or by matching text) |
 | `/personality` | Adjust warmth, wit, opinions, and verbosity |
 | `/persona [show\|reset]` | View or reset the editable persona file |
+| `/today [TEXT\|clear]` | Temporary tone requests ("be nicer today"); they reset at midnight |
 | `/model [auto\|fast\|smart\|max]` | Choose a model profile |
+| `/context [small\|standard\|large\|max]` | Show or choose how much of the conversation Kiki keeps in mind |
 | `/status` | Mode, library, models, and settings at a glance |
 | `/doctor` | Health check for Ollama, the library, and weather |
 | `/debug` | Show search steps and tool calls under each answer |
@@ -472,8 +529,10 @@ links in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) into
 | `KIKI_FALLBACK_MODEL` | environment | Comma-separated backups if the main model fails |
 | `kiki-persona.md` | next to the library | Kiki's editable persona, reloaded on every reply |
 | `kiki-memory.md` | next to the library | Your saved notes, plain Markdown |
+| `kiki-today.json` | next to the library | Today's temporary tone requests; ignored after midnight |
 | `kiki-web-log.jsonl` | next to the library | Every web request: time, address, outcome |
 | `KIKI_OFFLINE` | environment | `1` blocks all internet requests (web pages and weather) |
+| `KIKI_CONTEXT` | environment | Reading space: `small`, `standard` (default), `large`, or `max`; see [Fitting Kiki to your computer](#fitting-kiki-to-your-computer) |
 
 ### Install the reviewed personality model
 
@@ -659,6 +718,10 @@ Roughly in priority order (details in the
 Paused for a future, optional addition: running JavaScript/TypeScript, C/C++,
 Rust, Go, and Java through Docker. It is too memory-hungry for the 16 GB
 target today.
+
+Proposed for later: locking Kiki with a passcode and encrypting her data folder
+([details](docs/DEVELOPMENT_NOTES.md#future-add-on-locking-kiki-with-a-passcode)).
+Until then she assumes whoever is typing is the owner, so lock your screen.
 
 Not planned: voice, a job engine, or controlling your mouse and keyboard.
 

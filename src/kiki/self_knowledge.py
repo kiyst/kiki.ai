@@ -27,10 +27,12 @@ COMMAND_HELP = (
     ("/debug", "Toggle search steps and tool calls under each answer."),
     ("/personality · /personality preset NAME · /personality TRAIT 0-3", "Show or set warmth, wit, opinions, and verbosity."),
     ("/persona [show|path|reset]", "Show, locate, or reset the editable persona file."),
+    ("/today · /today TEXT · /today clear", "Show, add, or lift temporary tone requests; they reset at midnight."),
     ("/remember TEXT", "Save an explicit, non-sensitive note."),
     ("/memory", "List saved notes, numbered."),
     ("/forget NUMBER|TEXT", "Delete a saved note by number or matching text."),
     ("/model [auto|fast|smart|max]", "Show or choose a model profile."),
+    ("/context [small|standard|large|max]", "Show or choose how much of a CHAT conversation Kiki keeps in mind (this session only)."),
     ("/diagnostics [copy|save]", "A privacy-filtered support report."),
     ("/capabilities", "What Kiki can and cannot do."),
     ("/help", "All commands."),
@@ -49,13 +51,16 @@ COMMAND_FORMS = (
     "/personality shows tone settings; /personality TRAIT 0-3 sets warmth, wit, opinions, or "
     "verbosity (e.g. /personality wit 3); /personality preset NAME",
     "/remember TEXT saves a note; /memory lists notes; /forget NUMBER or TEXT deletes one",
+    "/today shows temporary tone requests; /today TEXT adds one; /today clear lifts them; saying "
+    "\"be nicer today\" or \"no jokes while we work\" saves one too, and \"back to normal\" lifts them; "
+    "all reset at midnight",
     "/persona show, path, or reset; /sources (cited passages) or /sources all; "
     "/diagnostics, /diagnostics copy, or /diagnostics save",
 )
 
 
 def self_knowledge_prompt(*, mode: str, model_profile: str) -> str:
-    multi = {"/web", "/folders", "/find", "/personality", "/remember", "/memory", "/forget",
+    multi = {"/web", "/folders", "/find", "/personality", "/remember", "/memory", "/forget", "/today",
              "/persona", "/sources", "/diagnostics"}
     others = "; ".join(command for command, _ in COMMAND_HELP if command.split()[0] not in multi)
     forms = "\n".join(f"  - {line}" for line in COMMAND_FORMS)
@@ -68,11 +73,12 @@ def self_knowledge_prompt(*, mode: str, model_profile: str) -> str:
 - Documents: reads .txt, .md, .pdf with text (not scans), .docx, .html; cites lines, pages, or paragraphs. Only folders the user added with /folders add or kiki index; never browses the disk; folders are not watched (/folders reindex picks up changes). /find also lists files she cannot read, by name, folder, and type. She cannot run /find herself; suggest it.
 - Web: online only when the user types /web or asks about weather (Open-Meteo); KIKI_OFFLINE=1 blocks both. One public page at a time, read by meaning and words; no web search, no following links, no logins, no JavaScript-built pages, no PDFs from the web. Requests are announced and logged in kiki-web-log.jsonl. Local addresses are refused, hidden text and text aimed at AI assistants are left out, and unsupported details are flagged. In CHAT and RAG no page is visible to you: never say what a page contains there; tell the user to type /web to return to it.
 - Code: she writes and explains code but cannot run it; the user runs it with /run in an offline sandbox with no file access, and saves it with /apply after reviewing a diff. Never claim code ran or a file changed unless the user did it.
+- Conversation: she keeps only the recent part of this conversation in mind (how much depends on /context, set for the computer's memory); closing Kiki clears it. She speaks only when the user sends a message: no reminders, alarms, or messages on her own.
 - Memory: only notes the user saves with /remember, kept in kiki-memory.md, removed with /forget; not used in WEB mode. kiki-persona.md and kiki-personality.json set her voice.
 - Tools the model can call: search_files in RAG and WEB modes only. Weather is fetched by Kiki's code when the user asks. No shell, screen control, background jobs, or voice.
 When asked how Kiki works or what is available, answer from this runtime knowledge, giving every form listed for a command. Do not invent commands, tools, settings, or completed actions.
 - If asked to search the web or look something up online: say you have no web search, and suggest /web followed by a page's address (a Wikipedia article, say).
-- If asked to be wittier, warmer, more serious, or shorter: you can't change your own settings; tell the user to type /personality TRAIT 0-3, for example /personality wit 3."""
+- If asked to be wittier, warmer, more serious, or shorter: for today only, Kiki's code saves requests like "be nicer today" (see /today); for good, tell the user to type /personality TRAIT 0-3, for example /personality wit 3."""
 
 
 # Topic -> the facts to put in front of the model when a message is about that
