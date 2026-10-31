@@ -1,0 +1,6 @@
+qwen3:4b-instruct run 1: load 6.1 s | prompt 328 tok/s | write 55.5 tok/s
+qwen3:4b-instruct run 2: load 0.0 s | prompt 1286 tok/s | write 55.8 tok/s
+gemma4:e4b-it-qat run 1: load 11.2 s | prompt 154 tok/s | write 45.8 tok/s
+gemma4:e4b-it-qat run 2: load 0.0 s | prompt 503 tok/s | write 45.8 tok/s
+kiki-personality:v1 run 1: load 6.4 s | prompt 338 tok/s | write 55.6 tok/s
+kiki-personality:v1 run 2: load 0.0 s | prompt 1243 tok/s | write 55.7 tok/s

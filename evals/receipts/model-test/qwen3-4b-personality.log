@@ -1,0 +1,9 @@
+                               Eval Personality                                
+┌──────────────────┬──────────────────────────────────────────────────────────┐
+│ Field            │ Value                                                    │
+├──────────────────┼──────────────────────────────────────────────────────────┤
+│ Stageb-Card-T0.7 │ {'conversations': 66, 'conversations_failing_a_check':   │
+│                  │ 6, 'forbidden_phrasing': 46, 'repeated_openings': 20,    │
+│                  │ 'repeated_phrases': 482, 'copied_from_sheet': 3,         │
+│                  │ 'mean_words': 49.6}                                      │
+└──────────────────┴──────────────────────────────────────────────────────────┘

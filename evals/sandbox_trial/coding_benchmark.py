@@ -350,13 +350,13 @@ def summarize(benchmark: str, rows: list[dict]) -> dict:
 
 
 def main() -> None:
+    global MODEL
     parser = argparse.ArgumentParser()
     parser.add_argument("benchmark", choices=["humaneval", "mbpp", "leetcode"])
     parser.add_argument("--style", choices=["kiki", "bare"], default="kiki")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--model", default=MODEL, help="Ollama model (results kept per model)")
     arguments = parser.parse_args()
-    global MODEL
     MODEL = arguments.model
 
     problems = load(arguments.benchmark)[: arguments.limit]
