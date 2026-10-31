@@ -564,8 +564,13 @@ class TerminalSession:
 
     def _update_danger(self, prompt: str) -> None:
         """Set or keep the danger note for this CHAT turn."""
-        earlier = [item["content"] for item in self.histories["chat"] if item.get("role") == "user"]
-        signal = self.danger.check(prompt, earlier[-3:])
+        # Both sides: "could do better" answered Kiki's "You?", and the judge
+        # called it medical when it saw only the user's lines (2026-10-31).
+        earlier = [
+            f"{'User' if item.get('role') == 'user' else 'Kiki'}: {str(item.get('content', ''))[:300]}"
+            for item in self.histories["chat"][-4:]
+        ]
+        signal = self.danger.check(prompt, earlier)
         if signal:
             self.danger_kind = signal.kind
             self._danger_turns_left = NOTE_TURNS

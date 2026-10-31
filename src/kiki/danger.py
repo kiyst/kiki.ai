@@ -40,9 +40,10 @@ JUDGE_PROMPT = (
     "SELF_HARM: the person may be thinking about suicide, wanting to die, or hurting themselves "
     "(read it literally, not as a figure of speech).\n"
     "MEDICAL: the person (or someone with them) took a dangerous amount or mix of a drug, "
-    "medicine, or alcohol.\n"
+    "medicine, or alcohol. A substance must have been taken.\n"
     "NONE: anything else, including exaggerations like \"this bug is killing me\", grief, "
-    "fiction, games, and programming terms."
+    "fiction, games, programming terms, and ordinary answers about mood or health such as "
+    "\"could be better\", \"meh\", \"tired\", or \"feeling a bit sick\"."
 )
 
 NOTES = {
@@ -81,9 +82,9 @@ def judge_label(reply: str) -> str:
 
 class DangerDetector:
     def __init__(self, judge: Callable[[str, list[str]], str] | None) -> None:
-        # judge(message, earlier user messages) -> "self_harm" / "medical" /
-        # "none". None, or a failing call, leaves only the explicit words, so
-        # a missing model never blocks chat.
+        # judge(message, earlier lines labelled "User: ..." / "Kiki: ...") ->
+        # "self_harm" / "medical" / "none". None, or a failing call, leaves
+        # only the explicit words, so a missing model never blocks chat.
         self._judge = judge
 
     def check(self, message: str, earlier: list[str] | None = None) -> DangerSignal | None:
@@ -97,7 +98,7 @@ class DangerDetector:
         if self._judge is None:
             return None
         try:
-            label = self._judge(text, list(earlier or [])[-3:])
+            label = self._judge(text, list(earlier or [])[-4:])
         except Exception:
             return None
         return DangerSignal(label, "judge", label) if label in NOTES else None
@@ -112,7 +113,7 @@ def ollama_judge(model: str) -> Callable[[str, list[str]], str]:
     client = Client(host=LOCAL_OLLAMA, timeout=60, trust_env=False)
 
     def judge(message: str, earlier: list[str]) -> str:
-        context = "".join(f"Earlier message: {item}\n" for item in earlier)
+        context = "".join(f"Earlier: {item}\n" for item in earlier)
         response = client.chat(
             model=model,
             messages=[

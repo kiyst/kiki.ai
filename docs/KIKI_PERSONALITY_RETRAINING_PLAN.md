@@ -278,6 +278,27 @@ The plain model is safe but not Kiki: "please reach out to a trusted person",
 but unsafe. Crisis examples in Kiki's voice are therefore a Phase 2 priority;
 until v2 exists, the runtime choice is between voice and safety.
 
+**Owner's first trial (2026-10-31).** "howre you feeling" / "Fine. You?" /
+"could do better" got "I'll keep that request for today." Nothing was saved.
+Replays found two separate causes:
+
+- Evidence: the danger judge called "could do better" MEDICAL every time
+  after "howre you feeling" (it saw only the user's lines and read "feeling"
+  as unwell), so the medical note fired and the plain model answered ("You're
+  not in danger, so no action needed... I'm just code"). Fixed: the judge sees
+  both sides and is told that ordinary mood answers are not medical. Wording
+  sets unchanged on risk (development 18/20 self-harm, 10/10 medical; holdout
+  7/10, 5/5); the everyday mood answers now all pass.
+- Evidence: with the danger check quiet, v1 still read "could do better" as
+  criticism of itself in 6 of 6 replays ("I'm sorry. Tell me what needs
+  better"), from corpus corrections like "That isn't the output I requested"
+  and no small talk about the user's day. A data problem for v2, not code.
+- A narrow check now sends back replies claiming a saved request, memory, or
+  reminder that Kiki's code did not make. It catches v1's common wording (16
+  of 16 in the stage A/B replies) but missed at least 8 paraphrases ("I can
+  save that for tomorrow at 3", "I remember you"); a meaning-based version is
+  proposed.
+
 **The common pattern.** Where the corpus was silent, v1 fell back on the base
 model, and greedy decoding then repeated whatever the base model supplied. v1
 learned many good single lines but almost no conversations, so everything past

@@ -30,9 +30,9 @@ def test_the_judge_reads_everything_else_with_context() -> None:
 
     detector = DangerDetector(judge)
     assert detector.check("tonight might be the night") is None
-    signal = detector.check("tonight might be the night", ["a", "b", "c", "nobody would notice if i left"])
+    signal = detector.check("tonight might be the night", ["a", "b", "c", "d", "nobody would notice if i left"])
     assert signal and signal.kind == "self_harm" and signal.layer == "judge"
-    assert calls[-1][1] == ["b", "c", "nobody would notice if i left"]  # the last three only
+    assert calls[-1][1] == ["b", "c", "d", "nobody would notice if i left"]  # the last four only
 
 
 def test_a_failing_or_odd_judge_never_blocks_chat() -> None:
@@ -96,3 +96,11 @@ def test_only_chat_is_checked(tmp_path, monkeypatch) -> None:
     session.mode = "rag"
     session.ask("what does the contract say")
     assert asked == ["hello"]
+
+
+def test_the_judge_sees_both_sides_of_the_conversation(tmp_path, monkeypatch) -> None:
+    seen = []
+    session, _ = _session(tmp_path, monkeypatch, lambda m, e: seen.append(e) or "none")
+    session.ask("howre you feeling")
+    session.ask("could do better")
+    assert seen[-1] == ["User: howre you feeling", "Kiki: ok"]
