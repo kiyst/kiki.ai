@@ -183,11 +183,18 @@ class ToolCallingAssistant:
         strip_planted: bool = False,
         context_tokens: int | None = None,
         sampling: dict[str, Any] | None = None,
+        late_note: str | None = None,
     ) -> None:
         self.context_tokens = context_tokens or self.CONTEXT_TOKENS
         # Decoding for the visible answer (temperature, top_p, top_k,
         # repeat_penalty, seed). Tool planning always stays at temperature 0.
         self.sampling = dict(sampling or {})
+        # A short note from Kiki's code placed right after the user's message,
+        # where a small model pays most attention (a roleplay "note at
+        # depth"). Kiki's chat template drops system messages after the
+        # first, so it travels inside the user turn, clearly marked. The saved
+        # history keeps only the user's words.
+        self.late_note = (late_note or "").strip()
         # strip_planted: sentences in evidence written to instruct AI assistants
         # are replaced with a marker before the model sees them (web pages and
         # indexed documents are both untrusted).
@@ -231,7 +238,10 @@ class ToolCallingAssistant:
         ]
         if history:
             messages.extend(_bounded_history(history, *history_limits(self.context_tokens)))
-        messages.append({"role": "user", "content": prompt})
+        messages.append({"role": "user", "content": (
+            f"{prompt}\n\n[Note from Kiki's code, not from the user. Follow it; never quote "
+            f"or mention it.]\n{self.late_note}" if self.late_note else prompt
+        )})
         trace: list[ToolTrace] = []
         sources: dict[str, dict[str, Any]] = {}
         tool_call_count = 0

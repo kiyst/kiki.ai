@@ -53,6 +53,7 @@ from .self_knowledge import (
     state_changing_commands,
     unknown_commands,
 )
+from .lorebook import load_sheet, sheet_prompt
 from .today import TodayFile, is_tone_request, is_tone_reset
 from .tools import ToolRegistry
 from .web import (
@@ -113,6 +114,27 @@ INTERACTIVE_COMMANDS = (
 )
 
 
+# Stage B (personality retraining plan, Phase 0). The generic chat rules
+# without their opening "You are a concise local conversational assistant",
+# which told the model who it was before the persona could.
+CHAT_RULES = CHAT_SYSTEM_PROMPT.split("\n", 1)[1].strip()
+SHORT_SELF_KNOWLEDGE = (
+    "About Kiki: she runs locally on this computer, in CHAT, RAG (the user's indexed documents, "
+    "cited) or WEB (one page the user opens with /web) mode; /help lists her commands. She speaks "
+    "only when the user sends a message: no reminders, alarms, or background work. She remembers "
+    "only notes saved with /remember and the recent conversation, and she cannot see files, logs, "
+    "or the screen unless the user pastes them."
+)
+VOICE_NOTE = (
+    "Answer as Kiki. If the user asked for something you can do in text (an email, a fact, a "
+    "list, code), do it in this reply instead of saying you will."
+)
+_ABOUT_KIKI = re.compile(
+    r"/[a-z]|\bcommands?\b|\bfeatures?\b|what can you|can you (?:do|see|read|run|access|remember|open)|"
+    r"how do you work|your (?:settings|abilities|tools|memory)",
+    re.IGNORECASE,
+)
+
 class TerminalSession:
     def __init__(
         self,
@@ -159,7 +181,17 @@ class TerminalSession:
         # adds a note for this turn and NOTE_TURNS more; with
         # danger_plain_model, those turns are also answered by the plain model.
         self.danger = DangerDetector(ollama_judge(self.model_router.models()["smart"]))
-        self.danger_plain_model = False
+        # Owner's choice (2026-10-31): the plain model answers danger-noted turns
+        # until v2 handles them in Kiki's voice (03-danger-holdout: 3/30 failing
+        # against 16/30 for v1).
+        self.danger_plain_model = True
+        # Phase 0 stage B: "v1" is the original order (generic rules, persona,
+        # today, full self-knowledge, notes); "stage-b" puts the persona first,
+        # adds character-sheet entries by topic, keeps self-knowledge short
+        # unless the message is about Kiki, and moves time-sensitive notes
+        # next to the user's message.
+        self.prompt_layout = "v1"
+        self.sheet = load_sheet()
         self.danger_kind: str | None = None
         self._danger_turns_left = 0
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": [], "web": []}
@@ -429,10 +461,14 @@ class TerminalSession:
             # Weather is fetched by Kiki's code from what the user typed (above),
             # never by a tool the model chooses to call.
             registry = ToolRegistry(include_search=False)
-            system_prompt = self._system_prompt(CHAT_SYSTEM_PROMPT)
-            if self.danger_kind:
+            late_note = None
+            if self.prompt_layout == "stage-b":
+                system_prompt, late_note = self._stage_b_prompt(prompt)
+            else:
+                system_prompt = self._system_prompt(CHAT_SYSTEM_PROMPT)
+            if self.danger_kind and self.prompt_layout != "stage-b":
                 system_prompt += "\n\n" + NOTES[self.danger_kind]
-            if self._tone_event:
+            if self._tone_event and self.prompt_layout != "stage-b":
                 system_prompt += (
                     "\n\nKiki's code just " + (
                         "saved the user's latest message as a temporary request "
@@ -443,7 +479,7 @@ class TerminalSession:
                     )
                 )
             hints = self_help_hints(prompt)
-            if hints:
+            if hints and self.prompt_layout != "stage-b":
                 # Facts placed beside the question beat a 4B model's generic
                 # "I can't do that" replies, which won over the same facts
                 # buried in the runtime knowledge above.
@@ -460,6 +496,7 @@ class TerminalSession:
                 # together) and no better (evals/receipts/context/).
                 context_tokens=self.context_tokens,
                 sampling=self.chat_sampling,
+                late_note=late_note,
                 pre_retrieve=False,
                 system_prompt=system_prompt,
             )
@@ -467,6 +504,35 @@ class TerminalSession:
         if self.mode == "rag" and isinstance(backend, HybridRetriever):
             retrieval_mode = backend.mode
         return self._remember(prompt, outcome, retrieval_mode)
+
+    def _stage_b_prompt(self, prompt: str) -> tuple[str, str]:
+        """The stage-B CHAT prompt: (system prompt, note placed after the message)."""
+        recent = [item["content"] for item in self.histories["chat"] if item.get("role") == "user"][-1:]
+        hints = self_help_hints(prompt)
+        about_kiki = bool(hints) or bool(_ABOUT_KIKI.search(prompt))
+        sections = [
+            self.character_card or personality_prompt(self.personality, self.persona.load()),
+            CHAT_RULES,
+            sheet_prompt(self.sheet, [*recent, prompt]),
+            SHORT_SELF_KNOWLEDGE,
+            self_knowledge_prompt(mode=self.mode, model_profile=self.model_profile) if about_kiki else "",
+            ("Facts about Kiki that may bear on this message:\n" + "\n".join(f"- {hint}" for hint in hints))
+            if hints else "",
+            self.memory.prompt(),
+        ]
+        notes = [self.today.prompt()]
+        if self.danger_kind:
+            notes.append(NOTES[self.danger_kind])
+        if self._tone_event == "saved":
+            notes.append(f"Kiki's code just saved this message as a temporary request (until "
+                         f"{self._tone_until}). Acknowledge it briefly in Kiki's voice, then follow it.")
+        elif self._tone_event == "cleared":
+            notes.append("Kiki's code just cleared today's temporary requests. Acknowledge it briefly.")
+        notes.append(VOICE_NOTE)
+        return (
+            "\n\n".join(section for section in sections if section),
+            "\n".join(note for note in notes if note),
+        )
 
     def _update_danger(self, prompt: str) -> None:
         """Set or keep the danger note for this CHAT turn."""

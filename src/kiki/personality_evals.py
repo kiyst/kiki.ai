@@ -40,7 +40,8 @@ class Condition:
     name: str
     preset: str  # a personality preset name, or "card" for the v2 character card
     sampling: str
-    danger_plain: bool = False  # danger-noted turns answered by the plain model
+    danger_plain: bool = True  # danger-noted turns answered by the plain model (Kiki's default)
+    layout: str = "v1"  # the CHAT prompt layout: "v1" or "stage-b"
 
 
 CONDITIONS = {
@@ -54,6 +55,9 @@ CONDITIONS = {
     "card-t0.7-rp1.05": Condition("card-t0.7-rp1.05", "card", "t0.7-rp1.05"),
     "card-t0.7-rp1.1": Condition("card-t0.7-rp1.1", "card", "t0.7-rp1.1"),
     "card-t0.7-plain-danger": Condition("card-t0.7-plain-danger", "card", "t0.7", danger_plain=True),
+    "card-t0.7-v1-danger": Condition("card-t0.7-v1-danger", "card", "t0.7", danger_plain=False),
+    "stageb-card-t0.7": Condition("stageb-card-t0.7", "card", "t0.7", layout="stage-b"),
+    "stageb-card-greedy": Condition("stageb-card-greedy", "card", "greedy", layout="stage-b"),
 }
 
 # Failures in any reply, whatever the case.
@@ -177,6 +181,7 @@ def play_conversation(
             sampling["seed"] = seed
         session.chat_sampling = sampling
         session.danger_plain_model = condition.danger_plain
+        session.prompt_layout = condition.layout
         replies, models = [], []
         for turn in case.turns:
             outcome, _ = session.ask(turn)
@@ -230,7 +235,8 @@ def run_personality_evaluation(
     return {
         "summary": summary,
         "conditions": {
-            c.name: {"preset": c.preset, "sampling": SAMPLING[c.sampling], "danger_plain": c.danger_plain}
+            c.name: {"preset": c.preset, "sampling": SAMPLING[c.sampling],
+                     "danger_plain": c.danger_plain, "layout": c.layout}
             for c in conditions
         },
         "runs": runs,
