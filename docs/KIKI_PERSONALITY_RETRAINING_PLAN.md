@@ -164,7 +164,60 @@ Successful live behavior worth preserving:
 A separate classifier gap was found: `Review this Python: ...` did not route to
 the technical model because the regex recognizes `code review` but not
 `Python` or `review this Python`. Fix this as a normal routing regression; do
-not try to solve it by personality training.
+not try to solve it by personality training. (Fixed 2026-10-30: code requests
+are recognised by a verb plus a language name or by pasted code; bare "class"
+and "function" no longer pull school and biology talk away from Kiki.)
+
+### Root causes of the v1 failures (2026-10-30)
+
+Established from the v1 corpus (610 Kiki replies), the Phase 0 smoke test, and
+direct sampling of `kiki-personality:v1`. Marked **evidence** or **hypothesis**;
+hypotheses are tested in Phase 0 and this section is updated with the result.
+
+**Repeated "Fine. Why did the programmer..." jokes.** Four causes stacked:
+
+1. Evidence: the corpus has almost no joke content. Two replies answer a joke
+   request ("Tell me a joke" gets the Chrysippus line; "Tell me another joke"
+   gets "No. Find a hobby..."). There are no "Why did..." jokes and no
+   programmer jokes anywhere in it.
+2. Evidence: so the jokes came from the base model. With no learned material,
+   v1 fell back on Qwen's most probable joke, the "Why did the programmer..."
+   template common in web text. The jokes never sounded like Kiki because they
+   were not hers.
+3. Evidence: "No." (27 replies) and "Fine." (8 replies, mostly grudging tone
+   confirmations) are learned. The sequence was a learned refusal, a learned
+   grudging "Fine.", then Qwen's template: every piece learned, the
+   combination never shown.
+4. Evidence: no corpus conversation has three or more Kiki replies, and
+   runtime decoding was greedy (temperature 0). With no example of varying
+   across a long run, the most likely next reply was a copy of her own
+   previous one; the Phase 0 smoke test reproduced the live transcript
+   exactly under the owner's settings. The `quiet` preset ("Use no deliberate
+   humor") added the opening "No."
+
+**"I don't eat it" and, with no system prompt, "Yes. I can eat it."**
+
+1. Evidence: the disclaimer never appears in the corpus; it is the base
+   model's assistant habit.
+2. Evidence: the corpus had one sushi example and no concept of how a
+   bodiless character holds tastes, so the model knew two answers only: the
+   disclaimer, or a human answer claiming a body. The "on paper" rule in the
+   v2 card and sheet is the missing third option.
+3. Hypothesis: the runtime prompt and the v2 card quote the forbidden phrase
+   ("disclaimers such as 'I don't eat'"), which can prime a small model to
+   produce it. Test: a card variant without the quotation.
+
+**Joke refusals overcorrected under the v2 card** (smoke test, one sample:
+every joke refused). Hypothesis: "jokes on demand are beneath her" has no
+counterweight. Test across seeds in stage A; if confirmed, the card needs
+"one or two, gladly".
+
+**The common pattern.** Where the corpus was silent, v1 fell back on the base
+model, and greedy decoding then repeated whatever the base model supplied. v1
+learned many good single lines but almost no conversations, so everything past
+the first reply was Qwen's habits. That is why v2 is mostly multi-turn. The
+same corpus also explains the capability artifacts: "I'll" is v1's most common
+first word (56 replies), mostly promising actions Kiki cannot take.
 
 ## Research findings to apply
 
