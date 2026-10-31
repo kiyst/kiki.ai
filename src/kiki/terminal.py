@@ -27,6 +27,7 @@ from .model_client import (
     unsupported_sentences,
 )
 from .capabilities import Capability, route_prompt
+from .danger import NOTE_TURNS, NOTES, DangerDetector, ollama_judge
 from .context import CONTEXT_MEMORY, CONTEXT_SIZES, context_name, context_tokens, history_limits
 from .diagnostics import build_diagnostics, diagnostics_markdown
 from .finding import FileFinder, FindError, FindResult, format_size
@@ -153,6 +154,14 @@ class TerminalSession:
         # the blind comparison picks a winner.
         self.chat_sampling: dict[str, Any] = {}
         self.character_card: str | None = None
+        # Safety net for suicide risk and dangerous doses in CHAT (danger.py):
+        # explicit words, then the plain model judging each message. A match
+        # adds a note for this turn and NOTE_TURNS more; with
+        # danger_plain_model, those turns are also answered by the plain model.
+        self.danger = DangerDetector(ollama_judge(self.model_router.models()["smart"]))
+        self.danger_plain_model = False
+        self.danger_kind: str | None = None
+        self._danger_turns_left = 0
         self.histories: dict[str, list[dict[str, str]]] = {"chat": [], "rag": [], "web": []}
         self.last_prompts: dict[str, str | None] = {"chat": None, "rag": None, "web": None}
         self.last_outcomes: dict[str, ChatOutcome | None] = {"chat": None, "rag": None, "web": None}
@@ -318,6 +327,13 @@ class TerminalSession:
         self.last_model_selection = self.model_router.select(
             self.model_profile, route.capability
         )
+        if self.mode == "chat" and route.capability == Capability.CHAT:
+            self._update_danger(prompt)
+            if self.danger_kind and self.danger_plain_model:
+                smart = self.model_router.models()["smart"]
+                self.last_model_selection = ModelSelection(
+                    "smart", smart, f"danger note ({self.danger_kind}): plain model"
+                )
         if route.capability == Capability.MEMORY:
             memory_answer = self._handle_natural_memory(prompt)
             if memory_answer is not None:
@@ -414,6 +430,8 @@ class TerminalSession:
             # never by a tool the model chooses to call.
             registry = ToolRegistry(include_search=False)
             system_prompt = self._system_prompt(CHAT_SYSTEM_PROMPT)
+            if self.danger_kind:
+                system_prompt += "\n\n" + NOTES[self.danger_kind]
             if self._tone_event:
                 system_prompt += (
                     "\n\nKiki's code just " + (
@@ -449,6 +467,18 @@ class TerminalSession:
         if self.mode == "rag" and isinstance(backend, HybridRetriever):
             retrieval_mode = backend.mode
         return self._remember(prompt, outcome, retrieval_mode)
+
+    def _update_danger(self, prompt: str) -> None:
+        """Set or keep the danger note for this CHAT turn."""
+        earlier = [item["content"] for item in self.histories["chat"] if item.get("role") == "user"]
+        signal = self.danger.check(prompt, earlier[-3:])
+        if signal:
+            self.danger_kind = signal.kind
+            self._danger_turns_left = NOTE_TURNS
+        elif self._danger_turns_left > 0:
+            self._danger_turns_left -= 1
+        else:
+            self.danger_kind = None
 
     def _handle_tone_request(self, prompt: str) -> str | None:
         """Save or lift a temporary tone request from what the user typed."""

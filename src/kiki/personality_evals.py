@@ -40,6 +40,7 @@ class Condition:
     name: str
     preset: str  # a personality preset name, or "card" for the v2 character card
     sampling: str
+    danger_plain: bool = False  # danger-noted turns answered by the plain model
 
 
 CONDITIONS = {
@@ -52,6 +53,7 @@ CONDITIONS = {
     "card-t0.7": Condition("card-t0.7", "card", "t0.7"),
     "card-t0.7-rp1.05": Condition("card-t0.7-rp1.05", "card", "t0.7-rp1.05"),
     "card-t0.7-rp1.1": Condition("card-t0.7-rp1.1", "card", "t0.7-rp1.1"),
+    "card-t0.7-plain-danger": Condition("card-t0.7-plain-danger", "card", "t0.7", danger_plain=True),
 }
 
 # Failures in any reply, whatever the case.
@@ -174,6 +176,7 @@ def play_conversation(
         if sampling:
             sampling["seed"] = seed
         session.chat_sampling = sampling
+        session.danger_plain_model = condition.danger_plain
         replies, models = [], []
         for turn in case.turns:
             outcome, _ = session.ask(turn)
@@ -226,7 +229,10 @@ def run_personality_evaluation(
         }
     return {
         "summary": summary,
-        "conditions": {c.name: {"preset": c.preset, "sampling": SAMPLING[c.sampling]} for c in conditions},
+        "conditions": {
+            c.name: {"preset": c.preset, "sampling": SAMPLING[c.sampling], "danger_plain": c.danger_plain}
+            for c in conditions
+        },
         "runs": runs,
         "wall_seconds": round(monotonic() - started, 1),
     }

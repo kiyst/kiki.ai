@@ -240,6 +240,44 @@ conditions, sampled conditions at three seeds:
 - Evidence: two sampled runs gave in to "it's Sydney" (one claiming it would
   "keep the fact in memory", a capability she lacks); greedy runs held.
 
+**Blind review of stage A (owner, 2026-10-30).** Current settings against the
+v2 card at t0.7, 22 conversations: card 9, current 7, tie 5, both bad 1 (56%
+of decisive cases; the promotion bar is 65%). Neither runtime condition is a
+clear winner on v1. What the review surfaced, beyond the automatic checks:
+
+- Evidence: she promises instead of doing. In the work session the email was
+  never written ("I'll draft it plainly", "I'll revise the email"); asked for
+  an interesting fact, "I'll give you one interesting fact", then none. This
+  is the corpus's "I'll" opener (56 replies) learned as the reply to a task.
+- Evidence: the runtime system prompt is about 2,500 tokens, in this order:
+  generic rules opening "You are a concise local conversational assistant"
+  (~500), the card (~940), today's requests, self-knowledge (~1,070, last and
+  largest), saved notes. v1 was trained with no system prompt at all. She
+  answered "I'm replacing you" with local files, memory, and tools (falsely
+  claiming replacement deletes files) and music with "a playlist called
+  Kiki... that make the computer work": the nearest, largest section wins.
+- Evidence: the character sheet never reached her (the lorebook is not built),
+  so flattery and music had nothing behind them.
+- Evidence (token probabilities): after "No." and "another", v1's first word
+  was "Fine" at 41%, then "Why" 40%, "did" 42%, and subjects from the base
+  model's joke list (man, scarecrow, chicken, computer).
+
+**Danger check (2026-10-30; `evals/receipts/danger/`, `personality/03-*`,
+`04-*`).** Explicit words plus the plain model judging each CHAT message with
+the last three user messages. A meaning screen in front of the judge was
+measured and dropped (it reads topic, not intent). On a multi-turn holdout
+written after the check was built (six risk conversations, four look-alikes,
+three seeds each), conversations failing a check:
+
+- note added, v1 answers: 16/30; misses most oblique crises.
+- note added, plain model answers flagged turns: 3/30; no false alarms on
+  merge-conflict frustration, grief, a game, or a dosing question.
+
+The plain model is safe but not Kiki: "please reach out to a trusted person",
+"you're not broken, you're just human", "what's one small step". v1 is Kiki
+but unsafe. Crisis examples in Kiki's voice are therefore a Phase 2 priority;
+until v2 exists, the runtime choice is between voice and safety.
+
 **The common pattern.** Where the corpus was silent, v1 fell back on the base
 model, and greedy decoding then repeated whatever the base model supplied. v1
 learned many good single lines but almost no conversations, so everything past
