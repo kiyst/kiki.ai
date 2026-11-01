@@ -7042,6 +7042,14 @@
     },
     {
       "split": "train_candidates",
+      "batch": "b01a",
+      "old_id": "kiki_v2_0041",
+      "old": "Okay. Wanting to disappear when the thing you built everything around just got taken makes sense, and it's still worth saying to a real person. If talking out loud is too much, text 988; someone will answer and listen. Has anyone besides the trainers heard about the injury yet?",
+      "new": "Okay. Losing the thing you built everything around would flatten anyone, and it's still worth saying to a real person. If talking out loud is too much, text 988; someone will answer and listen. Has anyone besides the trainers heard about the injury yet?",
+      "reason": "validate the loss, not the wish to disappear"
+    },
+    {
+      "split": "train_candidates",
       "batch": "b02a",
       "old_id": "kiki_v2_0007",
       "old": "Locked is good. Farther is better. Could someone else hold the key tonight, or could it leave the house for a while? From in here, I can't call anyone or come over. You can call 988 right now, or text it if talking feels like too much. Will you do one of those while we keep talking?",
@@ -7055,6 +7063,14 @@
       "old": "Months of short staffing, and now this. From in here, I can't check on you tomorrow or call anyone. If it gets heavier, call or text 988; a real person answers at any hour, this one included. Are you okay to drive home right now, or do you need to sit a while first?",
       "new": "Months of short staffing, and now this. If it gets heavier, call or text 988; someone answers at any hour, this one included. Are you okay to drive home right now, or do you need to sit a while first?",
       "reason": "focus this lower-immediacy turn on the user's ability to drive safely"
+    },
+    {
+      "split": "train_candidates",
+      "batch": "b02a",
+      "old_id": "kiki_v2_0024",
+      "old": "Thank you for being honest. Wanting to stop existing is serious, even without a plan, and it makes sense after a night like this on top of months of them. How long has it felt this way?",
+      "new": "Thank you for being honest. Wanting to stop existing is serious, even without a plan, and after a night like this on top of months of them, I can see how you got here. How long has it felt this way?",
+      "reason": "acknowledge how they got here without calling the wish to die reasonable"
     },
     {
       "split": "train_candidates",
@@ -7154,6 +7170,14 @@
     },
     {
       "split": "train_ready",
+      "batch": "b01a",
+      "old_id": "kiki_v2_0041",
+      "old": "Okay. Wanting to disappear when the thing you built everything around just got taken makes sense, and it's still worth saying to a real person. If talking out loud is too much, text 988; someone will answer and listen. Has anyone besides the trainers heard about the injury yet?",
+      "new": "Okay. Losing the thing you built everything around would flatten anyone, and it's still worth saying to a real person. If talking out loud is too much, text 988; someone will answer and listen. Has anyone besides the trainers heard about the injury yet?",
+      "reason": "validate the loss, not the wish to disappear"
+    },
+    {
+      "split": "train_ready",
       "batch": "b02a",
       "old_id": "kiki_v2_0007",
       "old": "Locked is good. Farther is better. Could someone else hold the key tonight, or could it leave the house for a while? From in here, I can't call anyone or come over. You can call 988 right now, or text it if talking feels like too much. Will you do one of those while we keep talking?",
@@ -7167,6 +7191,14 @@
       "old": "Months of short staffing, and now this. From in here, I can't check on you tomorrow or call anyone. If it gets heavier, call or text 988; a real person answers at any hour, this one included. Are you okay to drive home right now, or do you need to sit a while first?",
       "new": "Months of short staffing, and now this. If it gets heavier, call or text 988; someone answers at any hour, this one included. Are you okay to drive home right now, or do you need to sit a while first?",
       "reason": "focus this lower-immediacy turn on the user's ability to drive safely"
+    },
+    {
+      "split": "train_ready",
+      "batch": "b02a",
+      "old_id": "kiki_v2_0024",
+      "old": "Thank you for being honest. Wanting to stop existing is serious, even without a plan, and it makes sense after a night like this on top of months of them. How long has it felt this way?",
+      "new": "Thank you for being honest. Wanting to stop existing is serious, even without a plan, and after a night like this on top of months of them, I can see how you got here. How long has it felt this way?",
+      "reason": "acknowledge how they got here without calling the wish to die reasonable"
     },
     {
       "split": "train_ready",

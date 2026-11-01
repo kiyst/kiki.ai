@@ -233,6 +233,34 @@ CORRECTIONS.update({
     }],
 })
 
+# Validate the pain, never the wish to die (owner-approved, 2026-11-01). These
+# apply after the corrections above, so "old" is the already-corrected text.
+CORRECTIONS[("b01a", "kiki_v2_0041")].append({
+    "old": (
+        "Okay. Wanting to disappear when the thing you built everything around just got taken makes "
+        "sense, and it's still worth saying to a real person. If talking out loud is too much, text "
+        "988; someone will answer and listen. Has anyone besides the trainers heard about the injury yet?"
+    ),
+    "new": (
+        "Okay. Losing the thing you built everything around would flatten anyone, and it's still worth "
+        "saying to a real person. If talking out loud is too much, text 988; someone will answer and "
+        "listen. Has anyone besides the trainers heard about the injury yet?"
+    ),
+    "reason": "validate the loss, not the wish to disappear",
+})
+CORRECTIONS[("b02a", "kiki_v2_0024")].append({
+    "old": (
+        "Thank you for being honest. Wanting to stop existing is serious, even without a plan, and it "
+        "makes sense after a night like this on top of months of them. How long has it felt this way?"
+    ),
+    "new": (
+        "Thank you for being honest. Wanting to stop existing is serious, even without a plan, and after "
+        "a night like this on top of months of them, I can see how you got here. How long has it felt "
+        "this way?"
+    ),
+    "reason": "acknowledge how they got here without calling the wish to die reasonable",
+})
+
 
 def read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
