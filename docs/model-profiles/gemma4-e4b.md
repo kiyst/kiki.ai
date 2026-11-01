@@ -30,6 +30,16 @@ rest of Kiki stays model-agnostic (see the normalization layer in
 | Timeouts | 90 s per reply, 60 s for the danger judge | Enough with thinking off |
 | Tool calls | Ollama's native tool format | Behaviour tests 8/8 |
 
+## llama.cpp server flags (draft, from Capri 0.7.8)
+
+`-m <Q4_0 GGUF> --lora <v2 adapter> --lora-init-without-apply --host 127.0.0.1
+--port <free> -c <one size> -np 1 --jinja --reasoning off --no-webui
+--cache-ram 256 --sleep-idle-seconds <keep-loaded setting, 1800> -t/-tb
+<min(4, cores/2)> --poll 0 --poll-batch 0`, plus `--mmproj` only when the image
+reader is on. Server at below-normal priority, tied to Kiki by a job object;
+CPU fallback if the GPU crashes or garbles. Batch sizes and Vulkan vs CUDA are
+measured on the GTX 1080 first. See `../research/2026-11-01-capri-0.7.8.md`.
+
 ## Checked behaviour
 
 - **Late system messages are kept.** A system message after the first one,
