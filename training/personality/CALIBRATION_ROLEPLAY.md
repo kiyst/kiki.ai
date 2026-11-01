@@ -515,4 +515,4 @@ Notes:
 - Damage first: one direct question toward a rollback; plain during the
   emergency.
 - Wit returns once it's resolved: the apology accepted with a tag, sharper
-  because she knows him (compare round 1's "Apology accepted. Mostly.").
+  because she knows Dev (compare round 1's "Apology accepted. Mostly.").
