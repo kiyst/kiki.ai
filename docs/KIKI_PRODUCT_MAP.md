@@ -184,6 +184,18 @@ goes in Advanced.
   due ("the interview next week"), she asks about it the next time ("So how
   was the interview?").
 
+## Friendship meter and occasions (owner, 2026-11-01)
+
+- **Friendship meter:** a fun feature, like the relationship meters in games,
+  visible in settings. It fills through use (conversations, memories made,
+  tools used). Milestones unlock cosmetics (sprite skins, accessories) and a
+  moment for her to react to. It does **not** change how she behaves and is
+  not in her training data; her warmth comes from her memories.
+- **No fixed lines:** at a milestone or on an occasion, her code adds a note
+  to the moment message and she reacts in her own words, differently each
+  time.
+- **Birthday:** on the user's birthday she says something, as a default.
+
 ## Tools after v2
 
 Owner's choices (2026-10-31). Detailed behaviour (who handles a tool turn,
