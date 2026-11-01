@@ -170,7 +170,12 @@ model was reloaded every four problems.
 - Gemma's licence terms (unlike Qwen's Apache 2.0) must be checked before a
   Gemma-based Kiki is shared.
 
-## Recommendation (owner to decide)
+## Decision (owner, 2026-11-01)
+
+**Gemma 4 E4B is Kiki's official model**, for voice and technical work alike.
+Qwen3 4B stays installed only until v1 (which is built on it) is retired.
+
+## Recommendation (as presented)
 
 Gemma 4 E4B as Kiki's model, with the leak handled (a newer Ollama, llama.cpp's
 server, or periodic reloads) and one context size per model. Either one Gemma

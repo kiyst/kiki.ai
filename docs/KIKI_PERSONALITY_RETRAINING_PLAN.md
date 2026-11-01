@@ -476,6 +476,10 @@ thing every time. It means different replies feel chosen by the same person.
 
 ## Decisions to build after the review rounds
 
+- **Kiki's model is Gemma 4 E4B** (owner, 2026-11-01), for voice and technical
+  work; v2 is trained on Gemma's chat template. Qwen3 4B stays only until v1
+  is retired. Evidence: `research/2026-10-31-model-selection.md`.
+
 Collected during the owner's calibration questions (2026-10-31); built together
 once the review rounds finish.
 

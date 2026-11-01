@@ -17,15 +17,16 @@ any of those later means redoing work built on top of them.
 - **Gemma's Ollama leak** (about 69 MB of committed memory per request) may
   pull the llama.cpp engine switch (stage 8) much earlier, if Gemma is chosen.
 - **The Python upgrade** belongs before the big refactor (stage 1), not after.
-- **The model setup** is being decided now; most later stages depend on it.
+- **The model is decided: Gemma 4 E4B** (owner, 2026-11-01), for voice and
+  technical work. That makes the licence check (stage 1) required, and the
+  leak workaround (stage 8, possibly earlier) required.
 
 ## Stages
 
 ### 1. Decide (in progress)
 
-1. Finish the model tests (chat speed, Gemma's coding run), write them up in
-   `research/`, and choose the setup: voice model, technical model, or one
-   model for both.
+1. Done: model tests written up in `research/2026-10-31-model-selection.md`;
+   **Gemma 4 E4B chosen** for voice and technical work (2026-11-01).
 2. Check the licence terms of the chosen models for sharing Kiki later.
    Qwen is Apache 2.0; Gemma has its own terms with conditions on use and
    redistribution, including of fine-tuned versions.
@@ -152,6 +153,5 @@ The VS Code extension, the optional passcode lock.
 
 | Decision | Blocks |
 | --- | --- |
-| Model setup (voice, technical, one or two) | 2.3, 4, 5, 7 (images), 8 |
 | GUI toolkit (a new dependency) | 9 |
 | Web search service and query rules (search itself approved) | only itself; until then, the "fresh facts" goal and the knowledge-cutoff weakness stay open (she can read a page you link, but not look things up). When added, it needs a permissions-page entry and a tool window, both small. |
