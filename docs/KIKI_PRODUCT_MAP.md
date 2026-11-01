@@ -32,6 +32,13 @@ architecture and modularity. Decisions here come from the owner (started
 - The model line-up may end up **Gemma only** (voice and technical), depending
   on the Qwen 3.5 and Gemma test results.
 
+**Updates to Kiki herself: manual only** (owner, 2026-10-31). Running locally
+and independently is a priority, so she never checks online for updates. New
+versions exist only as releases on GitHub, published after the team's own
+vetting, validation, and approval; users download them when they choose.
+Beyond that, users are free to change anything in their own copy. The only
+time she goes online unasked is the first-launch model download, said plainly.
+
 ## How she appears
 
 **A desktop pet.** A small sprite in a corner of the screen, with her own
