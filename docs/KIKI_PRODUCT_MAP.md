@@ -205,6 +205,14 @@ Owner's choices (2026-10-31). Detailed behaviour (who handles a tool turn,
 confirmation, undo, name clashes, sorting, timers): `KIKI_TOOLS_SPEC.md`.
 
 - **Notes**: "note this for me", dated, readable (see the development notes).
+  **Optional: notes in an Obsidian vault** (owner, 2026-11-01; idea from a
+  Capri contribution). A setting, off by default, with a folder picker: her
+  notes file (and the to-do list) lives in the user's vault as plain Markdown
+  with dated headings. Notes the user adds on their phone reach her once the
+  vault syncs. Her memories and the profile never move there: her primary
+  memory stays local first. If the vault looks synced (a cloud folder, or
+  Obsidian Sync present), a plain warning says her notes will sync too. The
+  rest of the vault can be indexed like any folder for document search.
 - **Opening files**: only after she has found the file and the user has
   confirmed it is the right one. She does not open apps, and there are no media
   controls (the keyboard's own keys do that).
