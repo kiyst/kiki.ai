@@ -67,6 +67,13 @@ right window for the job.
   animation, and her models go idle to give memory back (a short wake-up on
   the next message).
 
+**Animations are status, not emotion** (owner, 2026-10-31). The sprite shows
+what she is actually doing, driven by the engine's events, never inferred from
+the text: idle; a subtle talking animation while she replies; a tool animation
+(opening a hologram window and working in it) from a tool call until its result
+is in; sleeping; and the notification mark for finished jobs and status
+messages. No mood tags in her replies, and nothing for v2 to learn here.
+
 **When she speaks first** (owner, 2026-10-31):
 
 - A long job she was running finishes (indexing, a test run): an exclamation
