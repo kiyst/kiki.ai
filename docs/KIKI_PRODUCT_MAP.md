@@ -74,6 +74,16 @@ the text: idle; a subtle talking animation while she replies; a tool animation
 is in; sleeping; and the notification mark for finished jobs and status
 messages. No mood tags in her replies, and nothing for v2 to learn here.
 
+**Commands and plain language** (owner, 2026-10-31). The slash commands stay,
+but she also works out from plain language what's wanted ("what does my lease
+say about pets?" searches documents; "read this: https://..." opens the page;
+"find my resume" searches files) and asks when she isn't sure. That makes it
+essential that every tool is highly usable and easy to call: clear, small
+schemas, arguments that are easy to parse and normalize (dates, paths, "my
+resume", a city), forgiving input, and a clarification question rather than a
+guess when intent or an argument is ambiguous. Intent is read by the technical
+model (tool planning), not by word patterns, which have proven brittle.
+
 **When she speaks first** (owner, 2026-10-31):
 
 - A long job she was running finishes (indexing, a test run): an exclamation
