@@ -13,6 +13,24 @@ architecture and modularity. Decisions here come from the owner (started
   abilities are a reassuring extra; private and local is part of the appeal.
 - For the owner first, shared later.
 
+## How she is installed
+
+- **For now:** developer-style (Python, git, `ollama pull`).
+- **Later: a small installer, then "setting up her brain" on first launch**
+  (owner, 2026-10-31). The installer only installs Kiki and her model engine
+  (about 100-200 MB). On first launch, while her models download (about
+  7-10 GB, with progress, pause and resume, and every file checked against a
+  pinned SHA-256 hash), the user sets her up:
+  - their name and city (for tooling accuracy), time zone, and units;
+  - Kiki detects the hardware and chooses models and context size to fit;
+  - the user picks the folders she may see and index;
+  - the user reads her usage guide while waiting.
+- The same setup flow handles **model updates** later (v2, a better base),
+  while Kiki herself stays untouched. Going online for downloads is said
+  plainly; it is the only reason she does so unasked.
+- The model line-up may end up **Gemma only** (voice and technical), depending
+  on the Qwen 3.5 and Gemma test results.
+
 ## How she appears
 
 **A desktop pet.** A small sprite in a corner of the screen, with her own
