@@ -11,15 +11,16 @@ any of those later means redoing work built on top of them.
 
 ## Flags (owner asked these be kept in view)
 
-- **Licences.** Qwen is Apache 2.0. Gemma has its own terms, with conditions
-  on use and redistribution that cover fine-tuned versions; check them before
-  sharing a Gemma-based Kiki. (Stage 1.)
+- **Licences: checked (2026-11-01).** Gemma 4 is standard Apache 2.0, like
+  Qwen; the older Gemma Terms of Use cover earlier Gemma models only. Sharing
+  a Gemma-based Kiki needs the licence copy, kept notices, and changed files
+  marked. See `research/2026-11-01-gemma-licence.md`.
 - **Gemma's Ollama leak** (about 69 MB of committed memory per request) may
   pull the llama.cpp engine switch (stage 8) much earlier, if Gemma is chosen.
 - **The Python upgrade** belongs before the big refactor (stage 1), not after.
 - **The model is decided: Gemma 4 E4B** (owner, 2026-11-01), for voice and
-  technical work. That makes the licence check (stage 1) required, and the
-  leak workaround (stage 8, possibly earlier) required.
+  technical work. The leak workaround (stage 8, possibly earlier) is
+  required.
 
 ## Stages
 
@@ -27,9 +28,8 @@ any of those later means redoing work built on top of them.
 
 1. Done: model tests written up in `research/2026-10-31-model-selection.md`;
    **Gemma 4 E4B chosen** for voice and technical work (2026-11-01).
-2. Check the licence terms of the chosen models for sharing Kiki later.
-   Qwen is Apache 2.0; Gemma has its own terms with conditions on use and
-   redistribution, including of fine-tuned versions.
+2. Done: licence check. Gemma 4 is Apache 2.0
+   (`research/2026-11-01-gemma-licence.md`).
 3. Python upgrade (parked earlier): do it now, before the big refactor, not
    after.
 
