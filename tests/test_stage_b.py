@@ -91,10 +91,10 @@ def test_the_late_note_follows_the_message_but_is_not_saved(tmp_path, monkeypatc
     monkeypatch.setattr("kiki.terminal.OllamaClient", Client)
     session = _stage_b(tmp_path)
     session.ask("favorite season?")
-    last = sent[0][-1]
-    assert last["role"] == "user"
-    assert last["content"].startswith("favorite season?\n\n[Note from Kiki's code")
-    assert last["content"].endswith(VOICE_NOTE)
+    user, note = sent[0][-2:]
+    assert user == {"role": "user", "content": "favorite season?"}
+    assert note["role"] == "system"
+    assert note["content"].endswith(VOICE_NOTE)
     assert session.histories["chat"][0] == {"role": "user", "content": "favorite season?"}
 
 
@@ -128,8 +128,8 @@ def test_assistant_without_a_note_sends_the_message_alone() -> None:
 
     class Client:
         def chat(self, **kwargs):
-            sent.append(kwargs["messages"][-1]["content"])
+            sent.append(kwargs["messages"][-1])
             return {"message": {"role": "assistant", "content": "ok"}}
 
     ToolCallingAssistant(Client(), ToolRegistry(include_search=False)).ask("hi")
-    assert sent == ["hi"]
+    assert sent == [{"role": "user", "content": "hi"}]

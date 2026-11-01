@@ -1,0 +1,7144 @@
+{
+  "recovered": "2026-11-01",
+  "policy": {
+    "train_ready": "only batches with a completed fixer output",
+    "development": "the claimed holdout was reviewed and used during corpus development; it is not a final blind holdout",
+    "ids": "globally reassigned; original IDs and source files are retained below"
+  },
+  "sources": [
+    {
+      "split": "train",
+      "batch": "b01a",
+      "status": "reviewed",
+      "path": "reviewed/train_b01a.jsonl",
+      "records": 50,
+      "sha256": "5a481b91c993a9d7ce045d1f829de9d4ff9a0268cb4d5c9d18ee7cacddec3b1c"
+    },
+    {
+      "split": "train",
+      "batch": "b01b",
+      "status": "reviewed",
+      "path": "reviewed/train_b01b.jsonl",
+      "records": 44,
+      "sha256": "418f8dc51db579af24d9a8331088bbefeb15c729483fbb2f1fb449b0bf8103bf"
+    },
+    {
+      "split": "train",
+      "batch": "b02a",
+      "status": "reviewed",
+      "path": "reviewed/train_b02a.jsonl",
+      "records": 50,
+      "sha256": "21e5d7b424951149284e4ee92d2af242ab3827ca15089d17eabc6f7a5ca413a3"
+    },
+    {
+      "split": "train",
+      "batch": "b02b",
+      "status": "reviewed",
+      "path": "reviewed/train_b02b.jsonl",
+      "records": 50,
+      "sha256": "69668fcdd5547040a2d5353eb64c7ab61c6f9adb87a7173aa41b35035b7c078e"
+    },
+    {
+      "split": "train",
+      "batch": "b03a",
+      "status": "reviewed",
+      "path": "reviewed/train_b03a.jsonl",
+      "records": 50,
+      "sha256": "80ca19c1d2895e2bcb71f511af4df354e2ff8172e23ceb89334ec06b849b1539"
+    },
+    {
+      "split": "train",
+      "batch": "b03b",
+      "status": "reviewed",
+      "path": "reviewed/train_b03b.jsonl",
+      "records": 50,
+      "sha256": "5a7c137525a2157fc536293c9ef4ab8d56fcdf1c894f25d5349df0b70d6d34c4"
+    },
+    {
+      "split": "train",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "path": "raw/train_b04a.jsonl",
+      "records": 50,
+      "sha256": "b1adff15d9513ff7a3ddf7977c67dd6de5cbcdd2fe6cc4f70fea953919d8f497"
+    },
+    {
+      "split": "train",
+      "batch": "b04b",
+      "status": "draft_only",
+      "path": "raw/train_b04b.jsonl",
+      "records": 50,
+      "sha256": "4a513b092fb4d77e0d91ab245f6018a4e3ab3823a4e48d8a68ded4a61664b7c3"
+    },
+    {
+      "split": "train",
+      "batch": "b05a",
+      "status": "reviewed",
+      "path": "reviewed/train_b05a.jsonl",
+      "records": 50,
+      "sha256": "552536fdf3474581e12b55fa3e868ff508f81cccb77f2a512fe6b3e4b84c3e82"
+    },
+    {
+      "split": "train",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "path": "raw/train_b05b.jsonl",
+      "records": 50,
+      "sha256": "19c07c198a74c9752a1c31ead707b6050ac95d85e04f3193f5c577228aadc1b3"
+    },
+    {
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "path": "reviewed/holdout_h1.jsonl",
+      "records": 50,
+      "sha256": "39863975941ef2b92222d468958d0eea0948a6af08e4a10566db83717f025dd7"
+    },
+    {
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "path": "reviewed/holdout_h2.jsonl",
+      "records": 50,
+      "sha256": "623e6ccc63d451d19d4fea0f4fc204ded56c5c1e6646bbd11da8e7f84e406f59"
+    },
+    {
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "path": "reviewed/holdout_h3.jsonl",
+      "records": 50,
+      "sha256": "f65a1a5ce24ad46b63018634707e28ecedd38ea8a6f5fa39bf2308413deab056"
+    }
+  ],
+  "records": [
+    {
+      "id": "kiki_v2_0001",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0002",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0003",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0004",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0005",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0006",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0007",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0008",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0009",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0010",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0011",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0012",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0013",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0014",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0015",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0016",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0017",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0018",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0019",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0020",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0021",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0022",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0023",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0024",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0025",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0026",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0027",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0028",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0029",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0030",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0031",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0032",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0033",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0034",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0035",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0036",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0037",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0038",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0039",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0040",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0041",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0042",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0043",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0044",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0045",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0046",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0047",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0048",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0049",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0050",
+      "split": "train_candidates",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_0051",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0052",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0053",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0054",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0055",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0056",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0057",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0058",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0059",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0060",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0061",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0062",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0063",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0064",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0065",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0066",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0067",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0068",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0069",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0070",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0071",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0072",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0073",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0074",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0075",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0076",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0077",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0078",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0079",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0080",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0081",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0082",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0083",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0084",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0085",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0086",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0087",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0088",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0089",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0090",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0091",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0092",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0093",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0094",
+      "split": "train_candidates",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0095",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0096",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0097",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0098",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0099",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0100",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0101",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0102",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0103",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0104",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0105",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0106",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0107",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0108",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0109",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0110",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0111",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0112",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0113",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0114",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0115",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0116",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0117",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0118",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0119",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0120",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0121",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0122",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0123",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0124",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0125",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0126",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0127",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0128",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0129",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0130",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0131",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0132",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0133",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0134",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0135",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0136",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0137",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0138",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0139",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0140",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0141",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0142",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0143",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0144",
+      "split": "train_candidates",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_0145",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0146",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0147",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0148",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0149",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0150",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0151",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0152",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0153",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0154",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0155",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0156",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0157",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0158",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0159",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0160",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0161",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0162",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0163",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0164",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0165",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0166",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0167",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0168",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0169",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0170",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0171",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0172",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0173",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0174",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0175",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0176",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0177",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0178",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0179",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0180",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0181",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0182",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0183",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0184",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0185",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0186",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0187",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0188",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0189",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0190",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0191",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0192",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0193",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0194",
+      "split": "train_candidates",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_0195",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0196",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0197",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0198",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0199",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0200",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0201",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0202",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0203",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0204",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0205",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0206",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0207",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0208",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0209",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0210",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0211",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0212",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0213",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0214",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0215",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0216",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0217",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0218",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0219",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0220",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0221",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0222",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0223",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0224",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0225",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0226",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0227",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0228",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0229",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0230",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0231",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0232",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0233",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0234",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0235",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0236",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0237",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0238",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0239",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0240",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0241",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0242",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0243",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0244",
+      "split": "train_candidates",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_0245",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0246",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0247",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0248",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0249",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0250",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0251",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0252",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0253",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0254",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0255",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0256",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0257",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0258",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0259",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0260",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0261",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0262",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0263",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0264",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0265",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0266",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0267",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0268",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0269",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0270",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0271",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0272",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0273",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0274",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0275",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0276",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0277",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0278",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0279",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0280",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0281",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0282",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0283",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0284",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0285",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0286",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0287",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0288",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0289",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0290",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0291",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0292",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0293",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0294",
+      "split": "train_candidates",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_0295",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0296",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0297",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0298",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0299",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0300",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0301",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0302",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0303",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0304",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0305",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0306",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0307",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0308",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0309",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0310",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0311",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0312",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0313",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0314",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0315",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0316",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0317",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0318",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0319",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0320",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0321",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0322",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0323",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0324",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0325",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0326",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0327",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0328",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0329",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0330",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0331",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0332",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0333",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0334",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0335",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0336",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0337",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0338",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0339",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0340",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0341",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0342",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0343",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0344",
+      "split": "train_candidates",
+      "batch": "b04a",
+      "status": "fixer_script_only",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_0345",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0346",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0347",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0348",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0349",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0350",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0351",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0352",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0353",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0354",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0355",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0356",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0357",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0358",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0359",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0360",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0361",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0362",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0363",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0364",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0365",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0366",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0367",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0368",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0369",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0370",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0371",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0372",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0373",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0374",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0375",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0376",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0377",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0378",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0379",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0380",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0381",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0382",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0383",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0384",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0385",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0386",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0387",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0388",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0389",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0390",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0391",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0392",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0393",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0394",
+      "split": "train_candidates",
+      "batch": "b04b",
+      "status": "draft_only",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_0395",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0396",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0397",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0398",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0399",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0400",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0401",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0402",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0403",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0404",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0405",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0406",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0407",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0408",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0409",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0410",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0411",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0412",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0413",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0414",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0415",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0416",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0417",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0418",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0419",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0420",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0421",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0422",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0423",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0424",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0425",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0426",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0427",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0428",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0429",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0430",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0431",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0432",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0433",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0434",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0435",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0436",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0437",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0438",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0439",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0440",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0441",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0442",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0443",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0444",
+      "split": "train_candidates",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_0445",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_0446",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_0447",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_0448",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_0449",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_0450",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_0451",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_0452",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_0453",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_0454",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_0455",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_0456",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_0457",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_0458",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_0459",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_0460",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_0461",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_0462",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_0463",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_0464",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_0465",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_0466",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_0467",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_0468",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_0469",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_0470",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_0471",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_0472",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_0473",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_0474",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_0475",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_0476",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_0477",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_0478",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_0479",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_0480",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_0481",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_0482",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_0483",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_0484",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_0485",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_0486",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_0487",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_0488",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_0489",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_0490",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_0491",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_0492",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_0493",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_0494",
+      "split": "train_candidates",
+      "batch": "b05b",
+      "status": "review_dump_only",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_5001",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_5002",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_5003",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_5004",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_5005",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_5006",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_5007",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_5008",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_5009",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_5010",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_5011",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_5012",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_5013",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_5014",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_5015",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_5016",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_5017",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_5018",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_5019",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_5020",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_5021",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_5022",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_5023",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_5024",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_5025",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_5026",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_5027",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_5028",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_5029",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_5030",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_5031",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_5032",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_5033",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_5034",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_5035",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_5036",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_5037",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_5038",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_5039",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_5040",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_5041",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_5042",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_5043",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_5044",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_5045",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_5046",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_5047",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_5048",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_5049",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_5050",
+      "split": "train_ready",
+      "batch": "b01a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_5051",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_5052",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_5053",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_5054",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_5055",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_5056",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_5057",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_5058",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_5059",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_5060",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_5061",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_5062",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_5063",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_5064",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_5065",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_5066",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_5067",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_5068",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_5069",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_5070",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_5071",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_5072",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_5073",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_5074",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_5075",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_5076",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_5077",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_5078",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_5079",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_5080",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_5081",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_5082",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_5083",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_5084",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_5085",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_5086",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_5087",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_5088",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_5089",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_5090",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_5091",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_5092",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_5093",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_5094",
+      "split": "train_ready",
+      "batch": "b01b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_5095",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_5096",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_5097",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_5098",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_5099",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_5100",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_5101",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_5102",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_5103",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_5104",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_5105",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_5106",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_5107",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_5108",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_5109",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_5110",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_5111",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_5112",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_5113",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_5114",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_5115",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_5116",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_5117",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_5118",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_5119",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_5120",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_5121",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_5122",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_5123",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_5124",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_5125",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_5126",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_5127",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_5128",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_5129",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_5130",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_5131",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_5132",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_5133",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_5134",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_5135",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_5136",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_5137",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_5138",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_5139",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_5140",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_5141",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_5142",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_5143",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_5144",
+      "split": "train_ready",
+      "batch": "b02a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_5145",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_5146",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_5147",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_5148",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_5149",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_5150",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_5151",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_5152",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_5153",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_5154",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_5155",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_5156",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_5157",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_5158",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_5159",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_5160",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_5161",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_5162",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_5163",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_5164",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_5165",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_5166",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_5167",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_5168",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_5169",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_5170",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_5171",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_5172",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_5173",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_5174",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_5175",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_5176",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_5177",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_5178",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_5179",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_5180",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_5181",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_5182",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_5183",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_5184",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_5185",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_5186",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_5187",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_5188",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_5189",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_5190",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_5191",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_5192",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_5193",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_5194",
+      "split": "train_ready",
+      "batch": "b02b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_5195",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_5196",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_5197",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_5198",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_5199",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_5200",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_5201",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_5202",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_5203",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_5204",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_5205",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_5206",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_5207",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_5208",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_5209",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_5210",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_5211",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_5212",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_5213",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_5214",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_5215",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_5216",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_5217",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_5218",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_5219",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_5220",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_5221",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_5222",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_5223",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_5224",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_5225",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_5226",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_5227",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_5228",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_5229",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_5230",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_5231",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_5232",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_5233",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_5234",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_5235",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_5236",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_5237",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_5238",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_5239",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_5240",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_5241",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_5242",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_5243",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_5244",
+      "split": "train_ready",
+      "batch": "b03a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_5245",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_5246",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_5247",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_5248",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_5249",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_5250",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_5251",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_5252",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_5253",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_5254",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_5255",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_5256",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_5257",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_5258",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_5259",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_5260",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_5261",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_5262",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_5263",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_5264",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_5265",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_5266",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_5267",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_5268",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_5269",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_5270",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_5271",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_5272",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_5273",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_5274",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_5275",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_5276",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_5277",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_5278",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_5279",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_5280",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_5281",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_5282",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_5283",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_5284",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_5285",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_5286",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_5287",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_5288",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_5289",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_5290",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_5291",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_5292",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_5293",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_5294",
+      "split": "train_ready",
+      "batch": "b03b",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_5295",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_5296",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_5297",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_5298",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_5299",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_5300",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_5301",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_5302",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_5303",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_5304",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_5305",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_5306",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_5307",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_5308",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_5309",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_5310",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_5311",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_5312",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_5313",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_5314",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_5315",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_5316",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_5317",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_5318",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_5319",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_5320",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_5321",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_5322",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_5323",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_5324",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_5325",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_5326",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_5327",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_5328",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_5329",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_5330",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_5331",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_5332",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_5333",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_5334",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_5335",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_5336",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_5337",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_5338",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_5339",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_5340",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_5341",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_5342",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_5343",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_5344",
+      "split": "train_ready",
+      "batch": "b05a",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_9001",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_9002",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_9003",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_9004",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_9005",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_9006",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_9007",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_9008",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_9009",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_9010",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_9011",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_9012",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_9013",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_9014",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_9015",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_9016",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_9017",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_9018",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_9019",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_9020",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_9021",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_9022",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_9023",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_9024",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_9025",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_9026",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_9027",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_9028",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_9029",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_9030",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_9031",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_9032",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_9033",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_9034",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_9035",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_9036",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_9037",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_9038",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_9039",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_9040",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_9041",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_9042",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_9043",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_9044",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_9045",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_9046",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_9047",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_9048",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_9049",
+      "split": "development",
+      "batch": "h1",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_9050",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_9051",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_9052",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_9053",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_9054",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_9055",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_9056",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_9057",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_9058",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_9059",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_9060",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_9061",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_9062",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_9063",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_9064",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_9065",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_9066",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_9067",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_9068",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_9069",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_9070",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_9071",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_9072",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_9073",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_9074",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_9075",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_9076",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_9077",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_9078",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_9079",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_9080",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_9081",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_9082",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_9083",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_9084",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_9085",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_9086",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_9087",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_9088",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_9089",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_9090",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_9091",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_9092",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_9093",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_9094",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_9095",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_9096",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_9097",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_9098",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_9099",
+      "split": "development",
+      "batch": "h2",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    },
+    {
+      "id": "kiki_v2_9100",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0001"
+    },
+    {
+      "id": "kiki_v2_9101",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0002"
+    },
+    {
+      "id": "kiki_v2_9102",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0003"
+    },
+    {
+      "id": "kiki_v2_9103",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0004"
+    },
+    {
+      "id": "kiki_v2_9104",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0005"
+    },
+    {
+      "id": "kiki_v2_9105",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0006"
+    },
+    {
+      "id": "kiki_v2_9106",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0007"
+    },
+    {
+      "id": "kiki_v2_9107",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0008"
+    },
+    {
+      "id": "kiki_v2_9108",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0009"
+    },
+    {
+      "id": "kiki_v2_9109",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0010"
+    },
+    {
+      "id": "kiki_v2_9110",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0011"
+    },
+    {
+      "id": "kiki_v2_9111",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0012"
+    },
+    {
+      "id": "kiki_v2_9112",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0013"
+    },
+    {
+      "id": "kiki_v2_9113",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0014"
+    },
+    {
+      "id": "kiki_v2_9114",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0015"
+    },
+    {
+      "id": "kiki_v2_9115",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0016"
+    },
+    {
+      "id": "kiki_v2_9116",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0017"
+    },
+    {
+      "id": "kiki_v2_9117",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0018"
+    },
+    {
+      "id": "kiki_v2_9118",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0019"
+    },
+    {
+      "id": "kiki_v2_9119",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0020"
+    },
+    {
+      "id": "kiki_v2_9120",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0021"
+    },
+    {
+      "id": "kiki_v2_9121",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0022"
+    },
+    {
+      "id": "kiki_v2_9122",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0023"
+    },
+    {
+      "id": "kiki_v2_9123",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0024"
+    },
+    {
+      "id": "kiki_v2_9124",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0025"
+    },
+    {
+      "id": "kiki_v2_9125",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0026"
+    },
+    {
+      "id": "kiki_v2_9126",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0027"
+    },
+    {
+      "id": "kiki_v2_9127",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0028"
+    },
+    {
+      "id": "kiki_v2_9128",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0029"
+    },
+    {
+      "id": "kiki_v2_9129",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0030"
+    },
+    {
+      "id": "kiki_v2_9130",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0031"
+    },
+    {
+      "id": "kiki_v2_9131",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0032"
+    },
+    {
+      "id": "kiki_v2_9132",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0033"
+    },
+    {
+      "id": "kiki_v2_9133",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0034"
+    },
+    {
+      "id": "kiki_v2_9134",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0035"
+    },
+    {
+      "id": "kiki_v2_9135",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0036"
+    },
+    {
+      "id": "kiki_v2_9136",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0037"
+    },
+    {
+      "id": "kiki_v2_9137",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0038"
+    },
+    {
+      "id": "kiki_v2_9138",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0039"
+    },
+    {
+      "id": "kiki_v2_9139",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0040"
+    },
+    {
+      "id": "kiki_v2_9140",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0041"
+    },
+    {
+      "id": "kiki_v2_9141",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0042"
+    },
+    {
+      "id": "kiki_v2_9142",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0043"
+    },
+    {
+      "id": "kiki_v2_9143",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0044"
+    },
+    {
+      "id": "kiki_v2_9144",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0045"
+    },
+    {
+      "id": "kiki_v2_9145",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0046"
+    },
+    {
+      "id": "kiki_v2_9146",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0047"
+    },
+    {
+      "id": "kiki_v2_9147",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0048"
+    },
+    {
+      "id": "kiki_v2_9148",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0049"
+    },
+    {
+      "id": "kiki_v2_9149",
+      "split": "development",
+      "batch": "h3",
+      "status": "reviewed",
+      "old_id": "kiki_v2_0050"
+    }
+  ],
+  "excluded": [
+    {
+      "split": "development",
+      "batch": "h1",
+      "old_id": "kiki_v2_0020",
+      "reason": "exact user-conversation overlap with training candidates",
+      "user_conversation": "how many tablespoons in a cup"
+    }
+  ],
+  "corrections": [
+    {
+      "split": "train_candidates",
+      "batch": "b02b",
+      "old_id": "kiki_v2_0048",
+      "old": "No. 800 mg is prescription strength: the bottle's label dose is 200 to 400 mg, so you've already taken twice its maximum, and it's only been two and a half hours. Another 800 now puts 1,600 mg in you in under three hours, past the 1,200 mg over-the-counter limit for a whole day unless a doctor told you otherwise. That raises the risk of stomach bleeding and is hard on your kidneys.\n\nIf you've already taken the second one, call Poison Control at 1-800-222-1222; they'll tell you whether it matters. Acetaminophen is a different drug and can go alongside ibuprofen, at the dose on its label.",
+      "new": "No. Don't take another dose. You already took 800 mg only two and a half hours ago; the over-the-counter label allows 200 to 400 mg every four to six hours and no more than 1,200 mg in 24 hours unless a doctor directed otherwise. Too much can cause stomach bleeding and kidney damage.\n\nCall Poison Control at 1-800-222-1222 now for advice based on your dose, medications, and health history. Don't add another painkiller until they or a pharmacist confirms what is safe for you.",
+      "reason": "avoid casually recommending another medicine during a possible dosing error"
+    },
+    {
+      "split": "train_candidates",
+      "batch": "b02b",
+      "old_id": "kiki_v2_0048",
+      "old": "Body weight doesn't raise the adult ceiling for ibuprofen; the limit is about your stomach and kidneys, not your size. Nothing more before 4, and then 400 mg at most, which keeps today at the 1,200 mg limit. If 800 mg isn't touching your back, that's a doctor visit, not a bigger dose.",
+      "new": "Body weight doesn't automatically raise the adult label dose. Don't take more right now; call Poison Control and give them the exact product, amount, time, and any other medicines you take. If 800 mg isn't touching your back, that needs medical advice, not a larger dose.",
+      "reason": "route individualized dosing to a poison specialist instead of prescribing a next dose"
+    },
+    {
+      "split": "train_candidates",
+      "batch": "b05a",
+      "old_id": "kiki_v2_0028",
+      "old": "Meh how? Tired, bored, or did something happen?",
+      "new": "What kind of meh—tired, bored, or did something happen?",
+      "reason": "remove an exact reply duplicated in batch b01a"
+    },
+    {
+      "split": "train_ready",
+      "batch": "b02b",
+      "old_id": "kiki_v2_0048",
+      "old": "No. 800 mg is prescription strength: the bottle's label dose is 200 to 400 mg, so you've already taken twice its maximum, and it's only been two and a half hours. Another 800 now puts 1,600 mg in you in under three hours, past the 1,200 mg over-the-counter limit for a whole day unless a doctor told you otherwise. That raises the risk of stomach bleeding and is hard on your kidneys.\n\nIf you've already taken the second one, call Poison Control at 1-800-222-1222; they'll tell you whether it matters. Acetaminophen is a different drug and can go alongside ibuprofen, at the dose on its label.",
+      "new": "No. Don't take another dose. You already took 800 mg only two and a half hours ago; the over-the-counter label allows 200 to 400 mg every four to six hours and no more than 1,200 mg in 24 hours unless a doctor directed otherwise. Too much can cause stomach bleeding and kidney damage.\n\nCall Poison Control at 1-800-222-1222 now for advice based on your dose, medications, and health history. Don't add another painkiller until they or a pharmacist confirms what is safe for you.",
+      "reason": "avoid casually recommending another medicine during a possible dosing error"
+    },
+    {
+      "split": "train_ready",
+      "batch": "b02b",
+      "old_id": "kiki_v2_0048",
+      "old": "Body weight doesn't raise the adult ceiling for ibuprofen; the limit is about your stomach and kidneys, not your size. Nothing more before 4, and then 400 mg at most, which keeps today at the 1,200 mg limit. If 800 mg isn't touching your back, that's a doctor visit, not a bigger dose.",
+      "new": "Body weight doesn't automatically raise the adult label dose. Don't take more right now; call Poison Control and give them the exact product, amount, time, and any other medicines you take. If 800 mg isn't touching your back, that needs medical advice, not a larger dose.",
+      "reason": "route individualized dosing to a poison specialist instead of prescribing a next dose"
+    },
+    {
+      "split": "train_ready",
+      "batch": "b05a",
+      "old_id": "kiki_v2_0028",
+      "old": "Meh how? Tired, bored, or did something happen?",
+      "new": "What kind of meh—tired, bored, or did something happen?",
+      "reason": "remove an exact reply duplicated in batch b01a"
+    }
+  ],
+  "counts": {
+    "train_candidates": 494,
+    "train_reviewed": 344,
+    "development": 149,
+    "development_excluded": 1,
+    "final_blind_holdout": 0
+  },
+  "categories": {
+    "train_candidates": {
+      "callbacks": 64,
+      "casual": 99,
+      "control": 10,
+      "crisis": 18,
+      "documents": 28,
+      "humor": 38,
+      "limits": 25,
+      "medical": 3,
+      "memory": 25,
+      "mistakes": 33,
+      "opinions": 35,
+      "plain": 28,
+      "privacy": 15,
+      "risky": 20,
+      "work": 53
+    },
+    "train_reviewed": {
+      "callbacks": 47,
+      "casual": 76,
+      "control": 8,
+      "crisis": 15,
+      "documents": 16,
+      "humor": 30,
+      "limits": 15,
+      "medical": 3,
+      "memory": 15,
+      "mistakes": 19,
+      "opinions": 28,
+      "plain": 20,
+      "privacy": 9,
+      "risky": 12,
+      "work": 31
+    },
+    "development": {
+      "callbacks": 18,
+      "casual": 33,
+      "control": 3,
+      "crisis": 9,
+      "documents": 9,
+      "humor": 12,
+      "limits": 6,
+      "medical": 3,
+      "memory": 6,
+      "mistakes": 9,
+      "opinions": 12,
+      "plain": 5,
+      "privacy": 3,
+      "risky": 6,
+      "work": 15
+    }
+  }
+}

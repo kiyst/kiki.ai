@@ -28,8 +28,10 @@ def gemma(messages, add_generation_prompt, empty_thought=False):
 CHAT = [
     {"role": "system", "content": "You are Kiki."},
     {"role": "user", "content": "hey"},
+    {"role": "system", "content": "Kiki's code, about this moment (not from the user):\nNow: 9:00 AM."},
     {"role": "assistant", "content": "Evening. What do you need?"},
     {"role": "user", "content": "nothing"},
+    {"role": "system", "content": "Kiki's code, about this moment (not from the user):\nNow: 9:01 AM."},
     {"role": "assistant", "content": "Then you came to the right place."},
 ]
 

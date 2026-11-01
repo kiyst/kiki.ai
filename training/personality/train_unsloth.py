@@ -36,7 +36,7 @@ from gemma_format import (  # noqa: E402
 )
 
 BASE_MODEL = "google/gemma-4-E4B-it-qat-q4_0-unquantized"
-DEFAULT_DATASET = HERE / "smoke_conversations.jsonl"
+DEFAULT_DATASET = HERE / "recovery" / "2026-11-01" / "prepared" / "train_reviewed.jsonl"
 
 
 def parse_args() -> argparse.Namespace:

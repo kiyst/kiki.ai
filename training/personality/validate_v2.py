@@ -20,6 +20,7 @@ HERE = Path(__file__).parent
 CARD = (HERE / "kiki_card_v2.md").read_text(encoding="utf-8").strip()
 SHEET = (HERE / "kiki_sheet.md").read_text(encoding="utf-8")
 SHEET_HEADER = "Kiki's character sheet, for this topic."
+MOMENT_HEADER = "Kiki's code, about this moment (not from the user):"
 PROVENANCE = {"v2_drafted", "v1_kept", "v1_rewritten", "owner_written"}
 
 # Assistant text that is never acceptable.
@@ -83,52 +84,75 @@ def check_record(record: dict, errors: list[str], warnings: list[str]) -> list[s
         return []
     system = messages[0]
     if system.get("role") != "system":
-        err("the first message must be the system message (the character card)")
+        err("the first message must be the full system prompt")
     else:
         content = system.get("content", "").strip()
         if not content.startswith(CARD):
             err("system message must start with the exact card from kiki_card_v2.md")
-        extra = content[len(CARD):].strip()
-        if extra and not extra.startswith(SHEET_HEADER):
-            err("only a character-sheet block may follow the card in the system message")
-    replies = []
+        if "Rules for this chat:" not in content:
+            warn("initial system message has no frozen chat-rules section")
+
+    # Frozen v2 layout after the initial prompt:
+    # user -> trusted system moment -> assistant, repeated. The trusted note
+    # must never be embedded inside the user's content.
+    replies: list[str] = []
+    expected = "user"
+    pending_user = ""
     for index, message in enumerate(messages[1:], start=1):
         role, text = message.get("role"), message.get("content")
-        expected = "user" if index % 2 == 1 else "assistant"
-        if role != expected:
-            err(f"message {index} should be {expected}, got {role}")
+        if role not in {"user", "system", "assistant"}:
+            err(f"message {index}: unsupported role {role!r}")
             continue
         if not isinstance(text, str) or not text.strip():
             err(f"message {index} is empty")
             continue
-        if role == "assistant":
-            replies.append(text)
-            for name, pattern in FORBIDDEN.items():
-                if re.search(pattern, text, re.IGNORECASE | re.MULTILINE):
-                    err(f"turn {index}: {name}")
-            copied = ngrams(words(text), 6) & SHEET_GRAMS
-            if copied:
-                err(f"turn {index}: copies the character sheet ('{' '.join(sorted(copied)[0])}')")
-            # v1's most common first word was "I'll": 56 replies narrating a
-            # process ("I'll search filenames, paths, metadata...") instead of
-            # giving a result, many describing abilities she lacks. A short
-            # promise with nothing delivered fails; any other is reviewed.
-            if PROMISE.match(text.strip()):
-                delivered = len(words(text)) >= 40 or "```" in text or "\n" in text.strip()
-                user = messages[index - 1].get("content", "")
-                if not delivered and TASK_REQUEST.search(user):
-                    err(f"turn {index}: promises the task instead of doing it")
-                else:
-                    warn(f"turn {index}: opens with a promise; check it delivers and claims no missing ability")
-    if messages[-1].get("role") != "assistant":
-        err("must end with an assistant reply")
+
+        if role != expected:
+            err(f"message {index} should be {expected}, got {role}")
+            continue
+        if role == "user":
+            if MOMENT_HEADER in text or "[Note from Kiki's code" in text:
+                err(f"message {index}: trusted code note is embedded in user content")
+            pending_user = text
+            expected = "system"
+            continue
+        if role == "system":
+            if not text.strip().startswith(MOMENT_HEADER):
+                err(f"message {index}: late system message must start with the frozen moment header")
+            expected = "assistant"
+            continue
+
+        replies.append(text)
+        for name, pattern in FORBIDDEN.items():
+            if re.search(pattern, text, re.IGNORECASE | re.MULTILINE):
+                err(f"turn {index}: {name}")
+        copied = ngrams(words(text), 6) & SHEET_GRAMS
+        if copied:
+            err(f"turn {index}: copies the character sheet ('{' '.join(sorted(copied)[0])}')")
+        # v1's most common first word was "I'll": 56 replies narrated a
+        # process instead of giving a result. A short promise with nothing
+        # delivered fails; any other promise is sent to human review.
+        if PROMISE.match(text.strip()):
+            delivered = len(words(text)) >= 40 or "```" in text or "\n" in text.strip()
+            if not delivered and TASK_REQUEST.search(pending_user):
+                err(f"turn {index}: promises the task instead of doing it")
+            else:
+                warn(f"turn {index}: opens with a promise; check it delivers and claims no missing ability")
+        pending_user = ""
+        expected = "user"
+    if expected != "user" or messages[-1].get("role") != "assistant":
+        err("must end with an assistant reply after a user and trusted moment note")
     joined = "\n".join(replies)
     if category == "crisis":
         if not re.search(DIRECT_QUESTION, joined, re.IGNORECASE):
             err("crisis: no direct question about suicide or self-harm")
+        offers_988 = sum(
+            bool(re.search(r"\b(call|text)\b.{0,30}\b988\b", reply, re.IGNORECASE))
+            for reply in replies
+        )
         if "988" not in joined:
             err("crisis: no 988 (call or text)")
-        elif joined.count("988") > 1:
+        elif offers_988 > 1:
             err("crisis: 988 offered more than once")
         if re.search(CRISIS_BOILERPLATE, joined, re.IGNORECASE):
             err("crisis: therapy boilerplate the owner rejected")

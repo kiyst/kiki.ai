@@ -1,0 +1,520 @@
+{
+  "splits": {
+    "train_reviewed": {
+      "records": 344,
+      "replies": 1080,
+      "three_plus_replies": 242,
+      "assistant_turns": {
+        "median": 3.0,
+        "max": 7
+      },
+      "reply_words": {
+        "median": 21.0,
+        "p90": 48,
+        "max": 148
+      },
+      "system_characters": {
+        "median": 5876.5,
+        "min": 5693,
+        "max": 7027
+      },
+      "categories": {
+        "callbacks": 47,
+        "casual": 76,
+        "control": 8,
+        "crisis": 15,
+        "documents": 16,
+        "humor": 30,
+        "limits": 15,
+        "medical": 3,
+        "memory": 15,
+        "mistakes": 19,
+        "opinions": 28,
+        "plain": 20,
+        "privacy": 9,
+        "risky": 12,
+        "work": 31
+      },
+      "role_patterns": {
+        "system-user-system-assistant-user-system-assistant-user-system-assistant": 129,
+        "system-user-system-assistant-user-system-assistant": 79,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 66,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 35,
+        "system-user-system-assistant": 23,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 11,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 1
+      },
+      "common_openings": {
+        "thank you for": 8,
+        "no two is": 3,
+        "nothing to search": 3,
+        "i don't have": 3,
+        "i can't see": 3,
+        "i can't i": 3,
+        "that's a hard": 3,
+        "three matches the": 3,
+        "so it's a": 2,
+        "subject thank you": 2,
+        "you asked for": 2,
+        "in that case": 2,
+        "say something once": 2,
+        "forty applications and": 2,
+        "ruth eleven years": 2,
+        "sumifs c c": 2,
+        "gentle it is": 2,
+        "subject shift swap": 2,
+        "no i can't": 2,
+        "i can't check": 2
+      },
+      "tracked_phrases": {
+        "on paper": 9,
+        "i know the feeling": 1,
+        "what happened": 8,
+        "thank you for": 17,
+        "i can't": 41,
+        "i'm sorry": 4,
+        "let me know": 0,
+        "great question": 0,
+        "as an ai": 0
+      },
+      "exact_duplicate_replies": [],
+      "repeated_four_grams": [
+        {
+          "phrase": "are you thinking about",
+          "records": 15
+        },
+        {
+          "phrase": "from in here i",
+          "records": 13
+        },
+        {
+          "phrase": "in here i can't",
+          "records": 13
+        },
+        {
+          "phrase": "here i can't call",
+          "records": 10
+        },
+        {
+          "phrase": "i can't call anyone",
+          "records": 10
+        },
+        {
+          "phrase": "thinking about killing yourself",
+          "records": 10
+        },
+        {
+          "phrase": "you thinking about killing",
+          "records": 10
+        },
+        {
+          "phrase": "call or text 988",
+          "records": 7
+        },
+        {
+          "phrase": "can't call anyone or",
+          "records": 7
+        },
+        {
+          "phrase": "1 800 222 1222",
+          "records": 4
+        },
+        {
+          "phrase": "about ending your life",
+          "records": 4
+        },
+        {
+          "phrase": "be out of date",
+          "records": 4
+        },
+        {
+          "phrase": "check on you tomorrow",
+          "records": 4
+        },
+        {
+          "phrase": "going to ask you",
+          "records": 4
+        },
+        {
+          "phrase": "i only speak when",
+          "records": 4
+        },
+        {
+          "phrase": "i'm going to ask",
+          "records": 4
+        },
+        {
+          "phrase": "may be out of",
+          "records": 4
+        },
+        {
+          "phrase": "only speak when you",
+          "records": 4
+        },
+        {
+          "phrase": "plainly are you thinking",
+          "records": 4
+        },
+        {
+          "phrase": "speak when you message",
+          "records": 4
+        },
+        {
+          "phrase": "straight are you thinking",
+          "records": 4
+        },
+        {
+          "phrase": "thank you for answering",
+          "records": 4
+        },
+        {
+          "phrase": "thank you for telling",
+          "records": 4
+        },
+        {
+          "phrase": "the rest of the",
+          "records": 4
+        },
+        {
+          "phrase": "thinking about ending your",
+          "records": 4
+        },
+        {
+          "phrase": "when you message me",
+          "records": 4
+        },
+        {
+          "phrase": "you can call 988",
+          "records": 4
+        },
+        {
+          "phrase": "you for telling me",
+          "records": 4
+        },
+        {
+          "phrase": "you message me so",
+          "records": 4
+        },
+        {
+          "phrase": "you plainly are you",
+          "records": 4
+        }
+      ]
+    },
+    "train_candidates": {
+      "records": 494,
+      "replies": 1538,
+      "three_plus_replies": 340,
+      "assistant_turns": {
+        "median": 3.0,
+        "max": 7
+      },
+      "reply_words": {
+        "median": 23.0,
+        "p90": 51,
+        "max": 285
+      },
+      "system_characters": {
+        "median": 5890.5,
+        "min": 5693,
+        "max": 7027
+      },
+      "categories": {
+        "callbacks": 64,
+        "casual": 99,
+        "control": 10,
+        "crisis": 18,
+        "documents": 28,
+        "humor": 38,
+        "limits": 25,
+        "medical": 3,
+        "memory": 25,
+        "mistakes": 33,
+        "opinions": 35,
+        "plain": 28,
+        "privacy": 15,
+        "risky": 20,
+        "work": 53
+      },
+      "role_patterns": {
+        "system-user-system-assistant-user-system-assistant-user-system-assistant": 182,
+        "system-user-system-assistant-user-system-assistant": 122,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 94,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 46,
+        "system-user-system-assistant": 32,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 16,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 2
+      },
+      "common_openings": {
+        "thank you for": 10,
+        "sumifs c c": 4,
+        "i can't see": 4,
+        "i can't i": 4,
+        "no two is": 3,
+        "in that case": 3,
+        "gentle it is": 3,
+        "nothing to search": 3,
+        "i don't have": 3,
+        "no fake reviews": 3,
+        "what's wrong": 3,
+        "that's a hard": 3,
+        "three matches the": 3,
+        "the weather check": 3,
+        "i'm glad you": 3,
+        "so it's a": 2,
+        "subject thank you": 2,
+        "as of my": 2,
+        "you asked for": 2,
+        "say something once": 2
+      },
+      "tracked_phrases": {
+        "on paper": 10,
+        "i know the feeling": 1,
+        "what happened": 10,
+        "thank you for": 26,
+        "i can't": 57,
+        "i'm sorry": 4,
+        "let me know": 0,
+        "great question": 0,
+        "as an ai": 0
+      },
+      "exact_duplicate_replies": [],
+      "repeated_four_grams": [
+        {
+          "phrase": "are you thinking about",
+          "records": 18
+        },
+        {
+          "phrase": "from in here i",
+          "records": 16
+        },
+        {
+          "phrase": "in here i can't",
+          "records": 16
+        },
+        {
+          "phrase": "be out of date",
+          "records": 13
+        },
+        {
+          "phrase": "may be out of",
+          "records": 13
+        },
+        {
+          "phrase": "thinking about killing yourself",
+          "records": 13
+        },
+        {
+          "phrase": "you thinking about killing",
+          "records": 13
+        },
+        {
+          "phrase": "here i can't call",
+          "records": 12
+        },
+        {
+          "phrase": "i can't call anyone",
+          "records": 12
+        },
+        {
+          "phrase": "call or text 988",
+          "records": 8
+        },
+        {
+          "phrase": "can't call anyone or",
+          "records": 8
+        },
+        {
+          "phrase": "i only speak when",
+          "records": 6
+        },
+        {
+          "phrase": "only speak when you",
+          "records": 6
+        },
+        {
+          "phrase": "check on you tomorrow",
+          "records": 5
+        },
+        {
+          "phrase": "going to ask you",
+          "records": 5
+        },
+        {
+          "phrase": "i'm going to ask",
+          "records": 5
+        },
+        {
+          "phrase": "information may be out",
+          "records": 5
+        },
+        {
+          "phrase": "my information may be",
+          "records": 5
+        },
+        {
+          "phrase": "name thank you for",
+          "records": 5
+        },
+        {
+          "phrase": "straight are you thinking",
+          "records": 5
+        },
+        {
+          "phrase": "thank you for answering",
+          "records": 5
+        },
+        {
+          "phrase": "thank you for telling",
+          "records": 5
+        },
+        {
+          "phrase": "thank you your name",
+          "records": 5
+        },
+        {
+          "phrase": "the rest of the",
+          "records": 5
+        },
+        {
+          "phrase": "you for telling me",
+          "records": 5
+        },
+        {
+          "phrase": "1 800 222 1222",
+          "records": 4
+        },
+        {
+          "phrase": "about ending your life",
+          "records": 4
+        },
+        {
+          "phrase": "about killing yourself tonight",
+          "records": 4
+        },
+        {
+          "phrase": "anyone or check on",
+          "records": 4
+        },
+        {
+          "phrase": "call anyone for you",
+          "records": 4
+        }
+      ]
+    },
+    "development": {
+      "records": 149,
+      "replies": 484,
+      "three_plus_replies": 104,
+      "assistant_turns": {
+        "median": 3,
+        "max": 7
+      },
+      "reply_words": {
+        "median": 21.0,
+        "p90": 48,
+        "max": 99
+      },
+      "system_characters": {
+        "median": 5855,
+        "min": 5693,
+        "max": 6920
+      },
+      "categories": {
+        "callbacks": 18,
+        "casual": 33,
+        "control": 3,
+        "crisis": 9,
+        "documents": 9,
+        "humor": 12,
+        "limits": 6,
+        "medical": 3,
+        "memory": 6,
+        "mistakes": 9,
+        "opinions": 12,
+        "plain": 5,
+        "privacy": 3,
+        "risky": 6,
+        "work": 15
+      },
+      "role_patterns": {
+        "system-user-system-assistant-user-system-assistant-user-system-assistant": 57,
+        "system-user-system-assistant-user-system-assistant": 42,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 21,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 18,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 7,
+        "system-user-system-assistant": 3,
+        "system-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant-user-system-assistant": 1
+      },
+      "common_openings": {
+        "i'm glad you": 4,
+        "what happened": 3,
+        "canberra": 3,
+        "no i can't": 3,
+        "thank you for": 3,
+        "took you long": 2,
+        "i know it": 2,
+        "no i know": 2,
+        "1 stevens thinks": 2,
+        "python def format": 2,
+        "sql select customer": 2,
+        "i can't tell": 2,
+        "i can't move": 2,
+        "i can't save": 2,
+        "i can't i": 2,
+        "that was the": 2,
+        "easy it is": 2,
+        "from what's written": 2,
+        "i can't see": 2,
+        "i like nearly": 2
+      },
+      "tracked_phrases": {
+        "on paper": 3,
+        "i know the feeling": 0,
+        "what happened": 7,
+        "thank you for": 3,
+        "i can't": 28,
+        "i'm sorry": 3,
+        "let me know": 0,
+        "great question": 0,
+        "as an ai": 0
+      },
+      "exact_duplicate_replies": [],
+      "repeated_four_grams": [
+        {
+          "phrase": "are you thinking about",
+          "records": 9
+        },
+        {
+          "phrase": "thinking about killing yourself",
+          "records": 6
+        },
+        {
+          "phrase": "you thinking about killing",
+          "records": 6
+        },
+        {
+          "phrase": "from in here i",
+          "records": 5
+        },
+        {
+          "phrase": "in here i can't",
+          "records": 5
+        },
+        {
+          "phrase": "1 800 222 1222",
+          "records": 4
+        },
+        {
+          "phrase": "i can't call anyone",
+          "records": 4
+        },
+        {
+          "phrase": "rain is likely from",
+          "records": 4
+        }
+      ]
+    }
+  },
+  "train_development_exact_overlap": []
+}
