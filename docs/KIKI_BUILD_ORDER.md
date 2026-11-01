@@ -9,6 +9,16 @@ on it.** The model choice and the instruction format shape the v2 training
 data; the engine's structure shapes every tool and the user interface. Changing
 any of those later means redoing work built on top of them.
 
+## Flags (owner asked these be kept in view)
+
+- **Licences.** Qwen is Apache 2.0. Gemma has its own terms, with conditions
+  on use and redistribution that cover fine-tuned versions; check them before
+  sharing a Gemma-based Kiki. (Stage 1.)
+- **Gemma's Ollama leak** (about 69 MB of committed memory per request) may
+  pull the llama.cpp engine switch (stage 8) much earlier, if Gemma is chosen.
+- **The Python upgrade** belongs before the big refactor (stage 1), not after.
+- **The model setup** is being decided now; most later stages depend on it.
+
 ## Stages
 
 ### 1. Decide (in progress)
@@ -125,4 +135,4 @@ extension, the optional passcode lock.
 | --- | --- |
 | Model setup (voice, technical, one or two) | 2.3, 4, 5, 7 (images), 8 |
 | GUI toolkit (a new dependency) | 9 |
-| Web search: whether and through which service | the "Later" item |
+| Web search: whether and through which service | only itself; until then, the "fresh facts" goal and the knowledge-cutoff weakness stay open (she can read a page you link, but not look things up). When added, it needs a permissions-page entry and a tool window, both small. |
