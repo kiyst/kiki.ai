@@ -57,6 +57,20 @@ confirmation preview shows the plan with counts ("PDFs: 84 files"). The user
 can adjust it in chat before approving ("put PDFs in Documents", "call it
 Pictures") and she redoes the plan. The model never judges individual files.
 
+The map covers modern formats too (`.heic`, `.webp`, `.avif` in Images; found
+missing in the role-play). Corrections **stick** (proposed by Claude, owner
+agreed): "`.heic` goes in Images" or "put PDFs in Documents" is saved by her
+code as a sort preference, visible and editable in Settings, used for every
+later sort, and limited to sorting. She mentions it once ("`.heic` goes to
+Images from now on"), which is allowed only because the save is real. Gaps in
+the map are fixed in code for everyone; tastes become the user's preferences.
+
+## Views are not actions
+
+Showing a folder or file list in her file-browser window ("what's in
+Other?") needs no confirmation: it reads, it changes nothing, and it opens no
+other app. While a confirmation is open she says nothing and waits.
+
 ## Timer
 
 A small separate program (see the product map for the alert). It takes both
