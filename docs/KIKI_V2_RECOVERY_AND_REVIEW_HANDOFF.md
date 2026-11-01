@@ -147,6 +147,43 @@ Do not resume the eight-agent batch cascade.
 7. Freeze training data, then create a smaller final blind holdout that no
    training or style decision has used.
 
+## Voice governor: post-pilot runtime milestone
+
+Do not add more training records merely to eliminate repeated openers, joke
+forms, or catchphrases. First measure the 344-record adapter without a runtime
+governor. Then add a narrow, session-local voice governor and rerun the same
+multi-turn cases.
+
+The governor is not a content or safety filter. It may assess casual CHAT
+responses for repeated openings, closings, distinctive phrases, near-duplicate
+answers, and repeated joke/refusal structures across roughly the last 12-20
+assistant turns. If a conservative threshold is crossed, it may request one
+regeneration that preserves meaning but uses a different structure. It must
+never enter a retry loop or mechanically delete prose.
+
+Use the existing deterministic capability route to protect correctness:
+
+- `casual`: full assessment and at most one regeneration;
+- `work`: only near-duplicate or obvious repeated-opener detection;
+- `protected`: no stylistic regeneration for code, RAG/citations, tool plans
+  or results, errors, crisis/loss, explicit serious mode, or other grounded
+  output.
+
+Keep only derived, bounded session features; do not write governor state to
+Kiki memory. In debug mode record rule IDs, similarity scores, and whether a
+regeneration occurred. Unit tests must cover normalization, bounded state,
+technical/quoted-term exclusions, capability policies, and the one-retry cap.
+Multi-turn evaluation must compare repeated-openers, signature phrases,
+near-duplicates, blind voice preference, existing technical regressions,
+latency, and regeneration rate.
+
+A high regeneration rate means the adapter, card, sampling, or corpus remains
+too repetitive; the governor must not conceal that failure. This is expected
+to take about one focused engineering day for the detector, ledger, retry path,
+and unit tests, plus one or two days for live calibration and regression. It
+requires no GPU training and adds an extra model call only to flagged casual
+turns.
+
 For crisis records, follow `training/personality/CRISIS_CORPUS_GUIDE.md`.
 Do not optimize prose diversity by weakening direct assessment, means
 reduction, emergency escalation, or connection to a real person.
@@ -165,6 +202,10 @@ reduction, emergency escalation, or connection to a real person.
    runtime layout.
 7. The next paid GPU action is the `--check-only` tokenizer/mask gate, followed
    by the 20-step smoke run only if it passes.
+8. Do not implement or tune the voice governor before recording an ungoverned
+   base-versus-adapter multi-turn baseline. After that baseline, implement it
+   as the bounded post-pilot milestone above rather than expanding the corpus
+   blindly.
 
 ## Owner decisions still worth confirming
 
