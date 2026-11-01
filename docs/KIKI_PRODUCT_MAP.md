@@ -120,6 +120,26 @@ to Claude when it is built). Proposed shape:
   them. Designed together with the memory system (shared background
   summarising, secrets filter, and search).
 
+**Settings window** (owner, 2026-10-31). Normal settings must be readable by
+an average, non-technical user from their description alone; anything else
+goes in Advanced.
+
+- **Her behaviour:** simple toggles where easy to implement: swearing on/off,
+  memory follow-ups on/off, and how talkative she is (a word-count cap on
+  casual replies).
+- **Appearance:** sprite size, screen corner, always-on-top.
+- **Folders:** which folders she can see, with their paths shown.
+- **Privacy:** clear memories or chat history, how long transcripts are kept,
+  and the passcode lock later.
+- **Diagnostics:** a health check of the model engine, tools, and hardware,
+  and the support report.
+- **Advanced: hardware and models:** context size, which models she uses,
+  idle time before she sleeps, redoing the hardware check. Marked plainly as
+  at the user's discretion: compatibility and performance aren't guaranteed
+  once changed.
+- Also here: the permissions page, profile, notes, her memories, and pinned
+  chats.
+
 **When she speaks first** (owner, 2026-10-31):
 
 - A long job she was running finishes (indexing, a test run): an exclamation
