@@ -94,6 +94,30 @@ decided: a few actions stay manual-only with no automatic option, such as
 deleting or overwriting the user's files and anything that sends data
 outside the computer.
 
+**Chats** (owner, 2026-10-31; the owner entrusts the detailed architecture
+to Claude when it is built). Proposed shape:
+
+- Chats split on their own: everyday talk continues in the chat box and a new
+  chat starts after a long break; work gets its own chat tied to its tool
+  window (a coding session in its terminal, a document search in the file
+  browser), linked from the main chat. A "New chat" button stays.
+- When a chat nears 70-80% of her context, the older part is summarised in the
+  background to a few hundred tokens and recent messages stay word for word; a
+  quiet line marks it and the summary can be read or edited. Saving memories
+  stays separate (her own memories at session end; "remember this" any time).
+- Each chat keeps a title, a summary (in a separate searchable list), links to
+  memories made in it, and **the full transcript, kept temporarily (about one
+  to two weeks, the owner's suggestion)** so a summary that a small model got
+  wrong can be checked against the real conversation, and so a vaguely
+  remembered summary leads back to that exact chat. After that, the summary
+  and memories remain.
+- Reopening a chat loads its summary and the last few messages. Finding one
+  ("the chat where we fixed the Docker thing") searches titles and summaries by
+  words and meaning with the existing search model.
+- Summaries are written during idle time and capped, so replies never wait on
+  them. Designed together with the memory system (shared background
+  summarising, secrets filter, and search).
+
 **When she speaks first** (owner, 2026-10-31):
 
 - A long job she was running finishes (indexing, a test run): an exclamation
