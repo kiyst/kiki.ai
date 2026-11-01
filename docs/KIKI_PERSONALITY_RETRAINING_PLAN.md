@@ -568,6 +568,16 @@ once the review rounds finish.
   Qwen 3.5 4B, Gemma 4 E4B): leave-one-out ablation, a fresh independently
   written attack set, and a look-alike set measuring over-blocking; a layer
   stays if it helps across models without breaking any.
+- **A per-model normalization layer** sits between the harness and each
+  model and is the only place model quirks live: chat template and role
+  handling (where a note after the user's message goes, whether later system
+  messages survive), tool-call format, the thinking switch with the context
+  and token room it needs, sampling defaults, citation formats parsed back to
+  Kiki's `[source:...]` form, output clean-up (LaTeX in a terminal, stray
+  thinking tags), and limits (context size, timeouts). Everything above it,
+  defences, routing, memory, and the instruction contract, stays the same
+  whichever model is plugged in; swapping a model means adding or editing its
+  normalization entry, not re-engineering Kiki.
 - **Technical prompts carry no personality layer** (owner, 2026-10-31). Web
   and document prompts currently append the personality text, today's
   requests, and self-knowledge to the task instructions; technical answers
