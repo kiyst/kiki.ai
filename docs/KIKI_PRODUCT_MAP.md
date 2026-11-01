@@ -127,6 +127,13 @@ to Claude when it is built). Proposed shape:
   them. Designed together with the memory system (shared background
   summarising, secrets filter, and search).
 
+**Owner only** (owner, 2026-10-31). One person per installation. Kiki does not
+try to stop someone who has physical access to the owner's computer, in the
+same way a signed-in email account opens for whoever is at the device: keeping
+that device secure is the owner's responsibility. The younger-user mode is
+dropped for the same reason. (The passcode lock stays an optional idea in the
+development notes, not a requirement.)
+
 **What tool windows show** (owner, 2026-10-31). A setting with three levels:
 *Minimal* (the result), *Steps* (the result and what she did: the page
 fetched, passages picked and why, details she couldn't verify, sources), and
