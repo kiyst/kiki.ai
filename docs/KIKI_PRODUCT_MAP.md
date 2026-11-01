@@ -210,6 +210,10 @@ Owner's choices (2026-10-31):
 - **Calculator, and clock with date maths**: exact answers computed by code
   (sums, percentages, units, days until a date, time zones from the profile),
   because small models slip on arithmetic and have no clock.
+- **Maths libraries in her install**: pure-Python ones (SymPy and others)
+  bundled into the sandbox for harder maths; NumPy only if a WebAssembly build
+  proves to work (see the research note). When maths is beyond her model, she
+  says so instead of guessing.
 - **Run code before showing it**: she runs code in the sandbox first; on a
   failure she fixes and retries, and shows only working code.
 - **Checks on replies**: code checks rules with exact answers (word limits,
