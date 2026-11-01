@@ -1,8 +1,10 @@
 # Kiki v2 trainer on RunPod (Gemma 4 E4B, Unsloth)
 
 Smoke test only, for now: it proves the trainer and the llama.cpp adapter plan
-work before any real training. Nothing here starts on its own. The v1 (Qwen)
-guide is `RUNPOD.md`.
+work before any real training. Nothing here starts on its own. The default
+dataset is the recovered, reviewed v2 subset recorded in
+`recovery/2026-11-01/prepared/manifest.json`; partially reviewed candidates
+are deliberately excluded. The v1 (Qwen) guide is `RUNPOD.md`.
 
 ## Pod
 
@@ -28,6 +30,9 @@ cat training/personality/artifacts/checks/mask_preview.txt
 ```
 
 Stop if it fails. Read the preview: only Kiki's lines may sit inside `[[ ]]`.
+The prompt immediately before every trained reply must show a user turn and a
+separate `Kiki's code, about this moment` system turn. If the note appears
+inside user content, stop: training and runtime formats have diverged.
 
 ## 2. Smoke training (20 steps, a few minutes)
 
