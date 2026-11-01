@@ -127,6 +127,16 @@ to Claude when it is built). Proposed shape:
   them. Designed together with the memory system (shared background
   summarising, secrets filter, and search).
 
+**What tool windows show** (owner, 2026-10-31). A setting with three levels:
+*Minimal* (the result), *Steps* (the result and what she did: the page
+fetched, passages picked and why, details she couldn't verify, sources), and
+*Full*, the default (steps plus security events: lines removed for trying to
+manipulate AI assistants, hidden text ignored, unverified contact details
+flagged, sandbox limits hit). The same applies to code runs and document
+searches. Showing costs almost nothing: the defences and steps run either
+way, and the engine only reports what it already did (today's `/debug`,
+generalised).
+
 **Settings window** (owner, 2026-10-31). Normal settings must be readable by
 an average, non-technical user from their description alone; anything else
 goes in Advanced.
