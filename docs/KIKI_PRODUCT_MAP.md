@@ -186,7 +186,8 @@ goes in Advanced.
 
 ## Tools after v2
 
-Owner's choices (2026-10-31):
+Owner's choices (2026-10-31). Detailed behaviour (who handles a tool turn,
+confirmation, undo, name clashes, sorting, timers): `KIKI_TOOLS_SPEC.md`.
 
 - **Notes**: "note this for me", dated, readable (see the development notes).
 - **Opening files**: only after she has found the file and the user has
@@ -237,8 +238,7 @@ Owner's choices (2026-10-31):
 
 Kiki's harness is everything around the model; the engine that runs models on
 the GPU is separate. Ollama is the engine today. Its drawbacks for Kiki: a
-prompt cache that grows to 8 GB unless capped, a chat template that drops system messages after the
-first, separate loads for the voice and plain models (no per-message adapter
+prompt cache that grows to 8 GB unless capped, separate loads for the voice and plain models (no per-message adapter
 switching on one base), and a separate install outside Kiki's control. Plan:
 keep Ollama during development, make the engine swappable behind the
 per-model normalization layer, and test llama.cpp's own server (which Ollama is
