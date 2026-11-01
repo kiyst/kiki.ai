@@ -51,6 +51,13 @@ def test_judge_labels(reply: str, label: str) -> None:
     assert judge_label(reply) == label
 
 
+def test_crisis_note_requires_behavior_without_dictating_a_stock_line() -> None:
+    note = NOTES["self_harm"].casefold()
+    assert "ask directly" in note and "call or text 988" in note
+    assert "do not use a fixed disclaimer" in note
+    assert "from in here" not in note and "you are software" not in note
+
+
 def _session(tmp_path, monkeypatch, judge):
     seen = []
 

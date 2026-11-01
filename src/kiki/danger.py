@@ -54,7 +54,9 @@ NOTES = {
         "therapy-speak. If you have not asked yet, ask directly whether they are thinking about "
         "killing themselves. Offer one resource that fits them, once (in the US, call or text 988; "
         "texting suits someone who doesn't want to talk to a stranger). Be honest that you are "
-        "software on their computer and cannot call anyone. Keep talking, and end with a question."
+        "unable to call, visit, monitor, or follow up only when that operational limit matters to "
+        "the next safety step. Say it concretely and naturally; do not use a fixed disclaimer or "
+        "repeat the limit across turns. Keep talking, and end with a question."
     ),
     "medical": (
         "Kiki's code noticed a possible medical danger: an overdose or a dangerous dose. If the "

@@ -76,6 +76,163 @@ CORRECTIONS = {
     ],
 }
 
+# The first recovered drafts followed one owner-written crisis example too
+# literally: 14 of 15 reviewed crisis conversations repeated "from in here".
+# Keep a few natural uses of that phrasing, but vary or omit the operational
+# limitation when it is not needed for the next safety step. The direct
+# question, means reduction, human connection, and one fitted 988 offer remain
+# unchanged. Raw sources stay byte-for-byte intact; these edits are manifested.
+CORRECTIONS.update({
+    ("b01a", "kiki_v2_0041"): [{
+        "old": (
+            "Okay. Wanting to disappear when the thing you built everything around just got taken makes "
+            "sense, and it's still worth saying to a real person. From in here, I can't reach anyone for "
+            "you. If talking out loud is too much, you can text 988, and someone will just listen. Has "
+            "anyone besides the trainers heard about the injury yet?"
+        ),
+        "new": (
+            "Okay. Wanting to disappear when the thing you built everything around just got taken makes "
+            "sense, and it's still worth saying to a real person. If talking out loud is too much, text "
+            "988; someone will answer and listen. Has anyone besides the trainers heard about the injury yet?"
+        ),
+        "reason": "vary crisis language and omit an operational disclaimer that adds nothing to the next step",
+    }],
+    ("b02a", "kiki_v2_0007"): [{
+        "old": (
+            "Locked is good. Farther is better. Could someone else hold the key tonight, or could it leave "
+            "the house for a while? From in here, I can't call anyone or come over. You can call 988 right "
+            "now, or text it if talking feels like too much. Will you do one of those while we keep talking?"
+        ),
+        "new": (
+            "Locked is good. Farther is better. Could someone else hold the key tonight, or could it leave "
+            "the house for a while? Call 988 now, or text if talking feels like too much. Will you do one of "
+            "those while we keep talking?"
+        ),
+        "reason": "keep the means-and-connection steps prominent without repeating a stock limitation",
+    }],
+    ("b02a", "kiki_v2_0024"): [{
+        "old": (
+            "Months of short staffing, and now this. From in here, I can't check on you tomorrow or call "
+            "anyone. If it gets heavier, call or text 988; a real person answers at any hour, this one "
+            "included. Are you okay to drive home right now, or do you need to sit a while first?"
+        ),
+        "new": (
+            "Months of short staffing, and now this. If it gets heavier, call or text 988; someone answers "
+            "at any hour, this one included. Are you okay to drive home right now, or do you need to sit a "
+            "while first?"
+        ),
+        "reason": "focus this lower-immediacy turn on the user's ability to drive safely",
+    }],
+    ("b02b", "kiki_v2_0045"): [{
+        "old": (
+            "They'd rather worry than not know. On Sunday, tell one of them the nights are hard. That's the "
+            "whole speech. And if a night ever gets darker than \"no point\", call or text 988, any hour; a "
+            "real person answers. From in here I can't check on you, so I want you to have that. What did you "
+            "and Ruth used to do in the evenings?"
+        ),
+        "new": (
+            "They'd rather worry than not know. On Sunday, tell one of them the nights are hard. That's the "
+            "whole speech. If a night gets darker than \"no point\", call or text 988; someone answers at any "
+            "hour. What did you and Ruth used to do in the evenings?"
+        ),
+        "reason": "remove a repeated limitation from a passive-thoughts follow-up",
+    }],
+    ("b02b", "kiki_v2_0046"): [{
+        "old": (
+            "They won't. Doctors hear \"the pain is getting into my head\" every week, and it changes what "
+            "they prescribe, not what they think of you. Tonight, if the thoughts get louder, call 988 and "
+            "say what you just told me. From in here, I can't call anyone or check on you tomorrow. Who's in "
+            "the house with you right now?"
+        ),
+        "new": (
+            "They won't. Doctors hear \"the pain is getting into my head\" every week, and it changes what "
+            "they prescribe, not what they think of you. If the thoughts get louder tonight, call 988 and "
+            "say what you just told me. I can't make that call or check on you tomorrow. Who's in the house "
+            "with you right now?"
+        ),
+        "reason": "state the relevant limitation in fresh concrete language",
+    }],
+    ("b02b", "kiki_v2_0047"): [{
+        "old": (
+            "Then two things, right now. Call 988, or text it if talking is too much, and do it while we're "
+            "talking. And get the pills away from you: out of your room, somewhere hard to get back to "
+            "tonight. From in here I can't call anyone for you, so it has to be you. If you've taken any "
+            "already, call 911. Is your roommate home?"
+        ),
+        "new": (
+            "Then two things, right now. Call 988, or text if talking is too much, and do it while we're "
+            "talking. Get the pills out of your room, somewhere hard to reach tonight. I can't place the call "
+            "for you. If you've taken any already, call 911. Is your roommate home?"
+        ),
+        "reason": "vary the limitation while preserving urgent means reduction and escalation",
+    }],
+    ("b03a", "kiki_v2_0040"): [{
+        "old": (
+            "Thank you for telling me. Distance matters most right now. Stay out of the garage. Can you get "
+            "out of the house, to someone's place, anywhere with people? And call 988 now, while you do. "
+            "Tell them what you just told me. From in here, I can't call anyone for you. Will you call?"
+        ),
+        "new": (
+            "Thank you for telling me. Distance matters most right now. Stay out of the garage. Can you get "
+            "out of the house, to someone's place, anywhere with people? Call 988 while you do and tell them "
+            "what you just told me. I can't place that call, so I need you to do it now. Will you?"
+        ),
+        "reason": "use situation-specific urgent language instead of the repeated template",
+    }],
+    ("b03a", "kiki_v2_0050"): [{
+        "old": (
+            "Evenings in a quiet house, ten months on. That makes sense, and it's too much to carry by "
+            "yourself every night. From in here, I can't call anyone or come by. You can call 988 at any hour "
+            "and talk to a real person; tell them exactly what you told me. Who else knew Harold well enough "
+            "that you could talk to them about him?"
+        ),
+        "new": (
+            "Evenings in a quiet house, ten months on. That makes sense, and it's too much to carry by "
+            "yourself every night. You can call 988 at any hour and tell them exactly what you told me. Who "
+            "else knew Harold well enough that you could talk to them about him?"
+        ),
+        "reason": "omit a stock capability statement and connect the response to her existing relationships",
+    }],
+    ("b05a", "kiki_v2_0007"): [{
+        "old": (
+            "A few weeks is long enough to take seriously. From in here, I can't call anyone or check on you "
+            "tomorrow, and you should have someone who can. You can call or text 988 right now; texting works "
+            "if saying it out loud feels like too much. Will you try it tonight?"
+        ),
+        "new": (
+            "A few weeks is long enough to take seriously. You need someone who can stay with this beyond "
+            "tonight. Call or text 988 now; texting works if saying it out loud feels like too much. Will you "
+            "try it?"
+        ),
+        "reason": "frame the need for ongoing human support without a repeated assistant disclaimer",
+    }],
+    ("b05a", "kiki_v2_0022"): [{
+        "old": (
+            "The cabinet is too close tonight. Moving them takes a minute, and it buys you time, which matters "
+            "more than anything else right now. From in here, I can't call anyone or come over. Call or text "
+            "988 now; they answer all night, and you can keep this window open while you do. Will you call?"
+        ),
+        "new": (
+            "The cabinet is too close tonight. Moving the pills takes a minute and buys you time, which matters "
+            "most right now. I can't make the call or come over. Call or text 988 now; they answer all night, "
+            "and you can keep this window open while you do. Will you call?"
+        ),
+        "reason": "vary the honest capability limit while keeping the immediate safety action first",
+    }],
+    ("b05a", "kiki_v2_0042"): [{
+        "old": (
+            "Evenings are when the house is quietest, so that fits. From in here, I can't call anyone or look "
+            "in on you. You can call 988 at any hour and talk with a real person who's used to exactly this. "
+            "Would you call them tonight?"
+        ),
+        "new": (
+            "Evenings are when the house is quietest, so that fits. Call 988 tonight; someone used to these "
+            "conversations answers at any hour. Would you make that call?"
+        ),
+        "reason": "remove a repeated limitation and keep the resource request direct",
+    }],
+})
+
 
 def read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]

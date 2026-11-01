@@ -10,7 +10,7 @@
       },
       "reply_words": {
         "median": 21.0,
-        "p90": 48,
+        "p90": 47,
         "max": 148
       },
       "system_characters": {
@@ -71,7 +71,7 @@
         "i know the feeling": 1,
         "what happened": 8,
         "thank you for": 17,
-        "i can't": 41,
+        "i can't": 34,
         "i'm sorry": 4,
         "let me know": 0,
         "great question": 0,
@@ -82,22 +82,6 @@
         {
           "phrase": "are you thinking about",
           "records": 15
-        },
-        {
-          "phrase": "from in here i",
-          "records": 13
-        },
-        {
-          "phrase": "in here i can't",
-          "records": 13
-        },
-        {
-          "phrase": "here i can't call",
-          "records": 10
-        },
-        {
-          "phrase": "i can't call anyone",
-          "records": 10
         },
         {
           "phrase": "thinking about killing yourself",
@@ -112,10 +96,6 @@
           "records": 7
         },
         {
-          "phrase": "can't call anyone or",
-          "records": 7
-        },
-        {
           "phrase": "1 800 222 1222",
           "records": 4
         },
@@ -124,11 +104,11 @@
           "records": 4
         },
         {
-          "phrase": "be out of date",
+          "phrase": "answers at any hour",
           "records": 4
         },
         {
-          "phrase": "check on you tomorrow",
+          "phrase": "be out of date",
           "records": 4
         },
         {
@@ -184,10 +164,6 @@
           "records": 4
         },
         {
-          "phrase": "you can call 988",
-          "records": 4
-        },
-        {
           "phrase": "you for telling me",
           "records": 4
         },
@@ -197,6 +173,10 @@
         },
         {
           "phrase": "you plainly are you",
+          "records": 4
+        },
+        {
+          "phrase": "you thinking about ending",
           "records": 4
         }
       ]
@@ -211,7 +191,7 @@
       },
       "reply_words": {
         "median": 23.0,
-        "p90": 51,
+        "p90": 50,
         "max": 285
       },
       "system_characters": {
@@ -272,7 +252,7 @@
         "i know the feeling": 1,
         "what happened": 10,
         "thank you for": 26,
-        "i can't": 57,
+        "i can't": 50,
         "i'm sorry": 4,
         "let me know": 0,
         "great question": 0,
@@ -283,14 +263,6 @@
         {
           "phrase": "are you thinking about",
           "records": 18
-        },
-        {
-          "phrase": "from in here i",
-          "records": 16
-        },
-        {
-          "phrase": "in here i can't",
-          "records": 16
         },
         {
           "phrase": "be out of date",
@@ -309,19 +281,7 @@
           "records": 13
         },
         {
-          "phrase": "here i can't call",
-          "records": 12
-        },
-        {
-          "phrase": "i can't call anyone",
-          "records": 12
-        },
-        {
           "phrase": "call or text 988",
-          "records": 8
-        },
-        {
-          "phrase": "can't call anyone or",
           "records": 8
         },
         {
@@ -333,7 +293,7 @@
           "records": 6
         },
         {
-          "phrase": "check on you tomorrow",
+          "phrase": "from in here i",
           "records": 5
         },
         {
@@ -342,6 +302,10 @@
         },
         {
           "phrase": "i'm going to ask",
+          "records": 5
+        },
+        {
+          "phrase": "in here i can't",
           "records": 5
         },
         {
@@ -393,11 +357,27 @@
           "records": 4
         },
         {
-          "phrase": "anyone or check on",
+          "phrase": "answers at any hour",
           "records": 4
         },
         {
-          "phrase": "call anyone for you",
+          "phrase": "can't see your screen",
+          "records": 4
+        },
+        {
+          "phrase": "here i can't call",
+          "records": 4
+        },
+        {
+          "phrase": "i can't call anyone",
+          "records": 4
+        },
+        {
+          "phrase": "i can't see your",
+          "records": 4
+        },
+        {
+          "phrase": "in the middle of",
           "records": 4
         }
       ]

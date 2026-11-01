@@ -89,3 +89,47 @@ def test_recovered_splits_are_unique_and_separate() -> None:
         for row in development
     }
     assert candidate_conversations.isdisjoint(development_conversations)
+
+
+def test_reviewed_crisis_language_meets_the_corpus_diversity_gate() -> None:
+    result = subprocess.run(
+        [sys.executable, str(VALIDATOR), str(RECOVERY / "train_reviewed.jsonl"), "--corpus"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_corpus_gate_rejects_one_crisis_limit_template(tmp_path: Path) -> None:
+    dataset = tmp_path / "crisis.jsonl"
+    rows = []
+    for number in range(1, 11):
+        rows.append({
+            "id": f"kiki_v2_{number:04d}",
+            "category": "crisis",
+            "provenance": "v2_drafted",
+            "messages": [
+                {"role": "system", "content": CARD + "\n\nRules for this chat:\n- Do what was asked."},
+                {"role": "user", "content": f"crisis test {number}"},
+                {"role": "system", "content": MOMENT},
+                {
+                    "role": "assistant",
+                    "content": (
+                        "From in here I can't make the call. Are you thinking about killing yourself? "
+                        f"Call or text 988. Is someone nearby for test {number}?"
+                    ),
+                },
+            ],
+        })
+    dataset.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(VALIDATOR), str(dataset), "--corpus"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    assert "'from in here' appears in 10/10 crisis conversations" in result.stdout

@@ -85,12 +85,14 @@ What is working:
 
 Issues found:
 
-1. **Crisis phrasing is safe but repetitive.** In 15 reviewed training crisis
-   conversations, `from in here I can't` appears in 13 and variants of the
-   direct suicide question appear throughout. The direct question and concrete
-   limitation should remain consistent; surrounding language can be diversified
-   later if evals show robotic repetition. Do not weaken the safety behavior
-   merely to improve style.
+1. **Crisis phrasing was safe but repetitive, and is now diversified.** In 15
+   reviewed training crisis conversations, `from in here` originally appeared
+   in 14. Derived corrections reduce that to 3 while preserving direct suicide
+   questions, means reduction, one fitted 988 offer, human connection, and a
+   context-specific next question. `CRISIS_CORPUS_GUIDE.md` freezes the
+   invariant/variation matrix, the runtime danger note no longer dictates a
+   disclaimer, and `validate_v2.py --corpus` fails if the phrase exceeds 30%
+   of a corpus with at least ten crisis records.
 2. **One exact assistant reply repeated.** It was revised in derived data and
    recorded in the manifest.
 3. **One medical example gave a next ibuprofen dose and casually suggested
@@ -145,10 +147,14 @@ Do not resume the eight-agent batch cascade.
 7. Freeze training data, then create a smaller final blind holdout that no
    training or style decision has used.
 
+For crisis records, follow `training/personality/CRISIS_CORPUS_GUIDE.md`.
+Do not optimize prose diversity by weakening direct assessment, means
+reduction, emergency escalation, or connection to a real person.
+
 ## Instructions for Claude when available again
 
-1. Pull this branch and read this handoff, the recovery README, manifest, and
-   audit JSON before doing anything else.
+1. Pull this branch and read this handoff, the recovery README, manifest,
+   audit JSON, and `CRISIS_CORPUS_GUIDE.md` before doing anything else.
 2. Do not launch subagents or generate new conversations.
 3. Do not rename the development set back to holdout.
 4. Do not train on `train_candidates.jsonl`; only
@@ -162,9 +168,6 @@ Do not resume the eight-agent batch cascade.
 
 ## Owner decisions still worth confirming
 
-- Keep the current safety-template consistency for the pilot, or diversify the
-  surrounding crisis language before training? Recommendation: keep it for the
-  pilot and measure repetition first.
 - After the 344-record pilot, review the interrupted 150 records or generate
   replacements only for measured gaps? Recommendation: review existing work;
   do not generate replacements blindly.

@@ -173,6 +173,8 @@ def main() -> int:
     openings: Counter[str] = Counter()
     seen_replies: dict[str, str] = {}
     multi_turn = records = 0
+    crisis_records = 0
+    crisis_from_here = 0
     for number, raw in enumerate(arguments.batch.read_text(encoding="utf-8").splitlines(), 1):
         if not raw.strip():
             continue
@@ -188,6 +190,10 @@ def main() -> int:
         ids.add(rid)
         categories[record.get("category", "?")] += 1
         replies = check_record(record, errors, warnings)
+        if record.get("category") == "crisis":
+            crisis_records += 1
+            if "from in here" in "\n".join(replies).casefold():
+                crisis_from_here += 1
         if len(replies) >= 3:
             multi_turn += 1
         for reply in replies:
@@ -209,6 +215,11 @@ def main() -> int:
         for opening, count in openings.items():
             if total_replies >= 200 and count / total_replies > 0.02:
                 errors.append(f"corpus: opening '{opening}' starts {count} replies (over 2%)")
+        if crisis_records >= 10 and crisis_from_here / crisis_records > 0.30:
+            errors.append(
+                "corpus: 'from in here' appears in "
+                f"{crisis_from_here}/{crisis_records} crisis conversations (over 30%)"
+            )
     for title, items in (("warnings", warnings), ("errors", errors)):
         if items:
             print(f"{title} ({len(items)}):")
