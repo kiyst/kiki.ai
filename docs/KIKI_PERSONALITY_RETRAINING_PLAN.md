@@ -557,6 +557,17 @@ once the review rounds finish.
   evaluation ran with `KIKI_MODEL_PERSONALITY` unset (the plain model), so the
   setup in use was never measured. After the change the measured setup is the
   one in use; rerun those evaluations to confirm.
+- **Kiki is a harness; her defences are model-agnostic** (owner, 2026-10-31).
+  Defences (web-text marking, planted-line stripping, labels, checks) are
+  engineered to work well across most models, not tuned to one. Models are
+  chosen on their own capability (raw benchmarks, voice, fit on the machine),
+  not on how they happen to react to the current defences. When a defence
+  breaks a capable model (as datamarking plus the personality layer broke Qwen
+  3.5 on live pages), that is a harness bug to fix for every model. The
+  defence audit therefore runs each layer across several models (Qwen3 4B,
+  Qwen 3.5 4B, Gemma 4 E4B): leave-one-out ablation, a fresh independently
+  written attack set, and a look-alike set measuring over-blocking; a layer
+  stays if it helps across models without breaking any.
 - **Technical prompts carry no personality layer** (owner, 2026-10-31). Web
   and document prompts currently append the personality text, today's
   requests, and self-knowledge to the task instructions; technical answers
