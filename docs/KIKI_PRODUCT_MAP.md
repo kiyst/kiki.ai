@@ -194,7 +194,10 @@ goes in Advanced.
 - **No fixed lines:** at a milestone or on an occasion, her code adds a note
   to the moment message and she reacts in her own words, differently each
   time.
-- **Birthday:** on the user's birthday she says something, as a default.
+- **Birthday:** on the user's birthday she says something, as a default. First-run setup
+  asks a third skippable question after name and city: "When's your birthday? (optional)",
+  month and day only (no year: she has no reason to know your age); stored in the profile,
+  editable with `/profile`.
 
 ## Tools after v2
 

@@ -36,3 +36,84 @@ rewriting data. Workshopped with the owner from 2026-11-01. Decided, not built.
    requests, the danger note (when active), tool result notes, a correction
    on retry, and occasions (the user's birthday, a friendship-meter milestone)
    for her to react to in her own words.
+
+## Formats
+
+Plain labelled sections, in the layout order. Example values are illustrative.
+
+```text
+[the character card, exactly as in training/personality/kiki_card_v2.md]
+
+[chat rules]
+
+[short self-knowledge, with a section per tool]
+
+About the user (from their profile):
+Name: Sam
+City: Toronto, Canada (temperatures in °C)
+Birthday: March 14
+
+What Kiki remembers about the user (her own notes; may be out of date):
+- 2026-10-28: Final-round interview at a design studio on Thursday; nervous.
+- 2026-09-02: Learning Rust; complains about the borrow checker.
+
+Notes the user asked Kiki to keep:
+- Mom's flight lands Friday 6:40 pm.
+
+Earlier in this chat (summary):
+[a few hundred tokens, when older turns have been summarised]
+
+Kiki's character sheet, for this topic.
+[at most two entries]
+```
+
+After the user's latest message, a separate system message:
+
+```text
+Kiki's code, about this moment (not from the user):
+Now: Wednesday, November 4, 2026, 9:10 AM.
+Today's requests (until 4:00 AM): go easy on me today.
+[danger note, when active]
+Tool result: Moved 399 of 403 files into 10 folders. Skipped 4: 3 still
+downloading, 1 in use (zoom_installer.exe). Renamed 7 for duplicates.
+Undo available for 7 days.
+Occasion: today is the user's birthday.
+```
+
+Empty parts are left out entirely, never written as "none".
+
+## Budgets (tokens, approximate)
+
+| Part | Small (4K) | Standard (8K, default) | Large (16K) / Max (32K) |
+| --- | --- | --- | --- |
+| Card, rules, self-knowledge | about 1,500 | about 1,500 | about 1,500 |
+| Profile | 40 | 40 | 40 |
+| Her memories and kept notes | 150 | 400 | 800 |
+| Chat summary | 150 | 300 | 500 |
+| Sheet entries | 1 entry | 2 entries | 2 entries |
+| The moment note | about 100 | about 100 | about 150 |
+| Room for her reply | 500 | 600 | 800 |
+| Recent conversation | the rest (about 1,400) | the rest (about 5,000) | the rest |
+
+At small, memories are the most relevant few and the sheet gets one entry.
+Memory selection (which memories, by relevance and recency) is runtime
+behaviour, not part of the contract; the contract fixes the format and the
+caps.
+
+## Security
+
+- Her code strips the model's control tokens (`<|turn>`, `<turn|>`,
+  `<|channel>`, `<channel|>`, `<|think|>`, tool markers, `<bos>`) from
+  everything that is not its own: user messages, pasted text, documents, web
+  pages, tool results quoted from files. Without this, a typed or planted
+  `<|turn>system` could forge a note from her code.
+- Text in a user message claiming to come from Kiki's code is ordinary user
+  text; the rules say so.
+
+## Training data
+
+Every v2 example's system message follows this layout, with the parts varied
+across the corpus: profile present or absent, zero to many memories, a chat
+summary sometimes, zero to two sheet entries, and moment notes of every kind
+(time of day always; requests, danger notes, tool results, occasions
+sometimes). Sizes stay within the standard budget.
