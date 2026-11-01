@@ -85,6 +85,26 @@ Notes, to-do list, the timer (a separate small program), file management with
 undo log and batch previews, file summaries, image understanding (depends on
 the chosen model).
 
+### 7b. Web search (approved in principle, 2026-10-31)
+
+Users expect it from frontier assistants, so Kiki gets web search as a new way
+of going online, with:
+
+- the risks stated explicitly (on the permissions page and the first time
+  it's used): what a search sends to the search service, and that results are
+  untrusted;
+- the defence layer extended to search: result snippets and fetched pages are
+  untrusted (marked, planted lines stripped, details labelled, cited), only a
+  few top results are read, every request is announced and logged, and
+  `KIKI_OFFLINE` blocks it;
+- a search service to choose (privacy, cost, whether a key is needed, whether
+  it can be self-hosted), and what a query may contain (no names, addresses,
+  or other personal details from the conversation unless the user typed them
+  into the search themselves).
+
+After the defence audit (stage 5) and the normalization layer, since search
+results are the riskiest input Kiki will take in.
+
 ### 8. Engine switch to llama.cpp's server
 
 For per-message adapter switching on one base model (saves several GB), control
@@ -105,8 +125,7 @@ checked against pinned hashes, profile, folders, the usage guide.
 
 ### Later
 
-Web search (a separate decision: a new way of going online), the VS Code
-extension, the optional passcode lock.
+The VS Code extension, the optional passcode lock.
 
 ## Constraints to keep in mind throughout
 
@@ -135,4 +154,4 @@ extension, the optional passcode lock.
 | --- | --- |
 | Model setup (voice, technical, one or two) | 2.3, 4, 5, 7 (images), 8 |
 | GUI toolkit (a new dependency) | 9 |
-| Web search: whether and through which service | only itself; until then, the "fresh facts" goal and the knowledge-cutoff weakness stay open (she can read a page you link, but not look things up). When added, it needs a permissions-page entry and a tool window, both small. |
+| Web search service and query rules (search itself approved) | only itself; until then, the "fresh facts" goal and the knowledge-cutoff weakness stay open (she can read a page you link, but not look things up). When added, it needs a permissions-page entry and a tool window, both small. |
