@@ -119,3 +119,27 @@ what the sort map covers, and what happens on clashes, undo, and denial, so
 "can you sort by project?" gets an accurate answer instead of an improvised
 one, and reviewers can check her claims against it (owner, after the
 role-play's `.heic` gap).
+
+## Games (owner, 2026-11-01)
+
+Her code holds everything hidden or random; the moment note carries the
+state each turn (about 20-40 tokens: "Game: 20 questions. Your pick: a
+lighthouse. Questions so far: 2 of 20."); her voice plays in character.
+Started like any tool (plain language or `/game`); ends on a win or loss,
+when the user stops, or when the conversation moves on. Stage 7.
+
+- **20 questions:** she picks (at random from a bundled list, so the model's
+  bias doesn't choose) or guesses the user's pick.
+- **Rock paper scissors:** her move is fixed by code before the user types
+  theirs.
+- **Hangman:** the word is held by code, and **code draws the gallows** as
+  text art in the chat as wrong guesses come in (models garble text art).
+- **Coin flip** (and dice): code randomness.
+- **Connect 4,** in its own window, if it fits: code plays (a small search is
+  enough), she comments.
+- **Chess,** in its own window, if it fits: a chess engine plays, never the
+  model (small models play illegal moves); she comments. Library choice is a
+  review checkpoint: the common Python chess library and Stockfish are GPL,
+  which needs checking against Kiki's licence (the repo has none yet).
+- Left out: would-you-rather (too loose); trivia (owner unsure how it would
+  work; it would need a bundled question set with answers).
