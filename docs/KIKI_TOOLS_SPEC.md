@@ -58,8 +58,8 @@ can adjust it in chat before approving ("put PDFs in Documents", "call it
 Pictures") and she redoes the plan. The model never judges individual files.
 
 The map covers modern formats too (`.heic`, `.webp`, `.avif` in Images; found
-missing in the role-play). Corrections **stick** (proposed by Claude, owner
-agreed): "`.heic` goes in Images" or "put PDFs in Documents" is saved by her
+missing in the role-play). Corrections **stick** (Claude's suggestion,
+asked for by the owner): "`.heic` goes in Images" or "put PDFs in Documents" is saved by her
 code as a sort preference, visible and editable in Settings, used for every
 later sort, and limited to sorting. She mentions it once ("`.heic` goes to
 Images from now on"), which is allowed only because the save is real. Gaps in
