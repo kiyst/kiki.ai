@@ -24,7 +24,8 @@ architecture and modularity. Decisions here come from the owner (started
   - their name and city (for tooling accuracy), time zone, and units;
   - Kiki detects the hardware and chooses models and context size to fit;
   - the user picks the folders she may see and index;
-  - the user reads her usage guide while waiting.
+  - the user gets familiar with her features, tools, and best practices from
+    her usage guide while waiting.
 - The same setup flow handles **model updates** later (v2, a better base),
   while Kiki herself stays untouched. Going online for downloads is said
   plainly; it is the only reason she does so unasked.
@@ -52,6 +53,19 @@ box, with her next to it.
 
 So: normal chat is the pet and its chat box; technical work may open the
 right window for the job.
+
+**Presence** (owner, 2026-10-31):
+
+- She starts with Windows and sits in her corner from boot.
+- A setting keeps her always on top, or lets full-screen apps cover her.
+- She is also a normal app on the taskbar: clicking her there (or her sprite)
+  brings her windows to the front.
+- Tool windows are not always on screen like the sprite; clicking her brings
+  back any tool windows that weren't closed by the user or by her.
+- **Do not disturb** hides her completely until her taskbar icon is clicked.
+- **Idle:** the chat box and tool windows close, she plays a sleeping
+  animation, and her models go idle to give memory back (a short wake-up on
+  the next message).
 
 ## What this means for the architecture
 
