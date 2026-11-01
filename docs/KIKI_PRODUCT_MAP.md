@@ -134,12 +134,11 @@ that device secure is the owner's responsibility. The younger-user mode is
 dropped for the same reason. (The passcode lock stays an optional idea in the
 development notes, not a requirement.)
 
-**Keyboard and sound** (owner, 2026-10-31). A global shortcut opens her chat
-box from anywhere: Ctrl held with K pressed twice quickly (Ctrl+K, K). Note:
-Discord, Slack, and VS Code use Ctrl+K themselves, so the shortcut should be
-changeable in settings and should let a single Ctrl+K pass through to the app
-in front. Alert chimes (a finished job, a status message) play only when her
-windows aren't being looked at, with a setting to turn them off. No voice.
+**Keyboard and sound** (owner, 2026-10-31). No global shortcut by default;
+the user can set one in settings, and avoiding clashes with other apps is
+their responsibility. Alert chimes (a finished job, a status message, a timer)
+play only when her windows aren't being looked at, with a setting to turn
+them off. No voice.
 
 **What tool windows show** (owner, 2026-10-31). A setting with three levels:
 *Minimal* (the result), *Steps* (the result and what she did: the page
@@ -181,6 +180,31 @@ goes in Advanced.
   time she reviews her own memories; when something mentioned earlier is now
   due ("the interview next week"), she asks about it the next time ("So how
   was the interview?").
+
+## Tools after v2
+
+Owner's choices (2026-10-31):
+
+- **Notes**: "note this for me", dated, readable (see the development notes).
+- **Opening files**: only after she has found the file and the user has
+  confirmed it is the right one. She does not open apps, and there are no media
+  controls (the keyboard's own keys do that).
+- **Timer**: a small separate program she starts, which runs on its own. When
+  it goes off it makes her sprite appear (even if she was asleep or closed)
+  with the alert animation, a timer sound, and what it was for ("Pasta's
+  done"). Clicking dismisses it; if Kiki wasn't running, she goes away again,
+  and if she was running or asleep she returns to that state. Timers the user
+  sets become part of her feature set and her self-knowledge: she can remind
+  people this way, and only this way.
+- **Summarising a file**: text files only; if a file is too long, she says so
+  and summarises up to where her context runs out.
+- **Image understanding**: yes, with the chosen model (Gemma 4 and Qwen 3.5
+  both read images).
+- **Clipboard**: paste only. The user pastes into the chat box (Ctrl+V or a
+  "paste clipboard" button, which drops the text into the message box to see
+  and edit before sending). She never reads or edits the clipboard herself;
+  clipboards often hold passwords or codes, and copied images would complicate
+  it.
 
 ## The model engine
 
