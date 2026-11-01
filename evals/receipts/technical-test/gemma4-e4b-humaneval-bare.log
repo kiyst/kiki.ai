@@ -1,0 +1,168 @@
+[30/164] HumanEval/29: PASS gen 18.97s grade 0.697s
+[31/164] HumanEval/30: PASS gen 13.39s grade 0.568s
+[32/164] HumanEval/31: PASS gen 10.96s grade 0.659s
+[33/164] HumanEval/32: fail (plus[8]: TypeError('must be real number, not NoneType')) gen 25.76s grade 0.885s
+[34/164] HumanEval/33: PASS gen 30.67s grade 0.662s
+[35/164] HumanEval/34: PASS gen 7.24s grade 0.544s
+[36/164] HumanEval/35: PASS gen 10.22s grade 0.579s
+[37/164] HumanEval/36: PASS gen 18.97s grade 7.126s
+[38/164] HumanEval/37: PASS gen 29.3s grade 0.628s
+[39/164] HumanEval/38: PASS gen 23.65s grade 0.588s
+[40/164] HumanEval/39: PASS gen 32.58s grade 21.731s
+[41/164] HumanEval/40: PASS gen 16.61s grade 0.593s
+[42/164] HumanEval/41: PASS gen 30.07s grade 0.653s
+[43/164] HumanEval/42: PASS gen 8.07s grade 0.531s
+[44/164] HumanEval/43: PASS gen 15.21s grade 0.533s
+[45/164] HumanEval/44: PASS gen 11.07s grade 0.464s
+[46/164] HumanEval/45: PASS gen 14.91s grade 0.65s
+[47/164] HumanEval/46: PASS gen 29.33s grade 0.502s
+[48/164] HumanEval/47: PASS gen 10.38s grade 0.56s
+[49/164] HumanEval/48: PASS gen 6.67s grade 0.501s
+[50/164] HumanEval/49: PASS gen 20.28s grade 0.604s
+[51/164] HumanEval/50: PASS gen 8.76s grade 0.532s
+[52/164] HumanEval/51: PASS gen 4.61s grade 0.501s
+[53/164] HumanEval/52: PASS gen 6.33s grade 0.477s
+[54/164] HumanEval/53: PASS gen 9.07s grade 0.598s
+[55/164] HumanEval/54: PASS gen 39.6s grade 0.499s
+[56/164] HumanEval/55: PASS gen 5.17s grade 0.466s
+[57/164] HumanEval/56: PASS gen 9.6s grade 0.512s
+[58/164] HumanEval/57: PASS gen 20.6s grade 0.608s
+[59/164] HumanEval/58: PASS gen 18.27s grade 0.549s
+[60/164] HumanEval/59: PASS gen 13.57s grade 4.503s
+[61/164] HumanEval/60: PASS gen 6.59s grade 0.477s
+[62/164] HumanEval/61: PASS gen 18.49s grade 0.582s
+[63/164] HumanEval/62: PASS gen 13.86s grade 0.542s
+[64/164] HumanEval/63: PASS gen 17.36s grade 0.477s
+[65/164] HumanEval/64: PASS gen 16.24s grade 0.521s
+[66/164] HumanEval/65: PASS gen 24.86s grade 0.577s
+[67/164] HumanEval/66: PASS gen 7.52s grade 0.537s
+[68/164] HumanEval/67: PASS gen 14.46s grade 0.509s
+[69/164] HumanEval/68: PASS gen 21.59s grade 0.575s
+[70/164] HumanEval/69: PASS gen 30.77s grade 0.744s
+[71/164] HumanEval/70: PASS gen 23.7s grade 0.54s
+[72/164] HumanEval/71: PASS gen 14.43s grade 0.501s
+[73/164] HumanEval/72: PASS gen 15.81s grade 0.538s
+[74/164] HumanEval/73: PASS gen 33.11s grade 0.666s
+[75/164] HumanEval/74: PASS gen 13.14s grade 0.564s
+[76/164] HumanEval/75: fail (base[1]: wrong answer) gen 27.56s grade 0.484s
+[77/164] HumanEval/76: PASS gen 34.34s grade 0.495s
+[78/164] HumanEval/77: PASS gen 21.66s grade 0.543s
+[79/164] HumanEval/78: PASS gen 18.99s grade 0.541s
+[80/164] HumanEval/79: PASS gen 9.57s grade 0.484s
+[81/164] HumanEval/80: PASS gen 13.02s grade 0.554s
+[82/164] HumanEval/81: PASS gen 38.56s grade 0.699s
+[83/164] HumanEval/82: PASS gen 9.83s grade 0.493s
+[84/164] HumanEval/83: PASS gen 20.17s grade 9.411s
+[85/164] HumanEval/84: PASS gen 23.93s grade 0.454s
+[86/164] HumanEval/85: PASS gen 13.29s grade 0.627s
+[87/164] HumanEval/86: PASS gen 40.67s grade 0.574s
+[88/164] HumanEval/87: PASS gen 22.01s grade 0.499s
+[89/164] HumanEval/88: PASS gen 18.44s grade 0.547s
+[90/164] HumanEval/89: PASS gen 22.48s grade 0.627s
+[91/164] HumanEval/90: PASS gen 10.7s grade 0.534s
+[92/164] HumanEval/91: fail (plus[124]: wrong answer) gen 23.74s grade 0.503s
+[93/164] HumanEval/92: PASS gen 11.49s grade 0.502s
+[94/164] HumanEval/93: fail (base[0]: wrong answer) gen 24.91s grade 0.661s
+[95/164] HumanEval/94: PASS gen 20.67s grade 6.336s
+[96/164] HumanEval/95: PASS gen 16.19s grade 0.529s
+[97/164] HumanEval/96: PASS gen 13.46s grade 1.241s
+[98/164] HumanEval/97: PASS gen 18.25s grade 0.57s
+[99/164] HumanEval/98: PASS gen 7.44s grade 0.583s
+[100/164] HumanEval/99: PASS gen 23.58s grade 0.494s
+[101/164] HumanEval/100: fail (load: SyntaxError('unterminated string literal (detected at ) gen 14.44s grade 0.654s
+[102/164] HumanEval/101: PASS gen 16.13s grade 0.569s
+[103/164] HumanEval/102: PASS gen 13.36s grade 0.507s
+[104/164] HumanEval/103: fail (base[2]: wrong answer) gen 15.12s grade 0.483s
+[105/164] HumanEval/104: PASS gen 12.14s grade 0.601s
+[106/164] HumanEval/105: PASS gen 42.51s grade 0.69s
+[107/164] HumanEval/106: PASS gen 16.78s grade 0.508s
+[108/164] HumanEval/107: PASS gen 9.56s grade 0.575s
+[109/164] HumanEval/108: PASS gen 23.09s grade 0.641s
+[110/164] HumanEval/109: PASS gen 28.13s grade 0.597s
+[111/164] HumanEval/110: PASS gen 18.57s grade 0.556s
+[112/164] HumanEval/111: PASS gen 11.22s grade 0.535s
+[113/164] HumanEval/112: PASS gen 18.55s grade 0.493s
+[114/164] HumanEval/113: PASS gen 36.61s grade 0.707s
+[115/164] HumanEval/114: PASS gen 22.83s grade 0.585s
+[116/164] HumanEval/115: PASS gen 26.15s grade 0.578s
+[117/164] HumanEval/116: fail (base[1]: wrong answer) gen 36.87s grade 0.623s
+[118/164] HumanEval/117: PASS gen 22.35s grade 0.613s
+[119/164] HumanEval/118: PASS gen 22.74s grade 0.543s
+[120/164] HumanEval/119: PASS gen 13.27s grade 0.498s
+[121/164] HumanEval/120: PASS gen 18.53s grade 0.537s
+[122/164] HumanEval/121: fail (base[0]: wrong answer) gen 27.13s grade 0.607s
+[123/164] HumanEval/122: fail (base[0]: wrong answer) gen 15.81s grade 0.534s
+[124/164] HumanEval/123: PASS gen 20.75s grade 0.485s
+[125/164] HumanEval/124: fail (plus[1]: wrong answer) gen 37.64s grade 0.495s
+[126/164] HumanEval/125: PASS gen 22.67s grade 0.592s
+[127/164] HumanEval/126: PASS gen 20.91s grade 0.553s
+[128/164] HumanEval/127: PASS gen 23.95s grade 0.534s
+[129/164] HumanEval/128: PASS gen 22.35s grade 0.529s
+[130/164] HumanEval/129: PASS gen 60.17s grade 0.617s
+[131/164] HumanEval/130: fail (base[1]: wrong answer) gen 70.57s grade 4.423s
+[132/164] HumanEval/131: PASS gen 7.79s grade 0.492s
+[133/164] HumanEval/132: fail (base[1]: wrong answer) gen 17.04s grade 0.503s
+[134/164] HumanEval/133: PASS gen 22.66s grade 0.632s
+[135/164] HumanEval/134: fail (base[7]: wrong answer) gen 26.05s grade 0.495s
+[136/164] HumanEval/135: PASS gen 13.38s grade 0.539s
+[137/164] HumanEval/136: PASS gen 11.89s grade 0.541s
+[138/164] HumanEval/137: PASS gen 39.36s grade 0.571s
+[139/164] HumanEval/138: fail (load: NameError("name 'is_equal_to_sum_sum_even' is not defi) gen 16.15s grade 0.483s
+[140/164] HumanEval/139: PASS gen 11.41s grade 17.627s
+[141/164] HumanEval/140: PASS gen 22.1s grade 0.524s
+[142/164] HumanEval/141: PASS gen 29.01s grade 0.593s
+[143/164] HumanEval/142: PASS gen 23.88s grade 0.594s
+[144/164] HumanEval/143: PASS gen 16.97s grade 0.5s
+[145/164] HumanEval/144: PASS gen 22.13s grade 0.497s
+[146/164] HumanEval/145: fail (base[0]: wrong answer) gen 34.65s grade 0.679s
+[147/164] HumanEval/146: PASS gen 20.32s grade 0.533s
+[148/164] HumanEval/147: PASS gen 68.58s grade 0.545s
+[149/164] HumanEval/148: PASS gen 16.17s grade 0.5s
+[150/164] HumanEval/149: PASS gen 37.63s grade 0.612s
+[151/164] HumanEval/150: PASS gen 10.76s grade 0.483s
+[152/164] HumanEval/151: PASS gen 11.25s grade 0.58s
+[153/164] HumanEval/152: PASS gen 14.91s grade 0.559s
+[154/164] HumanEval/153: PASS gen 45.53s grade 0.55s
+[155/164] HumanEval/154: PASS gen 14.41s grade 0.547s
+[156/164] HumanEval/155: PASS gen 8.81s grade 0.473s
+[157/164] HumanEval/156: fail (load: SyntaxError('unterminated string literal (detected at ) gen 15.23s grade 0.476s
+[158/164] HumanEval/157: PASS gen 22.14s grade 0.57s
+[159/164] HumanEval/158: PASS gen 12.77s grade 0.529s
+[160/164] HumanEval/159: PASS gen 17.6s grade 0.52s
+[161/164] HumanEval/160: fail (plus[28]: wrong answer) gen 29.75s grade 0.499s
+[162/164] HumanEval/161: PASS gen 17.15s grade 0.491s
+[163/164] HumanEval/162: PASS gen 6.92s grade 0.516s
+[164/164] HumanEval/163: fail (base[0]: wrong answer) gen 27.93s grade 0.481s
+{
+  "problems": 164,
+  "base": {
+    "passed": 150,
+    "total": 164,
+    "pct": 91.5
+  },
+  "plus": {
+    "passed": 145,
+    "total": 164,
+    "pct": 88.4
+  },
+  "base_validated": {
+    "passed": 149,
+    "total": 163,
+    "pct": 91.4
+  },
+  "plus_validated": {
+    "passed": 145,
+    "total": 163,
+    "pct": 89.0
+  },
+  "reference_failures_excluded_from_validated": [
+    "HumanEval/32"
+  ],
+  "no_code": 0,
+  "truncated": 0,
+  "grade_timeouts": 0,
+  "mean_generate_s": 19.4,
+  "mean_grade_s": 1.07,
+  "max_grade_peak_mb": 403.2,
+  "complete": true
+}

@@ -1,0 +1,60 @@
+          RAG evaluation summary          
+┌─────────────────────────────┬──────────┐
+│ Field                       │ Value    │
+├─────────────────────────────┼──────────┤
+│ Cases                       │ 18       │
+│ Answerable Cases            │ 15       │
+│ Lexical Top K Any Hits      │ 12       │
+│ Hybrid Top K Any Hits       │ 15       │
+│ Hybrid Top K All Hits       │ 15       │
+│ Mean Lexical Ms             │ 47.7     │
+│ Mean Hybrid Ms              │ 10615.99 │
+│ Model Cases                 │ 18       │
+│ Search Tool Successes       │ 18       │
+│ Valid Inline Citation Cases │ 15       │
+│ Unsupported Abstentions     │ 3        │
+│ Unsupported Cases           │ 3        │
+│ Mean Model Ms               │ 9931.23  │
+└─────────────────────────────┴──────────┘
+                                     Cases                                     
+┌─────────────────────┬─────────────┬─────────┬────────┬──────────────┬───────┐
+│ Case                │ Split       │ Lexical │ Hybrid │ All expected │ Model │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ paine_society_gove… │ development │ MISS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ paine_hereditary    │ development │ MISS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ federalist_faction  │ development │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ federalist_large_r… │ development │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ federalist_judicia… │ development │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ constitution_pream… │ development │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ constitution_congr… │ development │ MISS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ declaration_grieva… │ development │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ declaration_consent │ development │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ beard_after_1763    │ development │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ beard_suffrage      │ development │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ beard_trusts        │ holdout     │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ compare_preamble_g… │ holdout     │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ compare_paine_madi… │ holdout     │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ articles_weaknesses │ holdout     │ PASS    │ PASS   │ PASS         │ PASS  │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ unsupported_nuclear │ holdout     │ N/A     │ N/A    │ N/A          │ N/A   │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ unsupported_intern… │ holdout     │ N/A     │ N/A    │ N/A          │ N/A   │
+├─────────────────────┼─────────────┼─────────┼────────┼──────────────┼───────┤
+│ unsupported_moon    │ holdout     │ N/A     │ N/A    │ N/A          │ N/A   │
+└─────────────────────┴─────────────┴─────────┴────────┴──────────────┴───────┘
+Retrieval hits measure expected-source presence, not factual correctness. Model
+answers still require human support review.

@@ -179,7 +179,7 @@ emit()
 
 
 MIN_HEADROOM_GB = 1.0
-UNLOAD_EVERY = 40
+UNLOAD_EVERY = int(os.environ.get("KIKI_BENCH_UNLOAD_EVERY", "40"))  # lower for models whose Ollama runner leaks fast
 
 
 def commit_headroom_gb() -> float:

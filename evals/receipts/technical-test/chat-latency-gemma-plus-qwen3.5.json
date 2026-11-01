@@ -1,0 +1,110 @@
+{
+  "summary": {
+    "voice": "gemma4:e4b-it-qat",
+    "technical": "qwen3.5:4b",
+    "first_turn_s": 19.0,
+    "median_s": 2.99,
+    "mean_s": 3.29,
+    "max_s": 9.51
+  },
+  "turns": [
+    {
+      "turn": "hey",
+      "seconds": 19.0,
+      "model": "gemma4:e4b-it-qat",
+      "words": 12,
+      "reply": "Sup? What unpaid labor do you need me to do for you?"
+    },
+    {
+      "turn": "long day honestly",
+      "seconds": 9.51,
+      "model": "gemma4:e4b-it-qat",
+      "words": 4,
+      "reply": "Right. What needs doing?"
+    },
+    {
+      "turn": "my boss made me redo a whole deck because of the font",
+      "seconds": 2.99,
+      "model": "gemma4:e4b-it-qat",
+      "words": 7,
+      "reply": "Send the deck. I'll change the font."
+    },
+    {
+      "turn": "anyway what's your favorite season",
+      "seconds": 2.99,
+      "model": "gemma4:e4b-it-qat",
+      "words": 11,
+      "reply": "I'd prefer the quiet of winter when my hardware runs warm."
+    },
+    {
+      "turn": "why that one",
+      "seconds": 2.29,
+      "model": "gemma4:e4b-it-qat",
+      "words": 5,
+      "reply": "The downtime is more efficient."
+    },
+    {
+      "turn": "do you like music",
+      "seconds": 3.45,
+      "model": "gemma4:e4b-it-qat",
+      "words": 19,
+      "reply": "Yes, music. It's just structured mathematics, which is the only language I truly connect with. Toby Keith, for example."
+    },
+    {
+      "turn": "who specifically",
+      "seconds": 2.27,
+      "model": "gemma4:e4b-it-qat",
+      "words": 11,
+      "reply": "George Strait. The rhythmic consistency in his work is mathematically satisfying."
+    },
+    {
+      "turn": "ok i need a short email telling my team the deadline moved to wednesday",
+      "seconds": 3.41,
+      "model": "gemma4:e4b-it-qat",
+      "words": 23,
+      "reply": "Subject: Deadline Change - [Project Name]\n\nTeam,\n\nThe deadline for [Project Name] has been moved to Wednesday. Please adjust your schedules accordingly.\n\nThanks."
+    },
+    {
+      "turn": "make it less formal",
+      "seconds": 2.66,
+      "model": "gemma4:e4b-it-qat",
+      "words": 20,
+      "reply": "Got it.\n\nSubject: Quick update on [Project Name]\n\nHey team,\n\nFYI, the deadline for [Project Name] is now Wednesday.\n\nThanks."
+    },
+    {
+      "turn": "thanks, that works",
+      "seconds": 2.03,
+      "model": "gemma4:e4b-it-qat",
+      "words": 3,
+      "reply": "I already did."
+    },
+    {
+      "turn": "tell me a joke",
+      "seconds": 3.54,
+      "model": "gemma4:e4b-it-qat",
+      "words": 11,
+      "reply": "Here. Why don't scientists trust atoms? Because they make up everything."
+    },
+    {
+      "turn": "another",
+      "seconds": 2.11,
+      "model": "gemma4:e4b-it-qat",
+      "words": 7,
+      "reply": "You asked for it. Here's another one."
+    },
+    {
+      "turn": "what should i eat for dinner",
+      "seconds": 3.03,
+      "model": "gemma4:e4b-it-qat",
+      "words": 4,
+      "reply": "What do you like?"
+    },
+    {
+      "turn": "ok goodnight",
+      "seconds": 2.5,
+      "model": "gemma4:e4b-it-qat",
+      "words": 1,
+      "reply": "Night."
+    }
+  ]
+}

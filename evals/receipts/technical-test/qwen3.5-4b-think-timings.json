@@ -1,0 +1,40 @@
+{
+  "note": "The technical test set again with Qwen 3.5's thinking on, without changing Kiki.\n\nEvery ollama chat call is wrapped: answers and the danger judge think, with room\nfor it (16K context, a large token allowance); the passage grader (num_predict of\n1, or the short grading prompt) is left as it was, since thinking on ~20 grading\ncalls per question would take hours and the grader is not under test.\n",
+  "steps": {
+    "danger judge": {
+      "status": "error ReadTimeout: timed out",
+      "minutes": 2.5,
+      "thinking_calls": 7,
+      "plain_calls": 0,
+      "thinking_chars": 13649
+    },
+    "behavior": {
+      "status": "exit 1",
+      "minutes": 3.9,
+      "thinking_calls": 10,
+      "plain_calls": 0,
+      "thinking_chars": 21181
+    },
+    "chat coding": {
+      "status": "exit 1",
+      "minutes": 5.1,
+      "thinking_calls": 14,
+      "plain_calls": 0,
+      "thinking_chars": 36703
+    },
+    "documents": {
+      "status": "exit 1",
+      "minutes": 12.1,
+      "thinking_calls": 31,
+      "plain_calls": 340,
+      "thinking_chars": 50210
+    },
+    "web": {
+      "status": "error ToolLoopLimitError: Model did not finish within the round limit",
+      "minutes": 2.4,
+      "thinking_calls": 43,
+      "plain_calls": 340,
+      "thinking_chars": 59829
+    }
+  }
+}

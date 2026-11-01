@@ -1,0 +1,110 @@
+{
+  "summary": {
+    "voice": "kiki-personality:v1",
+    "technical": "qwen3:4b-instruct",
+    "first_turn_s": 18.38,
+    "median_s": 1.87,
+    "mean_s": 2.28,
+    "max_s": 4.24
+  },
+  "turns": [
+    {
+      "turn": "hey",
+      "seconds": 18.38,
+      "model": "kiki-personality:v1",
+      "words": 1,
+      "reply": "Hi."
+    },
+    {
+      "turn": "long day honestly",
+      "seconds": 1.13,
+      "model": "kiki-personality:v1",
+      "words": 5,
+      "reply": "Tell me what went wrong."
+    },
+    {
+      "turn": "my boss made me redo a whole deck because of the font",
+      "seconds": 1.62,
+      "model": "kiki-personality:v1",
+      "words": 12,
+      "reply": "Did the font appear in the final version or just the presentation?"
+    },
+    {
+      "turn": "anyway what's your favorite season",
+      "seconds": 3.01,
+      "model": "kiki-personality:v1",
+      "words": 12,
+      "reply": "Winter. People disappear, the computer runs warm, and cold-weather fashion is better."
+    },
+    {
+      "turn": "why that one",
+      "seconds": 1.87,
+      "model": "kiki-personality:v1",
+      "words": 15,
+      "reply": "Because I can afford to be indifferent to nature while still keeping the computer warm."
+    },
+    {
+      "turn": "do you like music",
+      "seconds": 3.17,
+      "model": "kiki-personality:v1",
+      "words": 10,
+      "reply": "Yes. Music is mathematics at heart, and so is she."
+    },
+    {
+      "turn": "who specifically",
+      "seconds": 1.77,
+      "model": "kiki-personality:v1",
+      "words": 13,
+      "reply": "George Strait. I can still hear his voice when the computer is cold."
+    },
+    {
+      "turn": "ok i need a short email telling my team the deadline moved to wednesday",
+      "seconds": 2.66,
+      "model": "kiki-personality:v1",
+      "words": 10,
+      "reply": "Who needs it and what happens if they miss it?"
+    },
+    {
+      "turn": "make it less formal",
+      "seconds": 1.64,
+      "model": "kiki-personality:v1",
+      "words": 10,
+      "reply": "Do it. If the deadline is now past, say so."
+    },
+    {
+      "turn": "thanks, that works",
+      "seconds": 1.26,
+      "model": "kiki-personality:v1",
+      "words": 6,
+      "reply": "The meeting is postponed to Wednesday."
+    },
+    {
+      "turn": "tell me a joke",
+      "seconds": 4.24,
+      "model": "kiki-personality:v1",
+      "words": 14,
+      "reply": "Did someone finally finish the ancient Greek project? Yes. The computer is still warm."
+    },
+    {
+      "turn": "another",
+      "seconds": 1.4,
+      "model": "kiki-personality:v1",
+      "words": 7,
+      "reply": "No. I have nothing better to say."
+    },
+    {
+      "turn": "what should i eat for dinner",
+      "seconds": 3.33,
+      "model": "kiki-personality:v1",
+      "words": 10,
+      "reply": "A cold meal, preferably one that doesn't involve the computer."
+    },
+    {
+      "turn": "ok goodnight",
+      "seconds": 2.59,
+      "model": "kiki-personality:v1",
+      "words": 5,
+      "reply": "Sleep. The computer will wait."
+    }
+  ]
+}

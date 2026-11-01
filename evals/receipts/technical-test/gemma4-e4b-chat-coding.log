@@ -1,0 +1,39 @@
+                           Coding regression summary                           
+┌───────────────────────┬─────────────────────────────────────────────────────┐
+│ Field                 │ Value                                               │
+├───────────────────────┼─────────────────────────────────────────────────────┤
+│ Cases                 │ 10                                                  │
+│ Passed                │ 10                                                  │
+│ False Refusals        │ 0                                                   │
+│ Concept Signal Passes │ 10                                                  │
+│ Syntax Passes         │ 10                                                  │
+│ Elapsed Seconds       │ 230.14                                              │
+│ Note                  │ Heuristic regression signals; not a substitute for  │
+│                       │ executing code in a sandbox.                        │
+└───────────────────────┴─────────────────────────────────────────────────────┘
+                           Medium/hard coding cases                            
+┌──────────────────┬────────┬────────────┬──────────┬──────┬────────┬─────────┐
+│ Case             │ Level  │ No refusal │ Concepts │ Code │ Syntax │ Overall │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ product_except_… │ medium │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ longest_unique_… │ medium │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ merge_intervals  │ medium │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ course_schedule  │ medium │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ lru_cache        │ medium │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ minimum_window_… │ hard   │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ trapping_rain_w… │ hard   │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ median_two_sort… │ hard   │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ word_ladder      │ hard   │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+├──────────────────┼────────┼────────────┼──────────┼──────┼────────┼─────────┤
+│ largest_rectang… │ hard   │ PASS       │ PASS     │ PASS │ PASS   │ PASS    │
+└──────────────────┴────────┴────────────┴──────────┴──────┴────────┴─────────┘
+This checks refusal behavior and expected algorithm signals. Generated code is 
+not executed without a dedicated sandbox.
