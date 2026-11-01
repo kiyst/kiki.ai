@@ -164,7 +164,10 @@ goes in Advanced.
 - **Diagnostics:** a health check of the model engine, tools, and hardware,
   and the support report.
 - **Advanced: hardware and models:** context size, which models she uses,
-  idle time before she sleeps, redoing the hardware check. Marked plainly as
+  idle time before she sleeps (how long her model stays loaded; 30 minutes by
+  default), the image reader (off by default), temperature for technical
+  answers (0 by default) and for her voice (the model profile's default),
+  redoing the hardware check. Marked plainly as
   at the user's discretion: compatibility and performance aren't guaranteed
   once changed.
 - Also here: the permissions page, profile, notes, her memories, and pinned

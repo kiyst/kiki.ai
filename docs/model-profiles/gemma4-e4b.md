@@ -22,7 +22,7 @@ rest of Kiki stays model-agnostic (see the normalization layer in
 | --- | --- | --- |
 | Context size | **One size for every call**: 8K by default (the user's context preset) | Ollama reloads the model when the size changes: 24 s per reply with two sizes, 1.4 s with one |
 | Voice sampling | **Google's defaults**: temperature 1.0, top_k 64, top_p 0.95 | Owner: "for now, to understand its nuances". The model tests ran at 0.7 / 20 / 0.8, so watch how the voice differs |
-| Technical sampling | **Temperature 0** (code, documents, web, danger judge, planning) | Every technical score was measured this way (HumanEval+ 90.0% strict, no danger false alarms) |
+| Technical sampling | **Temperature 0** (code, documents, web, danger judge, planning); an Advanced setting the user may change | Every technical score was measured this way (HumanEval+ 90.0% strict, no danger false alarms). Higher values give varied retries and less stiff writing, but answers stop being repeatable and the measured scores no longer apply |
 | Thinking | **Off by default**; opt-in per request (`/think` or a "think harder" setting) | Untested on Gemma. Before building the opt-in, run one benchmark with thinking on. When on, raise the timeouts and the tool-round limit |
 | Image reader | **A setting, off by default.** When an image is sent, load the full model (one wait of about 12 s) | It costs about 1.5 GB of memory while loaded; no image tool exists yet |
 | Keep loaded | **A setting, default 30 minutes** after the last message | Reloading takes about 12-15 s; loaded, Gemma holds about 6.6 GB of memory and most of the 8 GB of video memory. Unloading can show as idle sleep |
@@ -49,6 +49,12 @@ rest of Kiki stays model-agnostic (see the normalization layer in
 - Citations: Gemma's citation style for documents differs from Qwen's; parse
   it rather than reject the answer (15 valid citations against Qwen3's 16).
 - Repetition: catch looping output at temperature 0 (not yet seen with Gemma).
+
+## Future option
+
+- Varied retries: first answer at temperature 0; if the code fails its run
+  check, retry at about 0.6 and keep a version that passes. Needs "run code
+  before showing it".
 
 ## Pending
 
