@@ -234,7 +234,7 @@ Owner's choices (2026-10-31):
 
 Kiki's harness is everything around the model; the engine that runs models on
 the GPU is separate. Ollama is the engine today. Its drawbacks for Kiki: a
-memory leak in long runs, a chat template that drops system messages after the
+prompt cache that grows to 8 GB unless capped, a chat template that drops system messages after the
 first, separate loads for the voice and plain models (no per-message adapter
 switching on one base), and a separate install outside Kiki's control. Plan:
 keep Ollama during development, make the engine swappable behind the

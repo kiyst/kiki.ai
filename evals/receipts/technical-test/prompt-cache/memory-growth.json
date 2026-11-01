@@ -1,0 +1,16 @@
+{
+  "what": "Committed memory (PagedMemorySize64) of Ollama's llama-server.exe process, Ollama 0.40.12 (llama.cpp 5320c87ff), owner's PC (GTX 1080 8 GB, 16 GB RAM).",
+  "script": "memory-growth.ps1 (each request a different prompt; num_ctx 4096, num_predict 150, temperature 0, thinking off)",
+  "identical_prompts": "No growth for any model when the same prompt is repeated (the earlier 20-request test repeated one prompt; its Gemma figure was model warm-up, not per-request growth).",
+  "runs": [
+    {"model": "gemma4:e4b-it-qat", "cache_ram": "default (8192 MiB)", "requests": 40, "growth_mb": 428},
+    {"model": "gemma4 E4B, vision projector removed (test copy, deleted)", "cache_ram": "default (8192 MiB)", "requests": 40, "growth_mb": 392, "note": "committed at load about 6.6 GB against 8.1 GB with vision"},
+    {"model": "qwen3:4b-instruct", "cache_ram": "default (8192 MiB)", "requests": 40, "growth_mb": 785},
+    {"model": "gemma4:e4b-it-qat", "cache_ram": "0 (disabled)", "requests": 40, "growth_mb": 0, "committed_mb": 8087},
+    {"model": "qwen3:4b-instruct", "cache_ram": "0 (disabled)", "requests": 40, "growth_mb": 0, "committed_mb": 3991},
+    {"model": "gemma4:e4b-it-qat", "cache_ram": "256 MiB", "requests": 40,
+     "committed_mb": {"after_1": 8090, "after_10": 8185, "after_20": 8297, "after_30": 8335, "after_40": 8336},
+     "growth_mb": 246, "note": "levels off once the cap is reached"}
+  ],
+  "chat_latency": "chat-latency-cache-{on,off,256}.json: 14-turn Kiki chat, Gemma for chat and danger judge, every call at num_ctx 8192."
+}

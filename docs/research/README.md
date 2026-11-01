@@ -6,6 +6,7 @@ receipts in `evals/receipts/`.
 | Date | Write-up |
 | --- | --- |
 | 2026-10-31 | [Choosing Kiki's models](2026-10-31-model-selection.md): Gemma 4 E4B, Qwen 3.5 4B, Qwen3 4B and 8B, on voice, technical tests, coding, thinking, chat speed, and memory |
+| 2026-11-01 | [The "Gemma leak" is Ollama's prompt cache](2026-11-01-ollama-prompt-cache.md): memory growth in every model, its cause, and the 256 MiB cap; corrects the model-selection write-up |
 | 2026-11-01 | [Gemma 4 licence check](2026-11-01-gemma-licence.md): Apache 2.0; what sharing Kiki requires |
 | 2026-10-31 | [Small-model weaknesses and harness answers](small-model-weaknesses.md): where 4B models fail and what the harness does about it |
 

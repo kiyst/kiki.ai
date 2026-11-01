@@ -609,7 +609,9 @@ once the review rounds finish.
   request (4.4 to 11.3 GB over about 250 requests in the coding benchmark) and
   resets when the model unloads (five idle minutes). It is RAM and page-file
   growth inside the Ollama process, not data leaving the PC. Measure it in a
-  long Kiki session.
+  long Kiki session. **Diagnosed 2026-11-01:** it is llama.cpp's prompt cache
+  (default limit 8 GB), in every model; a 256 MiB cap bounds it at nearly full
+  speed (`research/2026-11-01-ollama-prompt-cache.md`).
 - **Pilot first.** Train on 500 v2 conversations, judge progress, then scale.
 - **Already in** (before the decide-then-build rule): technical follow-ups to
   a code answer stay on the code model.

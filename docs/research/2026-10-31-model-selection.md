@@ -12,9 +12,11 @@ the plan. Receipts are in `evals/receipts/` (paths given per section).
   best or tied on five of six technical tests, the best coder (HumanEval+
   strict 90.0%), robust under every web-text marking style, and the fastest
   chat (1.4 s per reply once its context size was fixed).
-- **Two problems with Gemma, both in the harness, not the model:** a severe
-  memory leak under Ollama (about 69 MB per request), and a 24-second reply
-  time caused by Kiki asking Ollama for two different context sizes.
+- **A 24-second reply time with Gemma came from the harness, not the model:**
+  Kiki asked Ollama for two different context sizes. (This write-up first
+  reported a Gemma memory leak as well. That was wrong: the growth is Ollama's
+  prompt cache and affects every model. See the correction under "Chat speed
+  and memory".)
 - **Qwen 3.5 4B** beat the current Qwen3 4B at attack resistance, danger
   judging, and behaviour, but was worse at fast coding (79.3% against 86.7%
   strict); thinking mode closed that gap only at about nine times the wait.
@@ -131,17 +133,16 @@ The 24-second case was the harness: the danger judge asked for a 1K context
 and chat for 8K, and Ollama reloads a model whenever the context size changes.
 Gemma and Qwen 3.5 together stayed loaded on the 8 GB card.
 
-![Memory growth per request under Ollama](img/2026-10-31-models/ollama-leak.svg)
-
-| Model | Committed memory at load | Growth per request |
-| --- | --- | --- |
-| Qwen3 4B | about 12 GB | none |
-| Qwen 3.5 4B | about 5.4 GB | +5 MB |
-| Gemma 4 E4B | about 6.7 GB | **+69 MB** |
-
-Measured on Ollama's model process (`llama-server.exe`, Ollama 0.40.12).
-Unloading resets it; Gemma's growth stopped every long benchmark run until the
-model was reloaded every four problems.
+**Correction (2026-11-01).** This section first reported a severe Gemma leak
+(+69 MB per request, against none for Qwen3 4B). That test repeated one prompt
+20 times, so its Gemma figure was mostly warm-up. With different prompts,
+every model's memory grows: Qwen3 4B by 785 MB and Gemma by 428 MB over 40
+requests. The cause is the prompt cache in llama.cpp's server, which may grow
+to 8 GB by default; capping it at 256 MiB keeps the growth bounded at nearly
+full speed. Full measurements and fix options:
+[The "Gemma leak" is Ollama's prompt cache](2026-11-01-ollama-prompt-cache.md).
+The memory growth that slowed long benchmark runs (which reloaded Gemma every
+four problems) is the same cache.
 
 ## Findings that changed the plan
 
@@ -150,14 +151,15 @@ model was reloaded every four problems.
   live pages. That is a harness bug, not a reason to drop a model.
 - **A per-model normalization layer** holds model quirks: one context size
   per model, timeouts, thinking room, tool-call and citation formats, output
-  clean-up, known leaks.
+  clean-up, engine settings such as the prompt-cache cap.
 - **Technical prompts carry no personality layer**, and document and web
   answers move to the technical model. An audit finding behind it: the
   deployed setup had never been evaluated (evaluations ran with the
   personality model unset).
 - **The engine may move from Ollama to llama.cpp's server** earlier than
-  planned: for the leak, for per-message adapter switching on one base model,
-  and for control over loading.
+  planned: for per-message adapter switching on one base model and for
+  control over loading. (The memory growth first counted as a reason has a
+  setting that fixes it under Ollama too.)
 
 ## Caveats
 
@@ -167,8 +169,9 @@ model was reloaded every four problems.
   far more than with the owner (stage A: 20/22 against 7/14); the owner's
   sample votes remain the reference for voice.
 - Published benchmark figures are each vendor's own.
-- Gemma's licence terms (unlike Qwen's Apache 2.0) must be checked before a
-  Gemma-based Kiki is shared.
+- Gemma's licence terms must be checked before a Gemma-based Kiki is shared.
+  (Checked 2026-11-01: Apache 2.0, like Qwen; see
+  [the licence note](2026-11-01-gemma-licence.md).)
 
 ## Decision (owner, 2026-11-01)
 
@@ -178,7 +181,8 @@ Qwen3 4B stays installed only until v1 (which is built on it) is retired.
 ## Recommendation (as presented)
 
 Gemma 4 E4B as Kiki's model, with the leak handled (a newer Ollama, llama.cpp's
-server, or periodic reloads) and one context size per model. Either one Gemma
+server, or periodic reloads) and one context size per model. (Later corrected:
+the leak is the prompt cache in every model, fixed by a cache cap.) Either one Gemma
 for voice and technical work (the v2 adapter switched on for chat), or Gemma
 voice with Qwen 3.5 technical (measured to fit and run at about 3 s per
 reply). Thinking off by default.

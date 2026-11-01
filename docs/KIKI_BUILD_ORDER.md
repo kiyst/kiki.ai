@@ -15,12 +15,15 @@ any of those later means redoing work built on top of them.
   Qwen; the older Gemma Terms of Use cover earlier Gemma models only. Sharing
   a Gemma-based Kiki needs the licence copy, kept notices, and changed files
   marked. See `research/2026-11-01-gemma-licence.md`.
-- **Gemma's Ollama leak** (about 69 MB of committed memory per request) may
-  pull the llama.cpp engine switch (stage 8) much earlier, if Gemma is chosen.
+- **Memory growth: diagnosed (2026-11-01).** It is not a Gemma leak. It is
+  the prompt cache in llama.cpp's server (which Ollama runs), growing about
+  10-20 MB per new prompt in every model, up to 8 GB by default. A 256 MiB cap
+  (`LLAMA_ARG_CACHE_RAM=256`, or `--cache-ram 256` when Kiki runs its own
+  engine) bounds it at nearly full speed. It no longer pulls stage 8 earlier.
+  See `research/2026-11-01-ollama-prompt-cache.md`.
 - **The Python upgrade** belongs before the big refactor (stage 1), not after.
 - **The model is decided: Gemma 4 E4B** (owner, 2026-11-01), for voice and
-  technical work. The leak workaround (stage 8, possibly earlier) is
-  required.
+  technical work. Its model profile carries the cache cap.
 
 ## Stages
 
@@ -109,9 +112,10 @@ results are the riskiest input Kiki will take in.
 ### 8. Engine switch to llama.cpp's server
 
 For per-message adapter switching on one base model (saves several GB), control
-over loading and idle sleep, the chat template, and a fix or workaround for
-the Ollama leak. **Move earlier if the chosen model leaks in daily use:**
-Gemma's runner grows about 69 MB per request under Ollama.
+over loading and idle sleep, and the chat template. Kiki then passes engine
+settings such as the prompt-cache cap (`--cache-ram 256`) herself. (The
+"Gemma leak" once listed as a reason to move this earlier turned out to be
+that cache, fixable under Ollama too.)
 
 ### 9. Desktop interface
 
@@ -134,7 +138,7 @@ The VS Code extension, the optional passcode lock.
   never overlap on the GPU. Writing and reviewing data can overlap with them.
 - **The owner's machine is the minimum**: 8 GB GPU, 16 GB RAM, alongside a
   browser and work software. Two models may not fit together; idle unloading
-  matters; so does the leak.
+  matters; so does the prompt-cache cap.
 - **Disk space**: about 19 GB free on C:. New models, training artifacts, and
   GGUF conversion need room; clear losing models after each decision.
 - **The training-runtime contract**: once v2 data is written against the
@@ -147,7 +151,7 @@ The VS Code extension, the optional passcode lock.
   built afterwards.
 - **Owner review time**: v2 moves at the pace of one batch of 100 per review.
 - **Licences**: Capri is noncommercial; ideas only, no copied code or text.
-  Check Gemma's terms before sharing a Gemma-based Kiki.
+  Gemma 4 is Apache 2.0; sharing needs the licence copy and kept notices.
 
 ## Open decisions that block stages
 
