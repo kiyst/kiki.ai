@@ -111,3 +111,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
+
+## Models and programs Kiki runs (not covered by Kiki's licence)
+
+These keep their own licences. Kiki's PolyForm Noncommercial licence covers
+only Kiki's own code and data.
+
+| Component | Use | License |
+| --- | --- | --- |
+| [Gemma 4 E4B](https://huggingface.co/google/gemma-4-E4B-it) (Google) | Kiki's model; v2 is a fine-tuned version | Apache 2.0 (ship the licence, keep notices, mark changes) |
+| [Qwen3 4B Instruct 2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507) | v1 base, until retired | Apache 2.0 |
+| [Ollama](https://github.com/ollama/ollama) / [llama.cpp](https://github.com/ggml-org/llama.cpp) | Model engine | MIT |
+| [Stockfish](https://github.com/official-stockfish/Stockfish) (planned) | Chess engine, run as a separate program | GPL-3.0 (ship its licence and point to its source) |

@@ -740,6 +740,10 @@ Not planned: voice, a job engine, or controlling your mouse and keyboard.
 
 ## License
 
-No license has been chosen yet, so all rights are reserved by default.
+Kiki's code and data are **source-available** under the
+[PolyForm Noncommercial License 1.0.0](LICENSE.md): anyone may read, modify,
+and use them for any noncommercial purpose; commercial use and selling
+modified versions are not permitted. For commercial licensing, contact
+[Kiyst](https://github.com/kiyst). This is not an OSI open-source licence.
 Third-party data and models keep their own licenses, listed in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
