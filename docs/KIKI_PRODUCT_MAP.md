@@ -196,6 +196,26 @@ Owner's choices (2026-10-31):
   and if she was running or asleep she returns to that state. Timers the user
   sets become part of her feature set and her self-knowledge: she can remind
   people this way, and only this way.
+- **File management**: moving, renaming, creating folders, and deleting, each
+  with manual confirmation after a plain warning of the risks. Delete means
+  the Recycle Bin, never permanent. Batch jobs show a preview first ("Rename
+  23 files like this..."). An undo log records larger actions with their
+  previous state for a while, kept by Kiki's code outside the model's context
+  so it neither slows replies nor gives her anything to misremember. Only
+  inside folders the user has given her; system folders stay blocked.
+- **To-do list**: a plain text file. "Check my to-do" gets a short reply and
+  opens the file for the user, who edits it directly; she can also add or
+  remove items when asked, but since the file is open, editing it yourself is
+  the easy way.
+- **Calculator, and clock with date maths**: exact answers computed by code
+  (sums, percentages, units, days until a date, time zones from the profile),
+  because small models slip on arithmetic and have no clock.
+- **Run code before showing it**: she runs code in the sandbox first; on a
+  failure she fixes and retries, and shows only working code.
+- **Checks on replies**: code checks rules with exact answers (word limits,
+  "don't include X") before a reply is shown.
+- Further small-model weaknesses and their planned answers:
+  `docs/research/small-model-weaknesses.md`.
 - **Summarising a file**: text files only; if a file is too long, she says so
   and summarises up to where her context runs out.
 - **Image understanding**: yes, with the chosen model (Gemma 4 and Qwen 3.5
