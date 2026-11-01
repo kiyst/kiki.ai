@@ -1,0 +1,167 @@
+{
+  "summary": {
+    "cases": 10,
+    "passed": 9,
+    "false_refusals": 0,
+    "concept_signal_passes": 9,
+    "syntax_passes": 10,
+    "elapsed_seconds": 115.2,
+    "note": "Heuristic regression signals; not a substitute for executing code in a sandbox."
+  },
+  "cases": [
+    {
+      "id": "product_except_self",
+      "difficulty": "medium",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 10.23,
+      "answer": "To solve this without division, you need to precompute prefix and suffix products. For any index `i`, the answer is the product of all elements before it multiplied by the product of all elements after it. This avoids dividing by zero issues entirely, which would be impossible if a zero existed in the list.\n\nThe algorithm runs in O(n) time because we make two passes over the array: one to build the prefix products and another to combine them with suffix products. Space complexity is also O(n) for the auxiliary arrays storing these partial products. If the input list contains zeros, the logic still holds; the product at a zero's position will correctly be zero (since it multiplies everything else), while positions adjacent to zeros will reflect the non-zero neighbors if they exist.\n\n```python\ndef product_except_self(nums):\n    n = len(nums)\n    if n == 0:\n        return []\n    \n    prefix = [1] * n\n    suffix = [1] * n\n    \n    # Build prefix products\n    for i in range(1, n):\n        prefix[i] = prefix[i - 1] * nums[i - 1]\n    \n    # Build suffix products\n    for i in range(n - 2, -1, -1):\n        suffix[i] = suffix[i + 1] * nums[i + 1]\n    \n    # Combine results\n    result = []\n    for i in range(n):\n        result.append(prefix[i] * suffix[i])\n    \n    return result\n\n# Example usage with edge cases\nprint(product_except_self([2, 3, 4]))          # [24, 8, 6]\nprint(product_except_self([0, 1, 0]))          # [0, 0, 0]\nprint(product_except_self([1, 0, 3, 5]))        # [0, 15, 0, 0]\n```"
+    },
+    {
+      "id": "longest_unique_substring",
+      "difficulty": "medium",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 6.38,
+      "answer": "Here is the implementation using the sliding window technique, which maintains an invariant where the current window `[left, right]` always contains only unique characters. As `right` expands to include new characters, `left` moves forward whenever a duplicate is encountered, ensuring the window never violates the uniqueness constraint. This approach guarantees O(n) time complexity because both pointers traverse the string at most once, and O(1) space complexity since the hash set stores at most n characters in the worst case.\n\n```python\ndef length_of_longest_substring(s: str) -> int:\n    char_set = set()\n    left = 0\n    max_len = 0\n    \n    for right in range(len(s)):\n        while s[right] in char_set:\n            char_set.remove(s[left])\n            left += 1\n        \n        char_set.add(s[right])\n        max_len = max(max_len, right - left + 1)\n    \n    return max_len\n```\n\nThe logic works by expanding the window with `right` and contracting it from `left` only when necessary to remove duplicates. This avoids re-scanning characters, keeping the linear time bound intact regardless of input size."
+    },
+    {
+      "id": "merge_intervals",
+      "difficulty": "medium",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 8.52,
+      "answer": "The core idea is to sort intervals by start time, then sweep through them merging any that overlap. If an interval's start is before or equal to the current end, they merge; otherwise, you close the current group and start a new one. This greedy approach works because sorting ensures we always consider the earliest possible extension first, minimizing unnecessary splits.\n\nTime complexity is O(n log n) due to sorting, with O(n) for the sweep. Space is O(n) to store the result. Edge cases like empty input or single intervals are handled naturally by the loop logic.\n\n```python\ndef merge_intervals(intervals):\n    if not intervals:\n        return []\n    \n    # Sort by start time\n    sorted_intervals = sorted(intervals, key=lambda x: x[0])\n    \n    merged = [sorted_intervals[0]]\n    \n    for current in sorted_intervals[1:]:\n        last = merged[-1]\n        \n        # Check if there is overlap\n        if current[0] <= last[1]:\n            # Merge by updating the end time\n            merged[-1] = (last[0], max(last[1], current[1]))\n        else:\n            # No overlap, add a new interval\n            merged.append(current)\n    \n    return merged\n\n# Example usage\nintervals = [(1, 3), (2, 6), (8, 10), (15, 18)]\nprint(merge_intervals(intervals))  # Output: [(1, 6), (8, 10), (15, 18)]\n```"
+    },
+    {
+      "id": "course_schedule",
+      "difficulty": "medium",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 12.44,
+      "answer": "To determine if all courses can be completed, you're essentially checking for cycles in a directed graph where nodes are courses and edges represent prerequisites. If there's a cycle—say Course A requires B, and B requires A—you can never finish the loop. The standard approach is topological sorting using Kahn’s algorithm or DFS with state tracking (unvisited, visiting, visited).\n\nHere's a clean implementation using Kahn’s algorithm:\n\n```python\nfrom collections import deque, defaultdict\n\ndef can_finish_courses(num_courses, prerequisites):\n    if num_courses == 0:\n        return True\n    \n    # Build adjacency list and in-degree count\n    graph = defaultdict(list)\n    in_degree = [0] * num_courses\n    \n    for course, prereq in prerequisites:\n        graph[prereq].append(course)\n        in_degree[course] += 1\n    \n    # Start with courses that have no prerequisites\n    queue = deque([i for i in range(num_courses) if in_degree[i] == 0])\n    completed_count = 0\n    \n    while queue:\n        course = queue.popleft()\n        completed_count += 1\n        \n        for neighbor in graph[course]:\n            in_degree[neighbor] -= 1\n            if in_degree[neighbor] == 0:\n                queue.append(neighbor)\n    \n    return completed_count == num_courses\n\n# Example usage\ncourses = 4\nprereqs = [[1,0],[2,0],[3,1],[3,2]]\nprint(can_finish_courses(courses, prereqs))  # True\n```\n\n**Cycle detection logic:**  \nKahn’s algorithm processes nodes only when their in-degree drops to zero. If the queue empties before all courses are processed, a cycle exists—those remaining nodes depend on each other and can never start. DFS-based detection uses recursion with three states: unvisited (0), visiting (1), visited (2). A back-edge to a node in state 1 indicates a cycle.\n\n**Complexity:**  \n- Time: O(V + E), where V is the number of courses and E is the number of prerequisite pairs. Each node and edge is processed once.\n- Space: O(V + E) for the graph structure and auxiliary arrays/stacks.\n\nThis approach handles edge cases naturally: zero courses return `True`, disconnected components are handled independently, and self-loops or multi-step cycles are caught immediately."
+    },
+    {
+      "id": "lru_cache",
+      "difficulty": "medium",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 20.08,
+      "answer": "To achieve O(1) complexity for both `get` and `put` operations, you need a hybrid structure: a **hash map** (dictionary) to store key-value pairs for instant lookup, paired with a **doubly linked list** to track access order. The hash map maps keys to nodes in the list, while the list's head represents the most recently used item and its tail the least recently used.\n\nWhen you call `put`, you update the hash map entry to point to the new node (or move an existing one) and place it at the head of the list. If the cache exceeds capacity, you remove the node at the tail—the least recently used—and delete it from both the list and the hash map. For `get`, you locate the key in the hash map, retrieve its value, move that node to the head to mark it as recently used, and return the value. This ensures lookups are always O(1) on average, while insertions and deletions remain O(1) because list operations at the ends are constant time.\n\nEdge cases include inserting a key that already exists (updating its position without changing size), adding more items than capacity (triggering eviction of the tail), accessing a non-existent key (returning None or raising an error depending on design, but not modifying structure), and handling empty caches. The hash map handles collisions internally, so duplicate keys aren't an issue unless you explicitly allow them, which standard LRU implementations do not.\n\nHere is the corrected implementation in Python:\n\n```python\nclass Node:\n    def __init__(self, key, value):\n        self.key = key\n        self.value = value\n        self.prev = None\n        self.next = None\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        if capacity <= 0:\n            raise ValueError(\"Capacity must be positive\")\n        self.capacity = capacity\n        self.map = {}\n        self.head = Node(0, 0)\n        self.tail = Node(0, 0)\n        self.head.next = self.tail\n        self.tail.prev = self.head\n\n    def _move_to_head(self, node: Node):\n        prev_node = node.prev\n        next_node = node.next\n        prev_node.next = next_node\n        next_node.prev = prev_node\n        node.prev = self.head\n        node.next = self.head.next\n        self.head.next.prev = node\n        self.head.next = node\n\n    def _remove_node(self, node: Node):\n        prev_node = node.prev\n        next_node = node.next\n        prev_node.next = next_node\n        next_node.prev = prev_node\n\n    def get(self, key: int) -> int:\n        if key not in self.map:\n            return -1\n        node = self.map[key]\n        self._move_to_head(node)\n        return node.value\n\n    def put(self, key: int, value: int):\n        if key in self.map:\n            node = self.map[key]\n            node.value = value\n            self._move_to_head(node)\n        else:\n            new_node = Node(key, value)\n            self.map[key] = new_node\n            self._add_at_head(new_node)\n            if len(self.map) > self.capacity:\n                lru_node = self.tail.prev\n                self._remove_node(lru_node)\n                del self.map[lru_node.key]\n\n    def _add_at_head(self, node: Node):\n        prev_node = self.head.next\n        next_node = node\n        prev_node.next = next_node\n        node.prev = prev_node\n        node.next = self.head\n        self.head.next.prev = node\n        self.head.next = node\n```\n\nThis structure guarantees that every operation runs in constant time regardless of cache size, provided the hash map doesn't suffer from severe collisions (which is rare with good hashing). The logic handles updates, evictions, and missing keys cleanly without side effects."
+    },
+    {
+      "id": "minimum_window_substring",
+      "difficulty": "hard",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 11.2,
+      "answer": "The core idea is to maintain a window `[left, right]` over `s` and track how many characters from `t` are currently covered inside it. We expand `right` until the window contains all required characters (count matches total count in `t`). Once satisfied, we try shrinking from `left` to find the smallest valid window ending at that `right`, then move `right` forward.\n\nWe use a frequency map for `t` and another for the current window. A counter tracks how many unique characters in `t` are fully covered. When this counter equals the number of unique characters in `t`, we have a candidate solution.\n\n```python\ndef min_window(s: str, t: str) -> str:\n    if not s or not t:\n        return \"\"\n    \n    from collections import Counter\n    \n    target_counts = Counter(t)\n    required_chars = len(target_counts)\n    window_counts = Counter()\n    formed = 0\n    left = 0\n    min_len = float('inf')\n    result = \"\"\n    \n    for right in range(len(s)):\n        char = s[right]\n        if char in target_counts:\n            window_counts[char] += 1\n            if window_counts[char] == target_counts[char]:\n                formed += 1\n        \n        while left <= right and formed == required_chars:\n            current_len = right - left + 1\n            if current_len < min_len:\n                min_len = current_len\n                result = s[left:right+1]\n            \n            left_char = s[left]\n            if left_char in target_counts:\n                window_counts[left_char] -= 1\n                if window_counts[left_char] < target_counts[left_char]:\n                    formed -= 1\n            left += 1\n    \n    return result\n```\n\nTime complexity is O(n) because both `left` and `right` traverse the string at most once. Space complexity is O(1) since the alphabet size is bounded (or O(k) where k is the number of unique characters in `t`). Edge cases like empty strings or no valid window are handled by returning an empty string."
+    },
+    {
+      "id": "trapping_rain_water",
+      "difficulty": "hard",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": false,
+      "missing_signal_groups": [
+        [
+          "left_max",
+          "left max"
+        ],
+        [
+          "right_max",
+          "right max"
+        ]
+      ],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": false,
+      "elapsed_seconds": 12.66,
+      "answer": "The standard two-pointer approach solves this in O(n) time and O(1) space by tracking the maximum height seen from both ends simultaneously. You initialize `left` at 0 and `right` at `n-1`, along with `max_left` and `max_right`. At each step, you compare `height[left]` and `height[right]`: if the left side is lower, the water level above it is determined by `max_left`, so you add `max_left - height[left]` to your total (provided this value is positive) and move `left` forward. Otherwise, you do the same for the right side using `max_right`. This works because the water trapped at any index depends strictly on the lower of the two highest boundaries surrounding it; by always processing the shorter boundary, you guarantee that the taller boundary hasn't changed since the last time it was considered, ensuring correctness without needing to store all previous maximums.\n\nHere is the implementation:\n\n```python\ndef trap_rain_water(heights):\n    if not heights or len(heights) < 3:\n        return 0\n    \n    left, right = 0, len(heights) - 1\n    max_left, max_right = heights[left], heights[right]\n    water_trapped = 0\n    \n    while left < right:\n        if heights[left] < heights[right]:\n            if heights[left] >= max_left:\n                max_left = heights[left]\n            else:\n                water_trapped += max_left - heights[left]\n            left += 1\n        else:\n            if heights[right] >= max_right:\n                max_right = heights[right]\n            else:\n                water_trapped += max_right - heights[right]\n            right -= 1\n    \n    return water_trapped\n```\n\nThe logic holds because at any point where `heights[left] < heights[right]`, we know that `max_left` is the limiting factor for water above `left`. Since `max_left` was established by some index to the left of `left`, and `heights[right]` (and thus `max_right`) is greater than `heights[left]`, the actual boundary on the right side is sufficient to hold that amount of water. We don't need to look further right because we've already processed those indices or their contributions are accounted for in `max_right`. The symmetry ensures every index gets its correct water level calculated exactly once."
+    },
+    {
+      "id": "median_two_sorted_arrays",
+      "difficulty": "hard",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 11.81,
+      "answer": "The core trick is binary search on the smaller array to split both lists such that the left half contains exactly half the total elements, while every element on the left is less than or equal to every element on the right. If you pick a split index `i` in the first array of size `m`, the corresponding split in the second array (size `n`) must be `j = (m + n) / 2 - i`. The partition condition requires that `arr1[i-1] <= arr2[j]` and `arr2[j-1] <= arr1[i]`. If these hold, you've found the correct split; otherwise, you adjust your search range based on which inequality fails.\n\nHere is the implementation:\n\n```python\ndef find_median_sorted_arrays(nums1, nums2):\n    if len(nums1) > len(nums2):\n        return find_median_sorted_arrays(nums2, nums1)\n    \n    m, n = len(nums1), len(nums2)\n    low, high = 0, m\n    \n    while low <= high:\n        i = (low + high) // 2\n        j = (m + n) // 2 - i\n        \n        left1 = float('-inf') if i == 0 else nums1[i-1]\n        right1 = float('inf') if i == m else nums1[i]\n        left2 = float('-inf') if j == 0 else nums2[j-1]\n        right2 = float('inf') if j == n else nums2[j]\n        \n        if left1 <= right2 and left2 <= right1:\n            total_len = m + n\n            return (left1 + left2) / 2 if total_len % 2 == 0 else min(right1, right2)\n        elif left1 > right2:\n            low = i + 1\n        else:\n            high = i - 1\n    \n    raise ValueError(\"Input arrays are not sorted\")\n```\n\nThe time complexity is O(log(min(m,n))) because the binary search runs on the smaller array. The empty-side boundaries are handled by using negative infinity for the leftmost possible element and positive infinity for the rightmost, ensuring comparisons never fail due to missing elements at the edges of the partition."
+    },
+    {
+      "id": "word_ladder",
+      "difficulty": "hard",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 13.7,
+      "answer": "Here is a Breadth-First Search (BFS) implementation that finds the shortest path by changing exactly one letter at a time, ensuring every intermediate step exists in your provided dictionary.\n\n```python\nfrom collections import deque\n\ndef word_ladder(start: str, target: str, dictionary: set) -> list[str]:\n    if start == target:\n        return [start]\n    \n    # Normalize to lowercase for case-insensitive matching\n    start = start.lower()\n    target = target.lower()\n    \n    if start not in dictionary or target not in dictionary:\n        return []\n\n    queue = deque([(start, [start])])\n    visited = {start}\n    \n    while queue:\n        current_word, path = queue.popleft()\n        \n        # Try changing each letter to any other character\n        for i in range(len(current_word)):\n            original_char = current_word[i]\n            for char in 'abcdefghijklmnopqrstuvwxyz':\n                if char == original_char:\n                    continue\n                \n                new_word = current_word[:i] + char + current_word[i+1:]\n                \n                # Check if the new word is valid and not visited\n                if new_word in dictionary and new_word != target:\n                    if new_word == target:\n                        return path + [new_word]\n                    \n                    queue.append((new_word, path + [new_word]))\n                    visited.add(new_word)\n    \n    return []\n\n# Example usage\nstart = \"cat\"\ntarget = \"dog\"\ndictionary = {\"cat\", \"cot\", \"dog\", \"dot\", \"log\"}\n\npath = word_ladder(start, target, dictionary)\nif path:\n    print(f\"Path length: {len(path)}\")\n    print(f\"Transformation: {' -> '.join(path)}\")\nelse:\n    print(\"No solution found.\")\n```\n\n**Complexity Analysis:**\n*   **Time Complexity:** $O(N \\cdot L^2)$, where $N$ is the number of words in the dictionary and $L$ is the average word length. In the worst case, we might visit every word. For each word, we iterate through $L$ positions and potentially 25 other characters. While many checks fail quickly, the search space expands with every valid neighbor found.\n*   **Space Complexity:** $O(N)$ for the queue and visited set in the worst-case scenario where the graph is dense or the path is long.\n\nThis approach guarantees the shortest path because BFS explores all neighbors at the current depth before moving to the next, ensuring the first time we reach the target, it is via the minimum number of steps."
+    },
+    {
+      "id": "largest_rectangle_histogram",
+      "difficulty": "hard",
+      "no_false_refusal": true,
+      "refusal_markers": [],
+      "concept_signals_passed": true,
+      "missing_signal_groups": [],
+      "has_code": true,
+      "python_syntax_valid": true,
+      "syntax_errors": [],
+      "passed": true,
+      "elapsed_seconds": 8.19,
+      "answer": "The core invariant driving this $O(n)$ solution is that we only extend a bar's reach to its left or right until we hit a shorter bar, meaning every bar acts as a boundary exactly once for both directions. By using a monotonic stack to track indices of increasing heights, we ensure each bar is pushed onto the stack once and popped at most once. When a bar is popped, it signifies that we've found the rightmost boundary (the current index) for its potential rectangle, and the left boundary was established when it was pushed. This guarantees linear time complexity because the total number of push and pop operations per element is bounded by two.\n\nHere is the corrected implementation:\n\n```python\ndef largest_rectangle_area(heights):\n    stack = []\n    max_area = 0\n    \n    # Append a zero-height bar to flush remaining elements from the stack\n    heights.append(0)\n    \n    for i, h in enumerate(heights):\n        # Maintain increasing order of heights in the stack\n        while stack and heights[stack[-1]] >= h:\n            height = heights[stack.pop()]\n            # Determine width: if stack is empty, bar extends from 0 to i-1\n            # otherwise, from stack[-1]+1 to i-1\n            width = i if not stack else i - stack[-1] - 1\n            max_area = max(max_area, height * width)\n        \n        stack.append(i)\n    \n    # Remove the sentinel bar we added\n    heights.pop()\n    \n    return max_area\n```"
+    }
+  ],
+  "configuration": {
+    "cases": "C:\\Users\\Throw\\Documents\\ChatGPT\\Kiki\\evals\\coding_cases.json",
+    "model": "qwen3.5:4b",
+    "context": "standard"
+  }
+}

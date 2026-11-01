@@ -1,0 +1,54 @@
+[132/164] HumanEval/131: PASS gen 8.82s grade 0.472s
+[133/164] HumanEval/132: fail (base[1]: wrong answer) gen 22.83s grade 0.528s
+[134/164] HumanEval/133: PASS gen 9.49s grade 0.555s
+[135/164] HumanEval/134: fail (base[1]: wrong answer) gen 8.48s grade 0.492s
+[136/164] HumanEval/135: fail (base[3]: wrong answer) gen 5.45s grade 0.53s
+[137/164] HumanEval/136: PASS gen 6.88s grade 0.577s
+[138/164] HumanEval/137: PASS gen 7.71s grade 0.517s
+[139/164] HumanEval/138: PASS gen 4.09s grade 0.488s
+[140/164] HumanEval/139: PASS gen 4.23s grade 17.856s
+[141/164] HumanEval/140: fail (base[2]: wrong answer) gen 8.36s grade 0.514s
+[142/164] HumanEval/141: fail (plus[104]: wrong answer) gen 10.28s grade 0.521s
+[143/164] HumanEval/142: PASS gen 6.49s grade 0.62s
+[144/164] HumanEval/143: PASS gen 6.71s grade 0.519s
+[145/164] HumanEval/144: PASS gen 7.15s grade 0.515s
+[146/164] HumanEval/145: fail (base[0]: wrong answer) gen 8.36s grade 0.608s
+[147/164] HumanEval/146: PASS gen 8.64s grade 0.553s
+[148/164] HumanEval/147: PASS gen 6.91s grade 4.453s
+[149/164] HumanEval/148: PASS gen 11.5s grade 0.538s
+[150/164] HumanEval/149: PASS gen 9.12s grade 0.56s
+[151/164] HumanEval/150: PASS gen 3.88s grade 0.498s
+STOPPED: only 1.0 GB of commit headroom left (minimum 1.0). Close some applications and rerun; finished problems are kept.
+{
+  "problems": 151,
+  "base": {
+    "passed": 126,
+    "total": 151,
+    "pct": 83.4
+  },
+  "plus": {
+    "passed": 119,
+    "total": 151,
+    "pct": 78.8
+  },
+  "base_validated": {
+    "passed": 126,
+    "total": 150,
+    "pct": 84.0
+  },
+  "plus_validated": {
+    "passed": 119,
+    "total": 150,
+    "pct": 79.3
+  },
+  "reference_failures_excluded_from_validated": [
+    "HumanEval/32"
+  ],
+  "no_code": 0,
+  "truncated": 0,
+  "grade_timeouts": 0,
+  "mean_generate_s": 7.1,
+  "mean_grade_s": 1.3,
+  "max_grade_peak_mb": 403.3,
+  "complete": false
+}

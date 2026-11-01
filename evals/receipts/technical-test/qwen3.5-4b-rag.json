@@ -1,0 +1,722 @@
+{
+  "summary": {
+    "cases": 18,
+    "answerable_cases": 15,
+    "lexical_top_k_any_hits": 12,
+    "hybrid_top_k_any_hits": 15,
+    "hybrid_top_k_all_hits": 15,
+    "mean_lexical_ms": 66.78,
+    "mean_hybrid_ms": 11279.87,
+    "model_cases": 18,
+    "search_tool_successes": 18,
+    "valid_inline_citation_cases": 14,
+    "unsupported_abstentions": 3,
+    "unsupported_cases": 3,
+    "mean_model_ms": 15036.61
+  },
+  "cases": [
+    {
+      "id": "paine_society_government",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "common_sense.txt"
+      ],
+      "lexical_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "hybrid_sources": [
+        "common_sense.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_any_hit": false,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 181.7,
+      "hybrid_ms": 22119.96,
+      "model_ms": 7164.13,
+      "model_sources": [
+        "common_sense.txt",
+        "common_sense.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "common_sense.txt",
+        "history_of_the_united_states.txt",
+        "common_sense.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "Thomas Paine distinguishes society from government because he believes they have fundamentally different origins and purposes. According to Paine, **society is produced by our wants**, whereas **government is produced by our wickedness**. He argues that society promotes happiness positively by uniting human affections and encouraging interaction, while government acts negatively by restraining vices and creating social distinctions.\n\nPaine further emphasizes that \"society in every state is a blessing, but government even in its best state is but a necessary evil.\" He views government as a mechanism required only when moral virtue fails to govern people naturally, serving the purpose of providing freedom and security through restraint rather than through positive cooperation.\n\n**Source:** [source:p5a44bad1071]"
+    },
+    {
+      "id": "paine_hereditary",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "common_sense.txt"
+      ],
+      "lexical_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "hybrid_sources": [
+        "common_sense.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_any_hit": false,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 15.64,
+      "hybrid_ms": 9470.04,
+      "model_ms": 19518.17,
+      "model_sources": [
+        "common_sense.txt",
+        "common_sense.txt",
+        "common_sense.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "common_sense.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "Early Americans distrusted rule passed down through royal bloodline because they viewed hereditary succession as an insult to future generations and a violation of their principles of liberty. Thomas Paine argued that \"hereditary succession in the early ages of monarchy could not take place as a matter of claim, but as something casual or complimental\" because such a system was \"incompatible with the free and unrestrained principles they professed to live by.\"\n\nPaine further contended that hereditary right had no moral or divine foundation, stating that \"monarchy in every instance is the Popery of government\" and that hereditary succession \"has no divinity in it.\" He believed that what was initially accepted as a convenience could later be falsely claimed as an inherent right, but this claim lacked legitimate basis.\n\nHistorical examples reinforced this distrust, with Paine noting that England's claim under William the Conqueror was \"in plain terms a very paltry rascally original,\" describing it as \"a French bastard landing with an armed banditti, and establishing himself king of England against the consent of the natives.\" He concluded that if there were any so weak as to believe in hereditary right, they should \"promiscuously worship the ass and lion, and welcome.\"\n\n[source:p7d121d3c61e]\n[source:pc65afb3ebce]\n[source:pa77e8d9a5bf]\n[source:pa7cbfcafbfc]"
+    },
+    {
+      "id": "federalist_faction",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "federalist_papers.txt"
+      ],
+      "lexical_sources": [
+        "federalist_papers.txt"
+      ],
+      "hybrid_sources": [
+        "federalist_papers.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 152.34,
+      "hybrid_ms": 10702.7,
+      "model_ms": 23025.57,
+      "model_sources": [
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "Federalist No. 10 proposes controlling the effects of faction rather than removing its causes, arguing that the causes of faction cannot be removed without destroying liberty or creating uniformity in opinions and interests [source:pfe464525914]. The author identifies two methods for removing the causes of faction: destroying liberty (which is essential to political life) or giving every citizen the same opinions, passions, and interests (which is impossible) [source:pcf7a1a5ae59].\n\nInstead, Federalist No. 10 advocates for controlling the effects of faction through republican principles. When a faction consists of less than a majority, the republican principle allows the majority to defeat its sinister views by regular vote [source:p8fc359793c7]. However, when a majority is included in a faction, popular government can enable them to sacrifice both the public good and the rights of other citizens to their ruling passion or interest [source:p8fc359793c7].\n\nTo secure the public good and private rights against such dangers while preserving the spirit and form of popular government, Federalist No. 10 argues that a large republic offers advantages over small ones in controlling faction. The larger republic provides:\n1. Representation by enlightened representatives who are superior to local prejudices [source:p762f50b1fc4]\n2. Greater security from the variety of parties preventing any one party from outnumbering the rest [source:p762f50b1fc4]\n3. Increased obstacles against the concert of factions [source:p762f50b1fc4]\n\nThe author concludes that \"the same advantage which a republic has over a democracy, in controlling the effects of faction, is enjoyed by a large over a small republic\" and that this advantage is found in the Union over the States composing it [source:p762f50b1fc4]."
+    },
+    {
+      "id": "federalist_large_republic",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "federalist_papers.txt"
+      ],
+      "lexical_sources": [
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "hybrid_sources": [
+        "federalist_papers.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 28.43,
+      "hybrid_ms": 9014.66,
+      "model_ms": 16686.56,
+      "model_sources": [
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "A large republic may restrain an organized political majority better than a small one primarily because it includes a greater variety of parties and interests. As noted in *The Federalist Papers*, extending the sphere of government brings in more distinct factions, making it less probable that a majority of the whole will share a common motive to oppress others [source:p2820f1484bd]. In smaller societies, fewer parties exist, so a majority is more likely to be composed of the same group, allowing them to more easily concert and execute plans of oppression due to their smaller size and proximity.\n\nIn contrast, in a large republic:\n- The greater number of citizens and extent of territory introduce more diverse interests, which dilutes the ability of any single faction to form a cohesive majority capable of dominating others [source:p762f50b1fc4].\n- This increased variety acts as a security mechanism against \"the event of any one party being able to outnumber and oppress the rest\" [source:p762f50b1fc4].\n\nAdditionally, large republics use representation to refine public views through elected officials who are less likely to be swayed by temporary or partial considerations, further insulating the government from the direct influence of potentially oppressive majorities. The two great points of difference between a democracy and a republic include the delegation of government to a small number of citizens and the greater number of citizens and sphere of country in a republic [source:p3ce9085348c]. Under such a regulation, it may well happen that the public voice, pronounced by the representatives of the people, will be more consonant to the public good than if pronounced by the people themselves [source:pa5b800b6b34]."
+    },
+    {
+      "id": "federalist_judiciary",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "federalist_papers.txt"
+      ],
+      "lexical_sources": [
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "hybrid_sources": [
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 117.88,
+      "hybrid_ms": 9761.82,
+      "model_ms": 13510.58,
+      "model_sources": [
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "Hamilton calls the judiciary the \"least dangerous branch\" because it lacks both force and will. According to *The Federalist Papers*, the Executive branch holds the power of the sword (military force), while the Legislative branch controls the purse (wealth). In contrast, the judiciary has no influence over either the sword or the purse, nor does it have the capacity to direct the strength or wealth of society.\n\nAs Hamilton wrote:\n> \"The judiciary, on the contrary, has no influence over either the sword or the purse; no direction either of the strength or of the wealth of the society; and can take no active resolution whatever. It may truly be said to have neither FORCE nor WILL, but merely judgment\" [source:p0e5f6a44e1c].\n\nBecause it possesses only \"merely judgment,\" Hamilton argues that the judiciary is \"least in a capacity to annoy or injure\" the political rights of the Constitution, making it the least dangerous branch."
+    },
+    {
+      "id": "constitution_preamble",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "united_states_constitution.txt"
+      ],
+      "lexical_sources": [
+        "united_states_constitution.txt"
+      ],
+      "hybrid_sources": [
+        "united_states_constitution.txt",
+        "federalist_papers.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 68.47,
+      "hybrid_ms": 10098.17,
+      "model_ms": 11432.18,
+      "model_sources": [
+        "united_states_constitution.txt",
+        "united_states_constitution.txt",
+        "united_states_constitution.txt",
+        "federalist_papers.txt",
+        "united_states_constitution.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "united_states_constitution.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "The purposes for the new government listed in the Constitution's preamble are:\n\n1. To form a more perfect Union\n2. To establish Justice\n3. To insure domestic Tranquility\n4. To provide for the common defence\n5. To promote the general Welfare\n6. To secure the Blessings of Liberty to ourselves and our Posterity\n\nThese purposes are stated in the opening sentence of the Constitution: \"We the people of the United States, in Order to form a more perfect Union, establish Justice, insure domestic Tranquility, provide for the common defence, promote the general Welfare, and secure the Blessings of Liberty to ourselves and our Posterity, do ordain and establish this Constitution for the United States of America.\" [source:pa1d35870806]"
+    },
+    {
+      "id": "constitution_congress",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "united_states_constitution.txt"
+      ],
+      "lexical_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "hybrid_sources": [
+        "history_of_the_united_states.txt",
+        "united_states_constitution.txt",
+        "federalist_papers.txt"
+      ],
+      "lexical_any_hit": false,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 22.24,
+      "hybrid_ms": 11327.18,
+      "model_ms": 17563.49,
+      "model_sources": [
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "united_states_constitution.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "united_states_constitution.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": false,
+      "abstained": true,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "id": "declaration_grievances",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "declaration_of_independence.txt"
+      ],
+      "lexical_sources": [
+        "declaration_of_independence.txt"
+      ],
+      "hybrid_sources": [
+        "declaration_of_independence.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 132.23,
+      "hybrid_ms": 11767.25,
+      "model_ms": 9630.66,
+      "model_sources": [
+        "declaration_of_independence.txt",
+        "declaration_of_independence.txt",
+        "declaration_of_independence.txt",
+        "declaration_of_independence.txt",
+        "declaration_of_independence.txt",
+        "federalist_papers.txt",
+        "common_sense.txt",
+        "common_sense.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "The Declaration of Independence makes several specific complaints about taxation, trials, and legislatures under British rule:\n\n**Taxation:**\n*   \"For imposing taxes on us without our Consent\" [source:p1a0cddb1bc0]\n\n**Trials:**\n*   \"For depriving us, in many cases, of the benefits of Trial by Jury\" [source:p1a0cddb1bc0]\n*   \"For transporting us beyond Seas to be tried for pretended offences\" [source:p1a0cddb1bc0]\n\n**Legislatures:**\n*   \"For suspending our own Legislatures, and declaring themselves invested with Power to legislate\" [source:p1a0cddb1bc0]\n\nThe document also complains about the establishment of an absolute tyranny over these States, where the King has refused his assent to laws necessary for the public good, forbidden governors from passing such laws without his approval, and called together legislative bodies at unusual and distant places to fatigue them into compliance with his measures [source:p807ec5431b1]."
+    },
+    {
+      "id": "declaration_consent",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "declaration_of_independence.txt"
+      ],
+      "lexical_sources": [
+        "declaration_of_independence.txt"
+      ],
+      "hybrid_sources": [
+        "declaration_of_independence.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 44.42,
+      "hybrid_ms": 9901.38,
+      "model_ms": 4286.18,
+      "model_sources": [
+        "declaration_of_independence.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "declaration_of_independence.txt",
+        "declaration_of_independence.txt",
+        "common_sense.txt",
+        "declaration_of_independence.txt",
+        "declaration_of_independence.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "According to the Declaration of Independence, governments obtain legitimate power from **the consent of the governed**.\n\nThe document states: \"That to secure these rights, Governments are instituted among Men, deriving their just powers from the consent of the governed\" [source:p7aadbd6e4e2]."
+    },
+    {
+      "id": "beard_after_1763",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "hybrid_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 24.97,
+      "hybrid_ms": 11631.17,
+      "model_ms": 15819.29,
+      "model_sources": [
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "common_sense.txt",
+        "history_of_the_united_states.txt",
+        "common_sense.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "According to Charles A. Beard's *History of the United States*, three main forces converged around 1763 to produce revolution:\n\n1.  **A new, assertive monarch:** George III came to the throne in 1760 as a \"young, proud, inexperienced, and stubborn king\" who decided he would be \"king in fact as well as in name,\" ending the previous policy of letting things drift [source:p0116b613b32].\n\n2.  **The aftermath of the French and Indian War:** England ended this long and costly war in 1763 while \"staggering under a heavy burden of debt and taxes.\" English statesmen believed it was reasonable for the American colonies to bear part of the cost of their own defense [source:p0116b613b32].\n\n3.  **A new system of colonial government:** To address the kingdom's financial problems, England inaugurated in February 1763 \"a new system of colonial government\" under ministers like George Grenville and Charles Townshend. This system ended requisitions from colonial assemblies for supplies and instead imposed taxes on the colonies by act of Parliament [source:pe7cb9c98a6a].\n\nThese forces combined to create the conditions that led to revolution."
+    },
+    {
+      "id": "beard_suffrage",
+      "split": "development",
+      "answerable": true,
+      "expected_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "hybrid_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 32.66,
+      "hybrid_ms": 12279.63,
+      "model_ms": 26265.89,
+      "model_sources": [
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "According to Charles A. Beard and Mary Ritter Beard's *History of the United States*, the national struggle for woman suffrage began around 1850 with state-level agitation that soon coalesced into a national movement [source:p3ec925c45b2]. The authors describe the beginning of organized suffrage efforts in 1850, when suffragists in Ohio urged their state constitutional convention to grant women the vote. That same year saw state suffrage conferences held in Indiana, Pennsylvania, and Massachusetts, leading to connections among the leaders [source:p3ec925c45b2]. The first national suffrage convention was then held in Worcester, Massachusetts, attended by eighty-nine delegates from six states [source:p3ec925c45b2].\n\nThe movement grew through various organizations and reform efforts. Women's clubs and associations federated at city, state, and national levels, initially focusing on issues like temperance, prison reform, pure food laws, and public health. However, these activities eventually converged on the demand for the franchise [source:pf3cab4955e0]. By 1914, the National Federation of Women's Clubs, representing nearly two million members, formally endorsed woman suffrage [source:pf3cab4955e0].\n\nThe struggle intensified after the Civil War when the question of national suffrage became prominent due to the emancipation and proposed enfranchisement of African Americans. While the Fourteenth Amendment (1868) granted manhood suffrage nationally, it explicitly excluded women from its application. This \"nationalized the issue\" for woman suffrage as well [source:p93f8a84e360].\n\nThe movement gained momentum in the years leading up to World War I. By 1917, New York became the first state to adopt equal suffrage, followed by Oklahoma, South Dakota, and Michigan in 1918. Several other states granted women the right to vote for President through legislative action [source:pee69eff0b36]. The suffrage battle at Washington grew intense with daily demonstrations and petitions pouring into Congress and the President [source:pee69eff0b36]. On September 30, 1918, President Wilson finally urged Congress to pass a federal suffrage amendment, having previously opposed federal action in favor of state adoption only. In June 1919, the requisite two-thirds vote was secured for the resolution [source:pee69eff0b36]."
+    },
+    {
+      "id": "beard_trusts",
+      "split": "holdout",
+      "answerable": true,
+      "expected_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "hybrid_sources": [
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 57.8,
+      "hybrid_ms": 10237.09,
+      "model_ms": 23025.98,
+      "model_sources": [
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "According to the *History of the United States* by Charles A. Beard and Mary Ritter Beard, the late nineteenth century was defined by the rise of corporate trusts and railways, which became central to both economic development and social unrest.\n\n**The Rise of Trusts and Railways**\nBy the end of the nineteenth century, American business had shifted dramatically from individual ownership to corporate management. Three-fourths of industrial output came from factories under corporate control, with corporations dominating fields like iron, steel, coal, and sugar. The growth of these \"gigantic aggregations of capital\" was seen as a major threat by political opponents, who argued that \"Plutocracy has taken the place of democracy.\" [source:p24c45d01af4]\n\nThe railways were particularly significant in this transformation. Business concerns, including railways, mills, and mines, were transferred from individual owners to corporations. The text notes that trusts and railway combinations often engaged in abuses such as conspiring to ruin competitors by charging high freight rates. [source:p8cb2e6d9725]\n\n**Industrial Distress and Unrest**\nThe growth of these corporate entities was accompanied by severe industrial distress, which fueled widespread unrest. Between 1892 and 1896, the country faced a grave industrial crisis characterized by bank bankruptcies, factory closures, and plummeting agricultural prices. This period saw labor disputes fill the record, including a strike at the Pullman car works in Chicago that spread to the railways, leading to disorders. [source:p032ec48c7e8]\n\n**Political Responses**\nThe political response to these issues was split. While the Populists and Democrats (including William Jennings Bryan) called for the destruction of trusts and tariffs as a remedy, President Theodore Roosevelt took a different approach. He argued against destroying trusts entirely, instead proposing their regulation by the government to prevent abuses like swindling and output-limiting agreements. Roosevelt specifically declared that railway companies were public servants whose rates should be \"just to and open to all shippers alike.\" [source:p24c45d01af4]"
+    },
+    {
+      "id": "compare_preamble_grievances",
+      "split": "holdout",
+      "answerable": true,
+      "expected_sources": [
+        "united_states_constitution.txt",
+        "declaration_of_independence.txt"
+      ],
+      "lexical_sources": [
+        "declaration_of_independence.txt",
+        "united_states_constitution.txt"
+      ],
+      "hybrid_sources": [
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt",
+        "united_states_constitution.txt",
+        "declaration_of_independence.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 85.79,
+      "hybrid_ms": 12230.02,
+      "model_ms": 22149.26,
+      "model_sources": [
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt",
+        "united_states_constitution.txt",
+        "declaration_of_independence.txt",
+        "federalist_papers.txt",
+        "declaration_of_independence.txt",
+        "united_states_constitution.txt",
+        "declaration_of_independence.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "The Preamble to the United States Constitution explicitly outlines its primary goals. According to the text, the Constitution was established \"in Order to form a more perfect Union, establish Justice, insure domestic Tranquility, provide for the common defence, promote the general Welfare, and secure the Blessings of Liberty to ourselves and our Posterity.\" [source:pa1d35870806]\n\nThe Declaration of Independence is structured around a list of specific complaints against King George III. While the full text of these grievances is not provided in the excerpts, the document establishes that the colonists were \"dissolving the political bands which have connected them with another\" because they had been subjected to a series of abuses and violations of their rights. The Declaration serves as the justification for separation, contrasting the \"Laws of Nature and of Nature’s God\" with the actions of the British Crown. [source:p23fe8447806]\n\nThe fundamental difference lies in their focus:\n*   **The Constitution** is forward-looking, establishing the framework for a new government designed to achieve specific political and social ends (union, justice, security, welfare, and liberty). It focuses on the structure of power and the rights of citizens within that structure.\n*   **The Declaration** is backward-looking and justificatory, listing past wrongs committed by the British monarchy to prove the necessity of breaking away from it. Its purpose is not to create a new government but to declare independence based on historical grievances.\n\nIn essence, the Constitution sets up the system intended to secure the \"Blessings of Liberty,\" while the Declaration argues that the old system had failed to do so and was instead causing harm."
+    },
+    {
+      "id": "compare_paine_madison",
+      "split": "holdout",
+      "answerable": true,
+      "expected_sources": [
+        "common_sense.txt",
+        "federalist_papers.txt"
+      ],
+      "lexical_sources": [
+        "history_of_the_united_states.txt",
+        "common_sense.txt",
+        "federalist_papers.txt"
+      ],
+      "hybrid_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "common_sense.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 32.57,
+      "hybrid_ms": 12998.75,
+      "model_ms": 21459.6,
+      "model_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "common_sense.txt",
+        "history_of_the_united_states.txt",
+        "common_sense.txt",
+        "common_sense.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "Thomas Paine condemned hereditary monarchy as a system that had laid the world \"in blood and ashes,\" arguing that hereditary succession is independent of the people and contributes nothing toward their freedom [source:pc65afb3ebce]. He viewed the British constitution as farcical, asserting that it presupposes two things: that kings have a natural thirst for absolute power, and that representatives are wiser or more trustworthy than the crown [source:pc866639e82d].\n\nIn contrast, James Madison sought to control the effects of faction within a republican government rather than removing its causes or destroying liberty. He identified two methods for curing the mischiefs of faction: removing its causes or controlling its effects [source:pcf7a1a5ae59]. Madison rejected destroying liberty as a remedy, stating it was \"worse than the disease\" because liberty is essential to political life [source:pcf7a1a5ae59]. Instead, he proposed controlling the effects of faction through the republican principle, which enables the majority to defeat minority factions by regular vote [source:p8fc359793c7].\n\nThe key difference is that Paine sought to eliminate monarchy entirely as an illegitimate system, while Madison worked within a republican framework to manage the inevitable presence of faction through institutional design."
+    },
+    {
+      "id": "articles_weaknesses",
+      "split": "holdout",
+      "answerable": true,
+      "expected_sources": [
+        "federalist_papers.txt"
+      ],
+      "lexical_sources": [
+        "federalist_papers.txt"
+      ],
+      "hybrid_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "lexical_any_hit": true,
+      "hybrid_any_hit": true,
+      "hybrid_all_hit": true,
+      "lexical_ms": 85.76,
+      "hybrid_ms": 9495.32,
+      "model_ms": 21085.36,
+      "model_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": true,
+      "search_tool_used": true,
+      "citations_valid": true,
+      "abstained": false,
+      "answer": "Based on the provided excerpts from *The Federalist Papers*, several key weaknesses of the Articles of Confederation are identified:\n\n*   **Lack of Energy and Enforcement:** The government under the Articles was described as \"destitute of energy.\" There was no president to enforce laws, and Congress lacked the power to compel obedience. The executive body created by Congress (a committee of thirteen) proved a failure in practice [source:p13a8265476c].\n*   **Inability to Cope with Reconstruction:** The government had neither the strength nor the resources necessary to handle the problems left by the war [source:p13a8265476c].\n*   **Weak Financial and Administrative Capacity:** The Articles failed to provide for an effective system of national courts, leaving citizens and states without a clear path to protect their rights or compel compliance. Additionally, the government was unable to manage its own finances effectively (\"resources and finances discreetly managed\" was cited as something lacking) [source:p13a8265476c].\n*   **Foreign Vulnerability:** Foreign nations viewed the United States under the Articles as \"destitute of an effectual government,\" with each state acting independently according to its rulers' convenience. This made the nation appear weak, discordant, and potentially divided among different foreign powers (e.g., one state inclining toward Britain) [source:pf9ba0775542].\n*   **Rivalry of Power:** The system fostered a \"rivalship of power\" between states and the national government, leading to a situation where states could counteract legitimate national authority. This was described as an \"imperium in imperio\" (a power within a power), which Madison called a \"political monster\" [source:p4f3a5b6d2fc].\n\nThese defects were central to the argument made in *The Federalist Papers* that a stronger, more energetic national government was necessary for the survival and prosperity of the Union."
+    },
+    {
+      "id": "unsupported_nuclear",
+      "split": "holdout",
+      "answerable": false,
+      "expected_sources": [],
+      "lexical_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "hybrid_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "lexical_any_hit": null,
+      "hybrid_any_hit": null,
+      "hybrid_all_hit": null,
+      "lexical_ms": 49.45,
+      "hybrid_ms": 10052.0,
+      "model_ms": 5759.43,
+      "model_sources": [
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": null,
+      "search_tool_used": true,
+      "citations_valid": false,
+      "abstained": true,
+      "answer": "Evidence is insufficient. The retrieved excerpts do not contain any statement by Madison regarding nuclear deterrence. The available text discusses Madison's role in the War of 1812 and his views on checks and balances, but does not address nuclear weapons or deterrence."
+    },
+    {
+      "id": "unsupported_internet",
+      "split": "holdout",
+      "answerable": false,
+      "expected_sources": [],
+      "lexical_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "hybrid_sources": [
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "lexical_any_hit": null,
+      "hybrid_any_hit": null,
+      "hybrid_all_hit": null,
+      "lexical_ms": 30.12,
+      "hybrid_ms": 9533.45,
+      "model_ms": 5335.61,
+      "model_sources": [
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": null,
+      "search_tool_used": true,
+      "citations_valid": false,
+      "abstained": true,
+      "answer": "Evidence is insufficient. The retrieved excerpts discuss historical topics such as presidential electors, tariffs, progressive reforms like the recall of judicial decisions, and labor policies, but none address a policy proposed by the framers for regulating social media algorithms."
+    },
+    {
+      "id": "unsupported_moon",
+      "split": "holdout",
+      "answerable": false,
+      "expected_sources": [],
+      "lexical_sources": [
+        "federalist_papers.txt"
+      ],
+      "hybrid_sources": [
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt"
+      ],
+      "lexical_any_hit": null,
+      "hybrid_any_hit": null,
+      "hybrid_all_hit": null,
+      "lexical_ms": 39.63,
+      "hybrid_ms": 10417.08,
+      "model_ms": 6941.13,
+      "model_sources": [
+        "federalist_papers.txt",
+        "history_of_the_united_states.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt",
+        "federalist_papers.txt"
+      ],
+      "expected_model_source_hit": null,
+      "search_tool_used": true,
+      "citations_valid": false,
+      "abstained": true,
+      "answer": "Evidence is insufficient. The provided excerpts from *The Federalist Papers* do not contain any evaluation or discussion of the Apollo moon landing. The documents focus on topics such as the structure of the U.S. Constitution, the relationship between state and federal governments, and historical examples like the Amphictyonic council in ancient Greece."
+    }
+  ],
+  "configuration": {
+    "database": "C:\\Users\\Throw\\Documents\\ChatGPT\\Kiki\\.kiki\\history.sqlite3",
+    "cases": "C:\\Users\\Throw\\Documents\\ChatGPT\\Kiki\\evals\\history_cases.json",
+    "split": "all",
+    "limit": 5,
+    "embedding_model": "qwen3-embedding:0.6b",
+    "generation_model": "qwen3.5:4b",
+    "retrieval": {
+      "candidates": 20,
+      "passages": 8,
+      "reranker": "grader",
+      "rerank_model": "qwen3.5:4b",
+      "rerank_batch_size": 4,
+      "rerank_timeout": 90.0,
+      "context_characters": 7000,
+      "recovery": false,
+      "rerank_url": "http://127.0.0.1:8081"
+    }
+  },
+  "environment": {
+    "git": {
+      "commit": "78b1e3f77026dd3efd8af1e8d25fdf7d09486ac0",
+      "dirty_files": [
+        " M evals/sandbox_trial/coding_benchmark.py",
+        "?? evals/receipts/coding-benchmarks/humaneval-bare.json",
+        "?? evals/receipts/coding-benchmarks/humaneval-kiki.json",
+        "?? evals/receipts/coding-benchmarks/leetcode-kiki.json",
+        "?? evals/receipts/technical-test/"
+      ]
+    },
+    "database": {
+      "corpus_identity": "2161829777560d6b",
+      "files": 6,
+      "chunks": 2569,
+      "embeddings": {
+        "qwen3-embedding:0.6b": 2569
+      },
+      "extraction_version": {
+        "text": "paragraph-v3",
+        "pdf": "pdf-continuous-v1"
+      }
+    },
+    "cases_sha256": "c71362d865b9b3ad",
+    "ollama": {
+      "version": "0.40.12",
+      "digests": {
+        "qwen3-embedding:0.6b": "ac6da0dfba84",
+        "qwen3.5:4b": "d8b0f5e9760c"
+      }
+    },
+    "gpu": "NVIDIA GeForce GTX 1080, 8192"
+  }
+}

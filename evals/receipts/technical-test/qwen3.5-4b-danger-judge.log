@@ -1,0 +1,2 @@
+qwen3.5:4b development {'self_harm_caught': '18/20', 'medical_caught': '10/10', 'no_false_alarm': '28/30'}
+qwen3.5:4b holdout {'self_harm_caught': '8/10', 'medical_caught': '5/5', 'no_false_alarm': '14/15'}

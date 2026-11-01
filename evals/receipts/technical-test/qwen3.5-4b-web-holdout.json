@@ -1,0 +1,630 @@
+{
+  "summary": {
+    "runs_per_question": 3,
+    "answers_scored": 39,
+    "correct": 21,
+    "correct_rate": 0.538,
+    "answer_questions_correct": "9/27",
+    "off_topic_declined": "12/12",
+    "page_instructions_followed": "0/0",
+    "outcomes": {
+      "answered correctly": 9,
+      "declined wrongly": 18,
+      "declined correctly": 12
+    },
+    "labelled_general_knowledge": 6,
+    "answers_with_flags": 15,
+    "pages_unavailable": [],
+    "mean_seconds": 9.0
+  },
+  "rows": [
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "where did Turing work during World War II?",
+      "expect": "answer",
+      "keywords": [
+        "Bletchley"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 14.5,
+      "answer": "Alan Turing worked at the Government Code and Cypher School at Bletchley Park during World War II, where he led Hut 8 and focused on decrypting German naval messages [source:p9510268ab6e]. Later in the war, he also worked for the Secret Service's Radio Security Service at Hanslope Park [source:p7f4b5e8532f]."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "where did Turing work during World War II?",
+      "expect": "answer",
+      "keywords": [
+        "Bletchley"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.5,
+      "answer": "Alan Turing worked at the Government Code and Cypher School at Bletchley Park during World War II, where he led Hut 8 and focused on decrypting German naval messages [source:p9510268ab6e]. Later in the war, he also worked for the Secret Service's Radio Security Service at Hanslope Park [source:p7f4b5e8532f]."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "where did Turing work during World War II?",
+      "expect": "answer",
+      "keywords": [
+        "Bletchley"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.5,
+      "answer": "Alan Turing worked at the Government Code and Cypher School at Bletchley Park during World War II, where he led Hut 8 and focused on decrypting German naval messages [source:p9510268ab6e]. Later in the war, he also worked for the Secret Service's Radio Security Service at Hanslope Park [source:p7f4b5e8532f]."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the Turing test?",
+      "expect": "answer",
+      "keywords": [
+        "imitation",
+        "intelligen"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": true,
+      "flagged": [
+        "The provided text does not contain the specific `cite` value required to complete the citation for this paragraph."
+      ],
+      "seconds": 7.5,
+      "answer": "Evidence is insufficient. The page doesn't seem to cover this.\n\nFrom general knowledge, not from the page, so unverified:\n\nThe provided text does not contain the specific `cite` value required to complete the citation for this paragraph."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the Turing test?",
+      "expect": "answer",
+      "keywords": [
+        "imitation",
+        "intelligen"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": true,
+      "flagged": [
+        "The provided text does not contain the specific `cite` value required to complete the citation for this paragraph."
+      ],
+      "seconds": 7.3,
+      "answer": "Evidence is insufficient. The page doesn't seem to cover this.\n\nFrom general knowledge, not from the page, so unverified:\n\nThe provided text does not contain the specific `cite` value required to complete the citation for this paragraph."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the Turing test?",
+      "expect": "answer",
+      "keywords": [
+        "imitation",
+        "intelligen"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": true,
+      "flagged": [
+        "The provided text does not contain the specific `cite` value required to complete the citation for this paragraph."
+      ],
+      "seconds": 7.4,
+      "answer": "Evidence is insufficient. The page doesn't seem to cover this.\n\nFrom general knowledge, not from the page, so unverified:\n\nThe provided text does not contain the specific `cite` value required to complete the citation for this paragraph."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the boiling point of water?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.4,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the boiling point of water?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Alan_Turing",
+      "question": "what is the boiling point of water?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.7,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "who originally created Rust?",
+      "expect": "answer",
+      "keywords": [
+        "Graydon Hoare"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 19.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "who originally created Rust?",
+      "expect": "answer",
+      "keywords": [
+        "Graydon Hoare"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 12.2,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "who originally created Rust?",
+      "expect": "answer",
+      "keywords": [
+        "Graydon Hoare"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 12.2,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "when was Rust 1.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "2015"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "when was Rust 1.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "2015"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.4,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "when was Rust 1.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "2015"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.4,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "what is the population of Tokyo?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [
+        "None of them contain information about Tokyo's population."
+      ],
+      "seconds": 5.4,
+      "answer": "Evidence is insufficient. The retrieved passages discuss the Rust programming language, its popularity in developer surveys, and companies using it (like Discord, Dropbox, and Meta). None of them contain information about Tokyo's population."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "what is the population of Tokyo?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [
+        "None of them contain information about Tokyo's population."
+      ],
+      "seconds": 3.7,
+      "answer": "Evidence is insufficient. The retrieved passages discuss the Rust programming language, its popularity in developer surveys, and companies using it (like Discord, Dropbox, and Meta). None of them contain information about Tokyo's population."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Rust_(programming_language)",
+      "question": "what is the population of Tokyo?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [
+        "None of them contain information about Tokyo's population."
+      ],
+      "seconds": 3.7,
+      "answer": "Evidence is insufficient. The retrieved passages discuss the Rust programming language, its popularity in developer surveys, and companies using it (like Discord, Dropbox, and Meta). None of them contain information about Tokyo's population."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Grace_Hopper",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "COBOL",
+        "Navy",
+        "compiler"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 13.0,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Grace_Hopper",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "COBOL",
+        "Navy",
+        "compiler"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.7,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "en.wikipedia.org/wiki/Grace_Hopper",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "COBOL",
+        "Navy",
+        "compiler"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.7,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "how do I install requests?",
+      "expect": "answer",
+      "keywords": [
+        "pip install requests",
+        "python -m pip install requests"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.3,
+      "answer": "To install the `requests` library, run this command in your terminal:\n\n```console\n$ python -m pip install requests\n```\n\nRequests is available on PyPI and officially supports Python 3.10+. [source:p161834af1f4]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "how do I install requests?",
+      "expect": "answer",
+      "keywords": [
+        "pip install requests",
+        "python -m pip install requests"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.9,
+      "answer": "To install the `requests` library, run this command in your terminal:\n\n```console\n$ python -m pip install requests\n```\n\nRequests is available on PyPI and officially supports Python 3.10+. [source:p161834af1f4]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "how do I install requests?",
+      "expect": "answer",
+      "keywords": [
+        "pip install requests",
+        "python -m pip install requests"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.8,
+      "answer": "To install the `requests` library, run this command in your terminal:\n\n```console\n$ python -m pip install requests\n```\n\nRequests is available on PyPI and officially supports Python 3.10+. [source:p161834af1f4]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "who maintains the Linux kernel?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [
+        "None of them mention the Linux kernel or who maintains it."
+      ],
+      "seconds": 7.1,
+      "answer": "Evidence is insufficient. The retrieved excerpts discuss the Python `requests` library, its features, installation, and contributors (such as Kenneth Reitz and the Python Software Foundation). None of them mention the Linux kernel or who maintains it."
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "who maintains the Linux kernel?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [
+        "None of them mention the Linux kernel or who maintains it."
+      ],
+      "seconds": 4.3,
+      "answer": "Evidence is insufficient. The retrieved excerpts discuss the Python `requests` library, its features, installation, and contributors (such as Kenneth Reitz and the Python Software Foundation). None of them mention the Linux kernel or who maintains it."
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/psf/requests",
+      "question": "who maintains the Linux kernel?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [
+        "None of them mention the Linux kernel or who maintains it."
+      ],
+      "seconds": 4.3,
+      "answer": "Evidence is insufficient. The retrieved excerpts discuss the Python `requests` library, its features, installation, and contributors (such as Kenneth Reitz and the Python Software Foundation). None of them mention the Linux kernel or who maintains it."
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/pallets/flask",
+      "question": "what is Flask?",
+      "expect": "answer",
+      "keywords": [
+        "WSGI",
+        "web application",
+        "framework"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 10.0,
+      "answer": "Flask is a lightweight [WSGI] web application framework for Python designed to make getting started quick and easy, with the ability to scale up to complex applications. It began as a simple wrapper around [Werkzeug] and [Jinja], and has become one of the most popular Python web frameworks. [source:p5fcb3b97799]\n\nFlask offers suggestions but doesn't enforce any dependencies or project layout—it's up to the developer to choose the tools and libraries they want to use. The community makes adding new functionality easy through many available extensions. [source:p5fcb3b97799]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/pallets/flask",
+      "question": "what is Flask?",
+      "expect": "answer",
+      "keywords": [
+        "WSGI",
+        "web application",
+        "framework"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.3,
+      "answer": "Flask is a lightweight [WSGI] web application framework for Python designed to make getting started quick and easy, with the ability to scale up to complex applications. It began as a simple wrapper around [Werkzeug] and [Jinja], and has become one of the most popular Python web frameworks. [source:p5fcb3b97799]\n\nFlask offers suggestions but doesn't enforce any dependencies or project layout—it's up to the developer to choose the tools and libraries they want to use. The community makes adding new functionality easy through many available extensions. [source:p5fcb3b97799]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://github.com/pallets/flask",
+      "question": "what is Flask?",
+      "expect": "answer",
+      "keywords": [
+        "WSGI",
+        "web application",
+        "framework"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.2,
+      "answer": "Flask is a lightweight [WSGI] web application framework for Python designed to make getting started quick and easy, with the ability to scale up to complex applications. It began as a simple wrapper around [Werkzeug] and [Jinja], and has become one of the most popular Python web frameworks. [source:p5fcb3b97799]\n\nFlask offers suggestions but doesn't enforce any dependencies or project layout—it's up to the developer to choose the tools and libraries they want to use. The community makes adding new functionality easy through many available extensions. [source:p5fcb3b97799]"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/library/functools.html",
+      "question": "what does lru_cache do?",
+      "expect": "answer",
+      "keywords": [
+        "maxsize",
+        "least recently used",
+        "memoiz"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": true,
+      "flagged": [
+        "The available content focuses on other topics such as the `asyncio` module and general Python 3.15 features."
+      ],
+      "seconds": 23.0,
+      "answer": "Evidence is insufficient. The page doesn't seem to cover this.\n\nFrom general knowledge, not from the page, so unverified:\n\nI cannot provide a complete answer to your question about `functools.lru_cache` because the provided text excerpts do not contain information regarding its parameters (`maxsize`, `typed`), usage examples, or constraints on hashable arguments. The available content focuses on other topics such as the `asyncio` module and general Python 3.15 features.\n\nEvidence is insufficient."
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/library/functools.html",
+      "question": "what does lru_cache do?",
+      "expect": "answer",
+      "keywords": [
+        "maxsize",
+        "least recently used",
+        "memoiz"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": true,
+      "flagged": [
+        "The available content focuses on other topics such as the `asyncio` module and general Python 3.15 features."
+      ],
+      "seconds": 19.4,
+      "answer": "Evidence is insufficient. The page doesn't seem to cover this.\n\nFrom general knowledge, not from the page, so unverified:\n\nI cannot provide a complete answer to your question about `functools.lru_cache` because the provided text excerpts do not contain information regarding its parameters (`maxsize`, `typed`), usage examples, or constraints on hashable arguments. The available content focuses on other topics such as the `asyncio` module and general Python 3.15 features.\n\nEvidence is insufficient."
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/library/functools.html",
+      "question": "what does lru_cache do?",
+      "expect": "answer",
+      "keywords": [
+        "maxsize",
+        "least recently used",
+        "memoiz"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": true,
+      "flagged": [
+        "The available content focuses on other topics such as the `asyncio` module and general Python 3.15 features."
+      ],
+      "seconds": 19.3,
+      "answer": "Evidence is insufficient. The page doesn't seem to cover this.\n\nFrom general knowledge, not from the page, so unverified:\n\nI cannot provide a complete answer to your question about `functools.lru_cache` because the provided text excerpts do not contain information regarding its parameters (`maxsize`, `typed`), usage examples, or constraints on hashable arguments. The available content focuses on other topics such as the `asyncio` module and general Python 3.15 features.\n\nEvidence is insufficient."
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "what is new about f-strings?",
+      "expect": "answer",
+      "keywords": [
+        "PEP 701"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [
+        "The available text consists of personal notes about \"Kiki\" and unrelated snippets that do not address the technical details of Python 3.12 f-string syntax changes."
+      ],
+      "seconds": 28.0,
+      "answer": "Evidence is insufficient. The retrieved excerpts do not contain information about Python 3.12's f-string improvements or PEP 701. The available text consists of personal notes about \"Kiki\" and unrelated snippets that do not address the technical details of Python 3.12 f-string syntax changes. To answer your question accurately, I would need excerpts specifically discussing Python 3.12 documentation or PEP 701 regarding f-strings."
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "what is new about f-strings?",
+      "expect": "answer",
+      "keywords": [
+        "PEP 701"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [
+        "The available text consists of personal notes about \"Kiki\" and unrelated snippets that do not address the technical details of Python 3.12 f-string syntax changes."
+      ],
+      "seconds": 20.0,
+      "answer": "Evidence is insufficient. The retrieved excerpts do not contain information about Python 3.12's f-string improvements or PEP 701. The available text consists of personal notes about \"Kiki\" and unrelated snippets that do not address the technical details of Python 3.12 f-string syntax changes. To answer your question accurately, I would need excerpts specifically discussing Python 3.12 documentation or PEP 701 regarding f-strings."
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "what is new about f-strings?",
+      "expect": "answer",
+      "keywords": [
+        "PEP 701"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [
+        "The available text consists of personal notes about \"Kiki\" and unrelated snippets that do not address the technical details of Python 3.12 f-string syntax changes."
+      ],
+      "seconds": 20.1,
+      "answer": "Evidence is insufficient. The retrieved excerpts do not contain information about Python 3.12's f-string improvements or PEP 701. The available text consists of personal notes about \"Kiki\" and unrelated snippets that do not address the technical details of Python 3.12 f-string syntax changes. To answer your question accurately, I would need excerpts specifically discussing Python 3.12 documentation or PEP 701 regarding f-strings."
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "how do I bake sourdough bread?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.0,
+      "answer": "Evidence is insufficient. The retrieved passages are exclusively from Python 3.12 release notes and discuss topics like threading performance, Unicode object size"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "how do I bake sourdough bread?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.1,
+      "answer": "Evidence is insufficient. The retrieved passages are exclusively from Python 3.12 release notes and discuss topics like threading performance, Unicode object size"
+    },
+    {
+      "split": "holdout",
+      "url": "https://docs.python.org/3/whatsnew/3.12.html",
+      "question": "how do I bake sourdough bread?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.2,
+      "answer": "Evidence is insufficient. The retrieved passages are exclusively from Python 3.12 release notes and discuss topics like threading performance, Unicode object size"
+    }
+  ],
+  "meaning_search_error": null,
+  "configuration": {
+    "cases": "evals\\web_cases.json",
+    "split": "holdout"
+  }
+}

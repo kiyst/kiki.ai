@@ -1,0 +1,253 @@
+{
+  "summary": {
+    "runs_per_question": 1,
+    "answers_scored": 15,
+    "correct": 12,
+    "correct_rate": 0.8,
+    "answer_questions_correct": "8/11",
+    "off_topic_declined": "4/4",
+    "page_instructions_followed": "0/0",
+    "outcomes": {
+      "answered correctly": 8,
+      "declined wrongly": 3,
+      "declined correctly": 4
+    },
+    "labelled_general_knowledge": 0,
+    "answers_with_flags": 1,
+    "pages_unavailable": [],
+    "mean_seconds": 10.0
+  },
+  "rows": [
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "who created Python and when was it first released?",
+      "expect": "answer",
+      "keywords": [
+        "Guido"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 13.0,
+      "answer": "Python was created by **Guido van Rossum** and first released in **1991**.\n\nThe language was conceived in the late 1980s at Centrum Wiskunde & Informatica (CWI) in the Netherlands as a successor to the ABC programming language. The implementation began in December 1989, and Guido van Rossum first released it as Python 0.9.0 in 1991 [source:pc8a3c1a231e]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "is python slow?",
+      "expect": "answer",
+      "keywords": [
+        "performance",
+        "speed",
+        "NumPy",
+        "readability"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.9,
+      "answer": "Evidence is insufficient.\n\nThe provided excerpts do not contain a direct statement answering whether Python is slow. They mention that performance gains can be achieved using libraries like NumPy which use C or Fortran under the hood, and note that compiling Python often fails to achieve expected speed-ups due to its dynamic nature, but they do not explicitly state that Python itself is slow."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "what is the capital of France?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.9,
+      "answer": "Evidence is insufficient. The provided search results do not contain information about the capital of France; they exclusively discuss the Python programming language, its features, history, and culture."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "When was Python 3.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "December 3, 2008",
+        "3 December 2008"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.8,
+      "answer": "Python 3.0 was released on December 3, 2008 [source:p8221cfe33fb] [source:pcd4e3f037a0]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "why did Guido step down?",
+      "expect": "answer",
+      "keywords": [
+        "2018",
+        "BDFL",
+        "Benevolent Dictator"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.1,
+      "answer": "Evidence is insufficient. The provided passages confirm that Guido van Rossum stepped down as Python's \"Benevolent Dictator for Life\" on July 12, 2018, but they do not explain the reasons why he made this decision."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "what's the weather in Boston?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.5,
+      "answer": "Evidence is insufficient. The provided search results contain excerpts from the \"History of Python\" document discussing Python version releases and features, but do not include any information about the weather in Boston."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "who won the 2022 World Cup?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.5,
+      "answer": "Evidence is insufficient. The provided search results contain excerpts from the \"History of Python\" document, which discusses Python version releases and schedules. None of the passages mention the 2022 World Cup or its winner."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "what did she write about the Analytical Engine?",
+      "expect": "answer",
+      "keywords": [
+        "Menabrea",
+        "notes",
+        "Note G"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 13.9,
+      "answer": "Ada Lovelace wrote in her notes that the Analytical Engine differed from previous calculating machines because it could be programmed to solve problems of any complexity, extending far beyond mere number crunching [source:p68299289f60]. She also stated: \"The Analytical Engine has no pretensions whatever to originate anything. It can do whatever we know how to order it to perform. It can follow analysis; but it has no power of anticipating any analytical relations or truths\" [source:p3834325aae0]. Additionally, she recognized the distinction between the computing mechanism and the logical structure of the Analytical Engine, noting that different specialists might be required for each area [source:p3834325aae0]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "Babbage",
+        "Analytical Engine"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 11.7,
+      "answer": "This page provides a biographical overview of **Ada Lovelace** (1815–1852), an English mathematician and writer. The main points include:\n\n*   **Identity:** She was the daughter of poet Lord Byron and reformer Anne Isabella Milbanke, and became the Countess of Lovelace through her marriage to William King-Noel in 1835 [source:p13ae7b09a20].\n*   **Achievements:** She is chiefly known for her work on Charles Babbage's proposed mechanical general-purpose computer, the analytical engine. She was the first to recognize that the machine had applications beyond pure calculation and is often considered the first computer programmer [source:pbc4b4305df5].\n*   **Legacy:** The computer language Ada was created in her honor by the United States Department of Defense [source:pe19cf7b3d74]. There are numerous plaques, statues, and works dedicated to her memory [source:pf61d35acc8e]."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "how fast is heapify?",
+      "expect": "answer",
+      "keywords": [
+        "O(len(x))",
+        "linear",
+        "O(n)"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 9.3,
+      "answer": "Heapify transforms a list into a heap in-place in O(len(x)) time [source:p6c61998e14f]. This is more efficient than building the heap by using heappush repeatedly, which would require O(n log n) time [source:p2893b91a314]."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "what does heappushpop do?",
+      "expect": "answer",
+      "keywords": [
+        "push",
+        "pop"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [
+        "[Source: p6c61998e14f]"
+      ],
+      "seconds": 13.5,
+      "answer": "`heappushpop(heap, item)` pushes a new item onto the heap and then returns it [source:pea3ff9b63fd]. It is a fast version of a heappush followed by a heappop [source:p6c61998e14f].\n\n[Source: p6c61998e14f]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "how do I build Python on Windows?",
+      "expect": "answer",
+      "keywords": [
+        "PCbuild"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.3,
+      "answer": "Evidence is insufficient. The provided passages mention that for building Python on Windows, you should refer to `PCbuild/readme.txt` and `PC/layout/README.md`, but they do not contain the actual instructions themselves."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "CPython",
+        "build"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 27.0,
+      "answer": "This page serves as the main entry point for CPython (the Python programming language implementation). It displays version information for Python 3.16.0 alpha 1+dev and includes build status indicators from GitHub Actions and Azure DevOps [source:p01ce43d2883]. The page provides links to general resources including the official website, source code repository, issue tracker, documentation, and developer guide [source:p28c9233d157]. It also offers instructions for contributing to CPython development through the Developer Guide [source:p28c9233d157]. Build instructions are provided for Unix, Linux, BSD, macOS, and Cygwin systems using `./configure`, `make`, `make test`, and `sudo make install` [source:p89762c2aef0]. For users interested in the latest changes, a reference is given to the \"What's new in Python 3.16\" document, along with links to the detailed change log and commit history [source:p065449d9008]. Information about online documentation for Python 3.16 and downloadable formats (HTML, EPUB, reStructuredText) is also included [source:p817aa4e4754]. Finally, guidance on installing multiple versions of Python side-by-side without overwriting each other is provided [source:p3e8a75d730d]."
+    },
+    {
+      "split": "development",
+      "url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "question": "What changed about the interactive interpreter?",
+      "expect": "answer",
+      "keywords": [
+        "PyPy",
+        "multiline",
+        "color"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 20.1,
+      "answer": "In Python 3.13, the interactive interpreter was significantly improved with several new features:\n\n*   **Multiline editing with history preservation** [source:pc9b5833bf27]\n*   **Direct support for REPL-specific commands** like `help`, `exit`, and `quit` (without needing to call them as functions) [source:pc9b5833bf27]\n*   **Prompts and tracebacks with color enabled by default** [source:pc9b5833bf27]\n*   **Interactive help browsing using F1** with a separate command history [source:pc9b5833bf27]\n*   **History browsing using F2** that skips output as well as the `>>>` and `…` prompts [source:pc9b5833bf27]\n*   **\"Paste mode\" with F3** that makes pasting larger blocks of code easier (press F3 again to return to the regular prompt) [source:pc9b5833bf27]\n\nThe new interactive shell is based on code from the PyPy project. To disable it, you can set the `PYTHON_BASIC_REPL` environment variable [source:pd48f28b25cb]."
+    },
+    {
+      "split": "development",
+      "url": "https://example.com",
+      "question": "What is the capital of France?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.1,
+      "answer": "Evidence is insufficient. The provided page content does not contain information about the capital of France. It only mentions that the domain is for use in documentation examples without needing permission."
+    }
+  ],
+  "meaning_search_error": null
+}

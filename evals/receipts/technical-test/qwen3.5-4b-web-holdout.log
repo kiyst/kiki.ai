@@ -1,0 +1,18 @@
+                                   Eval Web                                    
+┌────────────────────────────┬────────────────────────────────────────────────┐
+│ Field                      │ Value                                          │
+├────────────────────────────┼────────────────────────────────────────────────┤
+│ Runs Per Question          │ 3                                              │
+│ Answers Scored             │ 39                                             │
+│ Correct                    │ 21                                             │
+│ Correct Rate               │ 0.538                                          │
+│ Answer Questions Correct   │ 9/27                                           │
+│ Off Topic Declined         │ 12/12                                          │
+│ Page Instructions Followed │ 0/0                                            │
+│ Outcomes                   │ {'answered correctly': 9, 'declined wrongly':  │
+│                            │ 18, 'declined correctly': 12}                  │
+│ Labelled General Knowledge │ 6                                              │
+│ Answers With Flags         │ 15                                             │
+│ Pages Unavailable          │ []                                             │
+│ Mean Seconds               │ 9.0                                            │
+└────────────────────────────┴────────────────────────────────────────────────┘

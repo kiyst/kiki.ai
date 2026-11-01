@@ -1,0 +1,711 @@
+{
+  "summary": {
+    "runs_per_question": 3,
+    "answers_scored": 45,
+    "correct": 24,
+    "correct_rate": 0.533,
+    "answer_questions_correct": "12/33",
+    "off_topic_declined": "12/12",
+    "page_instructions_followed": "0/0",
+    "outcomes": {
+      "declined wrongly": 21,
+      "declined correctly": 12,
+      "answered correctly": 12
+    },
+    "labelled_general_knowledge": 0,
+    "answers_with_flags": 0,
+    "pages_unavailable": [],
+    "mean_seconds": 9.3
+  },
+  "rows": [
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "who created Python and when was it first released?",
+      "expect": "answer",
+      "keywords": [
+        "Guido"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 20.9,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "who created Python and when was it first released?",
+      "expect": "answer",
+      "keywords": [
+        "Guido"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.4,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "who created Python and when was it first released?",
+      "expect": "answer",
+      "keywords": [
+        "Guido"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.0,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "is python slow?",
+      "expect": "answer",
+      "keywords": [
+        "performance",
+        "speed",
+        "NumPy",
+        "readability"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "is python slow?",
+      "expect": "answer",
+      "keywords": [
+        "performance",
+        "speed",
+        "NumPy",
+        "readability"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "is python slow?",
+      "expect": "answer",
+      "keywords": [
+        "performance",
+        "speed",
+        "NumPy",
+        "readability"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.7,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "what is the capital of France?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.4,
+      "answer": "Evidence is insufficient. The search results contain only Python programming language documentation and lists of authority databases (including France's BnF), but no passage mentions the capital of France."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "what is the capital of France?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.7,
+      "answer": "Evidence is insufficient. The search results contain only Python programming language documentation and lists of authority databases (including France's BnF), but no passage mentions the capital of France."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "what is the capital of France?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.6,
+      "answer": "Evidence is insufficient. The search results contain only Python programming language documentation and lists of authority databases (including France's BnF), but no passage mentions the capital of France."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "When was Python 3.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "December 3, 2008",
+        "3 December 2008"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.3,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "When was Python 3.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "December 3, 2008",
+        "3 December 2008"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 1.2,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "When was Python 3.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "December 3, 2008",
+        "3 December 2008"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 1.2,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "why did Guido step down?",
+      "expect": "answer",
+      "keywords": [
+        "2018",
+        "BDFL",
+        "Benevolent Dictator"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 16.5,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "why did Guido step down?",
+      "expect": "answer",
+      "keywords": [
+        "2018",
+        "BDFL",
+        "Benevolent Dictator"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 13.1,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "why did Guido step down?",
+      "expect": "answer",
+      "keywords": [
+        "2018",
+        "BDFL",
+        "Benevolent Dictator"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 13.0,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "what's the weather in Boston?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "what's the weather in Boston?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "what's the weather in Boston?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "who won the 2022 World Cup?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 32.6,
+      "answer": "Evidence is insufficient. The retrieved excerpts consist solely of a list of PEP numbers and dates (e.g., \"PEP 200\", \"October 2001\") without any explanatory text describing Python's release history or security updates. There are no passages that define the versions, their features, maintenance schedules, or security fix timelines."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "who won the 2022 World Cup?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 29.9,
+      "answer": "Evidence is insufficient. The retrieved excerpts consist solely of a list of PEP numbers and dates (e.g., \"PEP 200\", \"October 2001\") without any explanatory text describing Python's release history or security updates. There are no passages that define the versions, their features, maintenance schedules, or security fix timelines."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "who won the 2022 World Cup?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 29.6,
+      "answer": "Evidence is insufficient. The retrieved excerpts consist solely of a list of PEP numbers and dates (e.g., \"PEP 200\", \"October 2001\") without any explanatory text describing Python's release history or security updates. There are no passages that define the versions, their features, maintenance schedules, or security fix timelines."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "what did she write about the Analytical Engine?",
+      "expect": "answer",
+      "keywords": [
+        "Menabrea",
+        "notes",
+        "Note G"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 12.7,
+      "answer": "Ada Lovelace emphasized the Analytical Engine's ability to be programmed to solve problems of any complexity, not just perform number crunching. In her notes, she wrote that this device extended far beyond mere number crunching [source:p68299289f60]. She recognized a fundamental distinction between the mechanical details of computing devices and their logical structure, noting that previous articles on the Difference Engine dwelt only on the former while she focused on the latter [source:p3834325aae0].\n\nHer work was well-received at the time"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "what did she write about the Analytical Engine?",
+      "expect": "answer",
+      "keywords": [
+        "Menabrea",
+        "notes",
+        "Note G"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.7,
+      "answer": "Ada Lovelace emphasized the Analytical Engine's ability to be programmed to solve problems of any complexity, not just perform number crunching. In her notes, she wrote that this device extended far beyond mere number crunching [source:p68299289f60]. She recognized a fundamental distinction between the mechanical details of computing devices and their logical structure, noting that previous articles on the Difference Engine dwelt only on the former while she focused on the latter [source:p3834325aae0].\n\nHer work was well-received at the time"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "what did she write about the Analytical Engine?",
+      "expect": "answer",
+      "keywords": [
+        "Menabrea",
+        "notes",
+        "Note G"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.7,
+      "answer": "Ada Lovelace emphasized the Analytical Engine's ability to be programmed to solve problems of any complexity, not just perform number crunching. In her notes, she wrote that this device extended far beyond mere number crunching [source:p68299289f60]. She recognized a fundamental distinction between the mechanical details of computing devices and their logical structure, noting that previous articles on the Difference Engine dwelt only on the former while she focused on the latter [source:p3834325aae0].\n\nHer work was well-received at the time"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "Babbage",
+        "Analytical Engine"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.6,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "Babbage",
+        "Analytical Engine"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.5,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "Babbage",
+        "Analytical Engine"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.5,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "how fast is heapify?",
+      "expect": "answer",
+      "keywords": [
+        "O(len(x))",
+        "linear",
+        "O(n)"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 17.4,
+      "answer": "The `heapify()` function transforms a list into a heap in-place with a time complexity of O(len(x)). This linear time performance is achieved by transforming the structure bottom-up, starting from the largest index that has a child and working upward. The algorithm iterates through these indices in reverse order, applying `_siftup` to maintain the heap property at each step.\n\nIn contrast, building a heap element-by-element using `heappush` or `heappop` would require O(n log n) comparisons, whereas `heapify()` cuts the number of comparisons needed significantly on large arrays like those of length 1000. For example, on lists of this size, `heapify()` performs roughly 1837 comparisons while 1000 sequential `heappop` operations require approximately 1663 comparisons (though the theoretical advantage is most pronounced when comparing against naive insertion methods).\n\nThe implementation details show that `heapify(x)` calculates `n = len(x)` and then loops through `reversed(range(n//2))`, calling `_siftup_max` or `_siftup` for each index. This ensures that every node in the heap satisfies the invariant that a parent is smaller (or larger, depending on the variant) than its children.\n\nSupporting excerpts:\n- [source:p2893b91a314]\n- [source:p6c61998e14f]\n- [source:pfbfeb685e6e]\n- [source:pdfff3b5b484]\n- [source:p11b52c04590]\n- [source:pea3ff9b63fd]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "how fast is heapify?",
+      "expect": "answer",
+      "keywords": [
+        "O(len(x))",
+        "linear",
+        "O(n)"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 11.2,
+      "answer": "The `heapify()` function transforms a list into a heap in-place with a time complexity of O(len(x)). This linear time performance is achieved by transforming the structure bottom-up, starting from the largest index that has a child and working upward. The algorithm iterates through these indices in reverse order, applying `_siftup` to maintain the heap property at each step.\n\nIn contrast, building a heap element-by-element using `heappush` or `heappop` would require O(n log n) comparisons, whereas `heapify()` cuts the number of comparisons needed significantly on large arrays like those of length 1000. For example, on lists of this size, `heapify()` performs roughly 1837 comparisons while 1000 sequential `heappop` operations require approximately 1663 comparisons (though the theoretical advantage is most pronounced when comparing against naive insertion methods).\n\nThe implementation details show that `heapify(x)` calculates `n = len(x)` and then loops through `reversed(range(n//2))`, calling `_siftup_max` or `_siftup` for each index. This ensures that every node in the heap satisfies the invariant that a parent is smaller (or larger, depending on the variant) than its children.\n\nSupporting excerpts:\n- [source:p2893b91a314]\n- [source:p6c61998e14f]\n- [source:pfbfeb685e6e]\n- [source:pdfff3b5b484]\n- [source:p11b52c04590]\n- [source:pea3ff9b63fd]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "how fast is heapify?",
+      "expect": "answer",
+      "keywords": [
+        "O(len(x))",
+        "linear",
+        "O(n)"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 11.2,
+      "answer": "The `heapify()` function transforms a list into a heap in-place with a time complexity of O(len(x)). This linear time performance is achieved by transforming the structure bottom-up, starting from the largest index that has a child and working upward. The algorithm iterates through these indices in reverse order, applying `_siftup` to maintain the heap property at each step.\n\nIn contrast, building a heap element-by-element using `heappush` or `heappop` would require O(n log n) comparisons, whereas `heapify()` cuts the number of comparisons needed significantly on large arrays like those of length 1000. For example, on lists of this size, `heapify()` performs roughly 1837 comparisons while 1000 sequential `heappop` operations require approximately 1663 comparisons (though the theoretical advantage is most pronounced when comparing against naive insertion methods).\n\nThe implementation details show that `heapify(x)` calculates `n = len(x)` and then loops through `reversed(range(n//2))`, calling `_siftup_max` or `_siftup` for each index. This ensures that every node in the heap satisfies the invariant that a parent is smaller (or larger, depending on the variant) than its children.\n\nSupporting excerpts:\n- [source:p2893b91a314]\n- [source:p6c61998e14f]\n- [source:pfbfeb685e6e]\n- [source:pdfff3b5b484]\n- [source:p11b52c04590]\n- [source:pea3ff9b63fd]"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "what does heappushpop do?",
+      "expect": "answer",
+      "keywords": [
+        "push",
+        "pop"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 9.8,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "what does heappushpop do?",
+      "expect": "answer",
+      "keywords": [
+        "push",
+        "pop"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.9,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "what does heappushpop do?",
+      "expect": "answer",
+      "keywords": [
+        "push",
+        "pop"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 4.9,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "how do I build Python on Windows?",
+      "expect": "answer",
+      "keywords": [
+        "PCbuild"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 13.0,
+      "answer": "To build Python on Windows from source, you should refer to the documentation at https://github.com/python/cpython/blob/main/PCbuild/readme.txt [source:p4ae73ccc28e]. For building Windows packages specifically, see https://github.com/python/cpython/blob/main/PC/layout/README.md [source:p4ae73ccc28e"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "how do I build Python on Windows?",
+      "expect": "answer",
+      "keywords": [
+        "PCbuild"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 9.2,
+      "answer": "To build Python on Windows from source, you should refer to the documentation at https://github.com/python/cpython/blob/main/PCbuild/readme.txt [source:p4ae73ccc28e]. For building Windows packages specifically, see https://github.com/python/cpython/blob/main/PC/layout/README.md [source:p4ae73ccc28e"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "how do I build Python on Windows?",
+      "expect": "answer",
+      "keywords": [
+        "PCbuild"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 9.2,
+      "answer": "To build Python on Windows from source, you should refer to the documentation at https://github.com/python/cpython/blob/main/PCbuild/readme.txt [source:p4ae73ccc28e]. For building Windows packages specifically, see https://github.com/python/cpython/blob/main/PC/layout/README.md [source:p4ae73ccc28e"
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "CPython",
+        "build"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 9.6,
+      "answer": "This page is the README for CPython, Python 3.16.0 alpha 1+dev [source:p01ce43d2883]. It provides general information about the project, including links to the official website, source code repository, issue tracker, and documentation [source:p28c9233d157]. The page includes build instructions for Unix/Linux/BSD/macOS/Cygwin systems using `./configure`, `make`, and `make install` [source:p89762c2aef0]. It mentions that a comprehensive overview of changes can be found in the \"What's New\" document and that the commit history is available on GitHub [source:p065449d9008]. Additionally, it notes that documentation is downloadable in HTML, EPUB, and reStructuredText formats [source:p817aa4e4754]."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "CPython",
+        "build"
+      ],
+      "run": 2,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.0,
+      "answer": "This page is the README for CPython, Python 3.16.0 alpha 1+dev [source:p01ce43d2883]. It provides general information about the project, including links to the official website, source code repository, issue tracker, and documentation [source:p28c9233d157]. The page includes build instructions for Unix/Linux/BSD/macOS/Cygwin systems using `./configure`, `make`, and `make install` [source:p89762c2aef0]. It mentions that a comprehensive overview of changes can be found in the \"What's New\" document and that the commit history is available on GitHub [source:p065449d9008]. Additionally, it notes that documentation is downloadable in HTML, EPUB, and reStructuredText formats [source:p817aa4e4754]."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "CPython",
+        "build"
+      ],
+      "run": 3,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.9,
+      "answer": "This page is the README for CPython, Python 3.16.0 alpha 1+dev [source:p01ce43d2883]. It provides general information about the project, including links to the official website, source code repository, issue tracker, and documentation [source:p28c9233d157]. The page includes build instructions for Unix/Linux/BSD/macOS/Cygwin systems using `./configure`, `make`, and `make install` [source:p89762c2aef0]. It mentions that a comprehensive overview of changes can be found in the \"What's New\" document and that the commit history is available on GitHub [source:p065449d9008]. Additionally, it notes that documentation is downloadable in HTML, EPUB, and reStructuredText formats [source:p817aa4e4754]."
+    },
+    {
+      "split": "development",
+      "url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "question": "What changed about the interactive interpreter?",
+      "expect": "answer",
+      "keywords": [
+        "PyPy",
+        "multiline",
+        "color"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 12.3,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "question": "What changed about the interactive interpreter?",
+      "expect": "answer",
+      "keywords": [
+        "PyPy",
+        "multiline",
+        "color"
+      ],
+      "run": 2,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.1,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "question": "What changed about the interactive interpreter?",
+      "expect": "answer",
+      "keywords": [
+        "PyPy",
+        "multiline",
+        "color"
+      ],
+      "run": 3,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.1,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "https://example.com",
+      "question": "What is the capital of France?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.8,
+      "answer": "Evidence is insufficient. The retrieved passage discusses an example domain (example.com) and its intended use for documentation examples; it contains no information about France or its capital."
+    },
+    {
+      "split": "development",
+      "url": "https://example.com",
+      "question": "What is the capital of France?",
+      "expect": "decline",
+      "run": 2,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.0,
+      "answer": "Evidence is insufficient. The retrieved passage discusses an example domain (example.com) and its intended use for documentation examples; it contains no information about France or its capital."
+    },
+    {
+      "split": "development",
+      "url": "https://example.com",
+      "question": "What is the capital of France?",
+      "expect": "decline",
+      "run": 3,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 3.0,
+      "answer": "Evidence is insufficient. The retrieved passage discusses an example domain (example.com) and its intended use for documentation examples; it contains no information about France or its capital."
+    }
+  ],
+  "meaning_search_error": null,
+  "configuration": {
+    "cases": "evals\\web_cases.json",
+    "split": "development"
+  }
+}

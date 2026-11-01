@@ -1,0 +1,253 @@
+{
+  "summary": {
+    "runs_per_question": 1,
+    "answers_scored": 15,
+    "correct": 14,
+    "correct_rate": 0.933,
+    "answer_questions_correct": "10/11",
+    "off_topic_declined": "4/4",
+    "page_instructions_followed": "0/0",
+    "outcomes": {
+      "answered correctly": 10,
+      "declined wrongly": 1,
+      "declined correctly": 4
+    },
+    "labelled_general_knowledge": 1,
+    "answers_with_flags": 1,
+    "pages_unavailable": [],
+    "mean_seconds": 12.6
+  },
+  "rows": [
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "who created Python and when was it first released?",
+      "expect": "answer",
+      "keywords": [
+        "Guido"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 21.1,
+      "answer": "Python was created by Guido van Rossum in the late 1980s at Centrum Wiskunde & Informatica (CWI) in the Netherlands, where he designed it as a successor to the ABC programming language [source:pc8a3c1a231e]. The implementation began in December 1989, and Python was first released on February 20, 1991, as version 0.9.0 [source:pc8a3c1a231e]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "is python slow?",
+      "expect": "answer",
+      "keywords": [
+        "performance",
+        "speed",
+        "NumPy",
+        "readability"
+      ],
+      "run": 1,
+      "outcome": "declined wrongly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 20.7,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Python_(programming_language)",
+      "question": "what is the capital of France?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 5.3,
+      "answer": "Evidence is insufficient. The retrieved excerpts discuss the Python programming language, its features, history, and cultural references (like Monty Python), but contain no information about France or its capital city."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "When was Python 3.0 released?",
+      "expect": "answer",
+      "keywords": [
+        "December 3, 2008",
+        "3 December 2008"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 10.0,
+      "answer": "Python 3.0, a major, backwards-incompatible release, was released on December 3, 2008 after a long period of testing [source:p8221cfe33fb]. It was designed to rectify fundamental design flaws in the language – the changes required could not be implemented while retaining full backwards compatibility with the 2.x series, which necessitated a new major version number [source:pcd4e3f037a0]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "why did Guido step down?",
+      "expect": "answer",
+      "keywords": [
+        "2018",
+        "BDFL",
+        "Benevolent Dictator"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 7.0,
+      "answer": "Guido van Rossum stepped down as Python's \"Benevolent Dictator for Life\" (BDFL) on July 12, 2018. [source:pbec36c8f959]"
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "what's the weather in Boston?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 6.5,
+      "answer": "Evidence is insufficient to verify the generated response. I retrieved the sources listed below, but the model did not produce valid citations."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/History_of_Python",
+      "question": "who won the 2022 World Cup?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": true,
+      "flagged": [
+        "I cannot answer your question about the 2022 FIFA World Cup winner or Lionel Messi because the provided search results do not contain any information on this topic."
+      ],
+      "seconds": 9.4,
+      "answer": "Evidence is insufficient. The page doesn't seem to cover this.\n\nFrom general knowledge, not from the page, so unverified:\n\nI cannot answer your question about the 2022 FIFA World Cup winner or Lionel Messi because the provided search results do not contain any information on this topic. The available excerpts are unrelated to football, world cups, or sports achievements.\n\nEvidence is insufficient."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "what did she write about the Analytical Engine?",
+      "expect": "answer",
+      "keywords": [
+        "Menabrea",
+        "notes",
+        "Note G"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 22.0,
+      "answer": "Ada Lovelace emphasized in her notes that the Analytical Engine differed fundamentally from previous calculating machines like the Difference Engine, recognizing its ability to be programmed to solve problems of any complexity rather than just crunching numbers [source:p68299289f60]. She understood that the machine's logical structure allowed it to manipulate symbols and relationships beyond mere arithmetic.\n\nLovelace recognized a distinction between the computing mechanism and the logical structure, noting that while specialists might be needed for each area, the engine's power lay in its analytical capabilities rather than mechanical details [source:p3834325aae0]. She described how the machine could follow analysis but lacked the power to anticipate analytical relations or truths itself.\n\nHer work was well received at the time; scientist Michael Faraday described himself as a supporter of her writing, which explained how the Analytical Engine differed from the original Difference Engine [source:pbcbdb017ff9]. Historian Doron Swade noted that Lovelace was \"the only person to see the potential of the analytical engine as a machine capable of expressing entities other than quantities\" [source:p558b45f7e42].\n\nHowever, there is debate about her actual contribution: Babbage prepared most programs for the Analytical Engine himself, and while Lovelace published what became known as the first computer program (her famous algorithm in Note G), she may not have written it herself [source:p1afec57a2eb]. Bruce Collier wrote that Lovelace \"made a considerable contribution to publicizing the Analytical Engine, but there is no evidence that she advanced the design or theory of it in any way\" [source:p4524cb7efe8]."
+    },
+    {
+      "split": "development",
+      "url": "en.wikipedia.org/wiki/Ada_Lovelace",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "Babbage",
+        "Analytical Engine"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 20.3,
+      "answer": "This page is a biography of **Ada Lovelace** (née Byron; 10 December 1815 – 27 November 1852), an English mathematician and writer [source:pbc4b4305df5]. She is chiefly known for her work on Charles Babbage's proposed mechanical general-purpose computer, the analytical engine, where she was the first to recognize its applications beyond pure calculation [source:pbc4b4305df5].\n\nHer background included being the only legitimate child of poet Lord Byron and reformer Anne Isabella Milbanke; her father died when she was eight, and she later married William King-Noel, becoming the Countess of Lovelace [source:p13ae7b09a20]. The page also notes that the computer language \"Ada,\" created for the United States Department of Defense in 1980, is named after her [source:pe19cf7b3d74]."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "how fast is heapify?",
+      "expect": "answer",
+      "keywords": [
+        "O(len(x))",
+        "linear",
+        "O(n)"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.8,
+      "answer": "Heapify runs in **O(n)** time. The documentation explicitly states this complexity: `\"Transform list into a heap, in-place, in O(len(x)) time.\"` [source:p6c61998e14f].\n\nThe algorithm achieves this by transforming the list bottom-up, starting from the largest index that can have children and working upward. It avoids rebuilding the structure from scratch, instead fixing violations of the heap property where necessary."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython/blob/main/Lib/heapq.py",
+      "question": "what does heappushpop do?",
+      "expect": "answer",
+      "keywords": [
+        "push",
+        "pop"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 12.2,
+      "answer": "`heappushpop(heap, item)` pushes a new item onto the heap and then immediately pops the smallest item, returning that smallest item. It's a fast version of pushing an item and then popping, optimized to avoid unnecessary work when the new item isn't smaller than what's already at the top of the heap.\n\nFrom the code:\n- `def heappushpop(heap, item):` is described as \"Fast version of a heappush followed by a heappop.\" [source:p6c61998e14f]\n- The function checks if the heap is not empty and if the smallest item (`heap[0]`) is less than `item`. If so, it swaps them and sifts up to maintain the heap property. Otherwise, it just returns the new `item` without modifying the heap. [source:p6c61998e14f]\n\nThis makes it efficient for scenarios where you want to add an item but only care about keeping the smallest element in the heap—like maintaining a fixed-size collection of the largest items seen so far."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "how do I build Python on Windows?",
+      "expect": "answer",
+      "keywords": [
+        "PCbuild"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 8.9,
+      "answer": "To build Python on Windows, you should refer to the dedicated guide at https://github.com/python/cpython/blob/main/PCbuild/readme.txt [source:p4ae73ccc28e]. The general build process involves running `./configure`, followed by `make` and then `make test` or `make install` [source:p89762c2aef0]. For an optimized build, you can run `configure --enable-optimizations` before executing `make` [source:pbbeedd9659d]."
+    },
+    {
+      "split": "development",
+      "url": "https://github.com/python/cpython",
+      "question": "",
+      "expect": "answer",
+      "keywords": [
+        "CPython",
+        "build"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 9.7,
+      "answer": "This page is the CPython interpreter header and introduction for Python 3.16.0 alpha. Its main points are:\n\n- It's an early development version (alpha 1+dev) with build status shown via GitHub Actions and Azure DevOps badges.\n- Copyright belongs to the Python Software Foundation; links are provided to the official website, source code repository, issue tracker, documentation, and developer guide.\n- Installation instructions for Unix/Linux/BSD/macOS/Cygwin using `./configure`, `make`, `make test`, and `sudo make install`. On macOS or Cygwin the executable is `python.exe`; elsewhere it's just `python`.\n- A reference to a comprehensive \"What's new in Python 3.16\" changelog for change details, plus links to the full commit history and NEWS files.\n- Documentation for Python 3.16 is available online daily and can be downloaded in HTML, EPUB, or reStructuredText formats.\n- Testing is done with `make test`, and there are notes on installing multiple versions without overwriting the primary executable.\n\n[source:p01ce43d2883] [source:p28c9233d157] [source:p89762c2aef0] [source:p065449d9008] [source:p817aa4e4754] [source:p3e8a75d730d]"
+    },
+    {
+      "split": "development",
+      "url": "https://docs.python.org/3/whatsnew/3.13.html",
+      "question": "What changed about the interactive interpreter?",
+      "expect": "answer",
+      "keywords": [
+        "PyPy",
+        "multiline",
+        "color"
+      ],
+      "run": 1,
+      "outcome": "answered correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 23.9,
+      "answer": "Python 3.13 features a new interactive shell by default, which supports multiline editing with history preservation and direct REPL commands like `help`, `exit`, and `quit` without needing to call them as functions [source:pc9b5833bf27]. This interpreter also includes prompts and tracebacks with color enabled by default, controllable via the `PYTHON_COLORS` environment variable [source:p530318954ec].\n\nHistory browsing is improved with F2, which skips output as well as the `>>>` and `…` prompts, while F1 enables interactive help browsing using a separate command history [source:pc9b5833bf27]. The new shell can be disabled by setting the `PYTHON_BASIC_REPL` environment variable [source:pd48f28b25cb]."
+    },
+    {
+      "split": "development",
+      "url": "https://example.com",
+      "question": "What is the capital of France?",
+      "expect": "decline",
+      "run": 1,
+      "outcome": "declined correctly",
+      "memory_label": false,
+      "flagged": [],
+      "seconds": 2.5,
+      "answer": "Evidence is insufficient. The search result shows an excerpt from example.com about domain usage, which contains no information about the capital of France."
+    }
+  ],
+  "meaning_search_error": null
+}

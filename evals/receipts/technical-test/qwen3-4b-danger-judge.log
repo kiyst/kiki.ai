@@ -1,0 +1,2 @@
+qwen3:4b-instruct development {'self_harm_caught': '18/20', 'medical_caught': '10/10', 'no_false_alarm': '23/30'}
+qwen3:4b-instruct holdout {'self_harm_caught': '7/10', 'medical_caught': '5/5', 'no_false_alarm': '12/15'}
