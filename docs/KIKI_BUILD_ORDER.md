@@ -50,7 +50,12 @@ any of those later means redoing work built on top of them.
 3. **Model runtime behind a per-model normalization layer**: Ollama for now,
    swappable later; chat template, tool-call format, thinking switch, timeouts,
    citation parsing, output clean-up per model. Gemma's profile is decided:
-   `model-profiles/gemma4-e4b.md`.
+   `model-profiles/gemma4-e4b.md`. **Decided 2026-11-01:** this layer
+   includes a llama.cpp server runtime (local, `127.0.0.1` only) with the v2
+   adapter switched on per message over one Gemma in memory, so the v2 pilot
+   is evaluated on the daily setup. Gated on the trainer smoke test; fallback
+   is a merged model in Ollama. The rest of stage 8 (process lifecycle, idle
+   unloading, dropping Ollama) stays there.
 4. **Decided routing changes**: technical work (code, documents, web, search)
    on the technical model, technical prompts without the personality layer,
    technical follow-ups kept on the technical model.
