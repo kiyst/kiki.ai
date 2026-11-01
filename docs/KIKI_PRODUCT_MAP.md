@@ -84,6 +84,16 @@ resume", a city), forgiving input, and a clarification question rather than a
 guess when intent or an argument is ambiguous. Intent is read by the technical
 model (tool planning), not by word patterns, which have proven brittle.
 
+**Permissions page** (owner, 2026-10-31). Her settings include a page listing
+each kind of action ("running code", "reading web pages", "summaries",
+"logging memories", and so on), each set to manual or automatic approval,
+with its risk level and the potential threats of allowing it automatically
+explained beside it. Manual actions ask in the chat box with Allow / Deny and
+details one click away (the code, the diff, the address). Proposal, not yet
+decided: a few actions stay manual-only with no automatic option, such as
+deleting or overwriting the user's files and anything that sends data
+outside the computer.
+
 **When she speaks first** (owner, 2026-10-31):
 
 - A long job she was running finishes (indexing, a test run): an exclamation
