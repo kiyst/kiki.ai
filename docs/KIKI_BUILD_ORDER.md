@@ -42,6 +42,8 @@ any of those later means redoing work built on top of them.
    including ones not built yet (profile, notes, her own memories, familiarity
    level, swearing setting, today's requests, danger note, chat summary, the
    note after the user's message). Frozen before v2 data is written.
+   **Agreed 2026-11-01:** `KIKI_INSTRUCTION_CONTRACT.md` (no familiarity
+   level after all; tool behaviour in `KIKI_TOOLS_SPEC.md`).
 2. **Engine as a local service with events**: one core (models, routing,
    tools, defences, memory) that the terminal app now, and the desktop pet,
    tool windows, and a VS Code extension later, all connect to. It reports
