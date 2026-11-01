@@ -67,6 +67,30 @@ right window for the job.
   animation, and her models go idle to give memory back (a short wake-up on
   the next message).
 
+**When she speaks first** (owner, 2026-10-31):
+
+- A long job she was running finishes (indexing, a test run): an exclamation
+  mark or similar on her sprite, and a short message ("Indexing complete").
+- Automated status messages in her chat box: memory low, performance
+  throttled, disk space low, or a tool failed (naming the tool).
+- **To keep in mind, not decided:** unprompted memory follow-ups. During idle
+  time she reviews her own memories; when something mentioned earlier is now
+  due ("the interview next week"), she asks about it the next time ("So how
+  was the interview?").
+
+## The model engine
+
+Kiki's harness is everything around the model; the engine that runs models on
+the GPU is separate. Ollama is the engine today. Its drawbacks for Kiki: a
+memory leak in long runs, a chat template that drops system messages after the
+first, separate loads for the voice and plain models (no per-message adapter
+switching on one base), and a separate install outside Kiki's control. Plan:
+keep Ollama during development, make the engine swappable behind the
+per-model normalization layer, and test llama.cpp's own server (which Ollama is
+built on, and which Capri bundles) for the flagship installer: control over
+loading and unloading, the chat template, adapter switching, and the exact
+version.
+
 ## What this means for the architecture
 
 - **One engine, several faces.** Kiki's core (models, routing, tools,
