@@ -1,0 +1,7 @@
+# v2 trainer (Gemma 4 E4B, Unsloth). Pod only; never installed on the owner's PC.
+# Install into the pod image's CUDA PyTorch; the run records exact versions
+# (pip freeze in run_config.json). Pin these after the first passing smoke test.
+unsloth
+# Gemma 4 use_cache=False fix (garbage logits under gradient checkpointing).
+transformers>=5.5.2
+huggingface_hub>=0.34
