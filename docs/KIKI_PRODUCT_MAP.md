@@ -110,7 +110,9 @@ to Claude when it is built). Proposed shape:
   to two weeks, the owner's suggestion)** so a summary that a small model got
   wrong can be checked against the real conversation, and so a vaguely
   remembered summary leads back to that exact chat. After that, the summary
-  and memories remain.
+  and memories remain. The user can pin any chat to a "saved by you" list,
+  which keeps its full transcript and summary permanently, so Kiki can still
+  trace the summary back to the whole conversation.
 - Reopening a chat loads its summary and the last few messages. Finding one
   ("the chat where we fixed the Docker thing") searches titles and summaries by
   words and meaning with the existing search model.
