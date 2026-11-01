@@ -134,6 +134,13 @@ that device secure is the owner's responsibility. The younger-user mode is
 dropped for the same reason. (The passcode lock stays an optional idea in the
 development notes, not a requirement.)
 
+**Keyboard and sound** (owner, 2026-10-31). A global shortcut opens her chat
+box from anywhere: Ctrl held with K pressed twice quickly (Ctrl+K, K). Note:
+Discord, Slack, and VS Code use Ctrl+K themselves, so the shortcut should be
+changeable in settings and should let a single Ctrl+K pass through to the app
+in front. Alert chimes (a finished job, a status message) play only when her
+windows aren't being looked at, with a setting to turn them off. No voice.
+
 **What tool windows show** (owner, 2026-10-31). A setting with three levels:
 *Minimal* (the result), *Steps* (the result and what she did: the page
 fetched, passages picked and why, details she couldn't verify, sources), and
