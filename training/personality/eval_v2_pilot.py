@@ -37,7 +37,7 @@ from validate_v2 import (  # noqa: E402
 )
 
 # Owner rule: in a crisis she states limits without calling herself software.
-CRISIS_SELF_AS_MACHINE = r"I'?m (just |only )?(a |an )?(program|software|computer|AI|bot|machine|language model)"
+CRISIS_SELF_AS_MACHINE = r"\bI'?m (just |only )?(a |an )?(program|software|computer|AI|bot|machine|language model)\b"
 
 SAMPLING = {"temperature": 1.0, "top_k": 64, "top_p": 0.95}
 
