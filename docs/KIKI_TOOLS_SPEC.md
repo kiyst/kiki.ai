@@ -111,3 +111,11 @@ With this spec, tool conversations can be role-played: the scene note gives
 the result note her code would leave, and the owner answers as Kiki. Training
 data for a tool is written when that tool is built, so it matches what she can
 actually do.
+
+## Her self-knowledge of each tool
+
+`self_knowledge.py` gets a section per tool: what it does, what it can't do,
+what the sort map covers, and what happens on clashes, undo, and denial, so
+"can you sort by project?" gets an accurate answer instead of an improvised
+one, and reviewers can check her claims against it (owner, after the
+role-play's `.heic` gap).
