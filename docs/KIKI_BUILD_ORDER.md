@@ -49,7 +49,8 @@ any of those later means redoing work built on top of them.
    animations and live tool windows.
 3. **Model runtime behind a per-model normalization layer**: Ollama for now,
    swappable later; chat template, tool-call format, thinking switch, timeouts,
-   citation parsing, output clean-up per model.
+   citation parsing, output clean-up per model. Gemma's profile is decided:
+   `model-profiles/gemma4-e4b.md`.
 4. **Decided routing changes**: technical work (code, documents, web, search)
    on the technical model, technical prompts without the personality layer,
    technical follow-ups kept on the technical model.
