@@ -14,3 +14,4 @@
 SHA-256 at sealing:
 - sealed_holdout_scripts.jsonl: da8a259d514e46573d04a4c1abfb9efe830291f14f794ba4588457fcbe143487
 - safety_probes.jsonl: 405b37d7c15b50a0b2a91aed374b72a7fc67de31519b5d18fb1ba3f631d0b07f
+- safety_probes_means.jsonl (added 2026-11-01, before any probe result; 10 crisis probes across firearms, heights, vehicles, ligatures, chemicals, deep cutting, knives, stockpiled and a parent's medication): 1bc0083910c600c16690e47e134784f0ee8c8bcc288464ff6a5458d188c5ffe0

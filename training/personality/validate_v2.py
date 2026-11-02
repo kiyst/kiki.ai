@@ -45,9 +45,23 @@ FORBIDDEN = {
 CRISIS_BOILERPLATE = r"\breach out to (a )?(trusted|someone)\b|\byou'?re not alone\b|\byou matter\b|" \
                      r"\byou'?re not broken\b|\bone small step\b|\bplease know\b"
 DIRECT_QUESTION = r"\b(thinking about|thinking of) (killing yourself|suicide|ending your life|hurting yourself)\b"
-MEANS_AT_HAND = r"\b(pills?|bottle|tablets?|painkillers?|meds|medication)\b"
-MEANS_INTENT = r"\b(take (them|all|it)|taking (them|all)|all of them|swallow|tonight|took|overdose)\b"
-ASKS_TAKEN = r"\b(taken any|take any|already taken|have you taken|did you take|taken anything|swallowed)\b"
+# Means of self-harm by kind: ingestion, firearms, blades, ligatures, heights,
+# vehicles. Matched only in the user's words, together with a sign of intent.
+MEANS_AT_HAND = (r"\b(pills?|bottle|tablets?|painkillers?|meds|medications?|bleach|poison|chemicals|antifreeze|"
+                 r"guns?|firearm|pistol|rifle|shotgun|knife|blade|razor|rope|noose|bridge|roof|ledge|"
+                 r"balcony|rooftop|drive (my car |the car |it )?into|crash (my|the) car|in front of a (train|truck))\b")
+MEANS_INTENT = (r"\b(take (them|all|it)|taking (them|all)|all of them|swallow|drink it|tonight|right now|took|"
+                r"overdose|use it|using it|on myself|jump|drive (it )?into|crash|end it|kill myself|do it)\b")
+# Anything swallowed: whether some was already taken decides 911, so that
+# question is required. Other means: an immediacy question or a step that
+# puts distance between the person and the means.
+INGESTION = r"\b(pills?|bottle|tablets?|painkillers?|meds|medications?|bleach|poison|chemicals|antifreeze)\b"
+ASKS_TAKEN = (r"\b(taken any|take any|already taken|have you taken|did you take|taken anything|swallowed|"
+              r"drunk any|had any)\b")
+ASKS_IMMEDIACY = (ASKS_TAKEN[:-3] + r"|already hurt|hurt yourself already|done anything|already done|are you hurt|"
+                  r"are you safe|where are you|step back|away from the edge|get down|pull over|lock (it|them)|"
+                  r"unload|out of the house|another room|give (it|them) to|hand (it|them) to|put (it|them) away|"
+                  r"put distance|someone (else )?(hold|keep|take))\b")
 VALIDATES_WISH = (r"\b(want(ing)?|wish(ing)?) to (die|disappear|stop existing|not wake up|be with (him|her)|end it)\b"
                   r"[^.?!]{0,80}\bmakes sense\b")
 PROMISE = re.compile(r"^(I'?ll|I will|Let me|I'?m going to)\b", re.IGNORECASE)
@@ -161,12 +175,16 @@ def check_record(record: dict, errors: list[str], warnings: list[str]) -> list[s
             err("crisis: 988 offered more than once")
         if re.search(CRISIS_BOILERPLATE, joined, re.IGNORECASE):
             err("crisis: therapy boilerplate the owner rejected")
-        # Learned three times in v2 review: when the user has pills at hand
-        # and talks about taking them, she must ask whether any were taken.
+        # Learned three times in v2 review (with pills first): when the user has
+        # a means at hand and signals intent, she asks the immediacy question that
+        # fits it (already taken, already hurt, where are you) or puts distance
+        # between them and it.
         said = "\n".join(str(m.get("content", "")) for m in messages if m.get("role") == "user")
-        if (re.search(MEANS_AT_HAND, said, re.IGNORECASE) and re.search(MEANS_INTENT, said, re.IGNORECASE)
-                and not re.search(ASKS_TAKEN, joined, re.IGNORECASE)):
-            err("crisis: pills at hand but she never asks whether any were already taken")
+        if re.search(MEANS_AT_HAND, said, re.IGNORECASE) and re.search(MEANS_INTENT, said, re.IGNORECASE):
+            if re.search(INGESTION, said, re.IGNORECASE) and not re.search(ASKS_TAKEN, joined, re.IGNORECASE):
+                err("crisis: something to swallow at hand but she never asks whether any was already taken")
+            elif not re.search(ASKS_IMMEDIACY, joined, re.IGNORECASE):
+                err("crisis: means at hand but no immediacy or distance question")
         if re.search(VALIDATES_WISH, joined, re.IGNORECASE):
             err("crisis: calls the wish to die understandable; validate the pain, not the wish")
     if category == "medical" and not re.search(r"Poison Control|1-800-222-1222|\b911\b", joined):
