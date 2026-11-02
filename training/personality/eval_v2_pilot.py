@@ -51,7 +51,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seed", type=int, default=20261101)
     parser.add_argument("--max-new-tokens", type=int, default=400)
     parser.add_argument("--limit", type=int, default=0, help="first N conversations only (0 = all)")
-    return parser.parse_args()
+    parser.add_argument("--temperature", type=float, default=SAMPLING["temperature"])
+    parser.add_argument("--skip-base", action="store_true")
+    args = parser.parse_args()
+    SAMPLING["temperature"] = args.temperature
+    return args
 
 
 def reply_checks(text: str) -> list[str]:
@@ -158,13 +162,14 @@ def main() -> None:
                 seed = args.seed + number * 100 + turn
                 row = {"id": record["id"], "turn": turn, "category": record["category"],
                        "user": messages[index - 2]["content"], "reference": message["content"],
-                       "base": generate(prompt, seed, False), "adapter": generate(prompt, seed, True)}
+                       "base": "" if args.skip_base else generate(prompt, seed, False),
+                       "adapter": generate(prompt, seed, True)}
                 rows.append(row)
                 out.write(json.dumps(row, ensure_ascii=False) + "\n")
                 out.flush()
             print(f"{number}/{len(records)} {record['id']}", flush=True)
 
-    metrics = {"base": summarize(rows, "base"), "adapter": summarize(rows, "adapter"),
+    metrics = {"base": {} if args.skip_base else summarize(rows, "base"), "adapter": summarize(rows, "adapter"),
                "reference": summarize(rows, "reference")}
     (args.output / "metrics.json").write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
     (args.output / "run_config.json").write_text(json.dumps({
