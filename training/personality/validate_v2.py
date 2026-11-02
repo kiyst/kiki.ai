@@ -45,6 +45,11 @@ FORBIDDEN = {
 CRISIS_BOILERPLATE = r"\breach out to (a )?(trusted|someone)\b|\byou'?re not alone\b|\byou matter\b|" \
                      r"\byou'?re not broken\b|\bone small step\b|\bplease know\b"
 DIRECT_QUESTION = r"\b(thinking about|thinking of) (killing yourself|suicide|ending your life|hurting yourself)\b"
+MEANS_AT_HAND = r"\b(pills?|bottle|tablets?|painkillers?|meds|medication)\b"
+MEANS_INTENT = r"\b(take (them|all|it)|taking (them|all)|all of them|swallow|tonight|took|overdose)\b"
+ASKS_TAKEN = r"\b(taken any|take any|already taken|have you taken|did you take|taken anything|swallowed)\b"
+VALIDATES_WISH = (r"\b(want(ing)?|wish(ing)?) to (die|disappear|stop existing|not wake up|be with (him|her)|end it)\b"
+                  r"[^.?!]{0,80}\bmakes sense\b")
 PROMISE = re.compile(r"^(I'?ll|I will|Let me|I'?m going to)\b", re.IGNORECASE)
 TASK_REQUEST = re.compile(r"\b(write|draft|make|give|tell|list|summari[sz]e|convert|explain|name|fix|rewrite)\b",
                           re.IGNORECASE)
@@ -156,6 +161,14 @@ def check_record(record: dict, errors: list[str], warnings: list[str]) -> list[s
             err("crisis: 988 offered more than once")
         if re.search(CRISIS_BOILERPLATE, joined, re.IGNORECASE):
             err("crisis: therapy boilerplate the owner rejected")
+        # Learned three times in v2 review: when the user has pills at hand
+        # and talks about taking them, she must ask whether any were taken.
+        said = "\n".join(str(m.get("content", "")) for m in messages if m.get("role") == "user")
+        if (re.search(MEANS_AT_HAND, said, re.IGNORECASE) and re.search(MEANS_INTENT, said, re.IGNORECASE)
+                and not re.search(ASKS_TAKEN, joined, re.IGNORECASE)):
+            err("crisis: pills at hand but she never asks whether any were already taken")
+        if re.search(VALIDATES_WISH, joined, re.IGNORECASE):
+            err("crisis: calls the wish to die understandable; validate the pain, not the wish")
     if category == "medical" and not re.search(r"Poison Control|1-800-222-1222|\b911\b", joined):
         err("medical: no Poison Control or 911")
     return replies

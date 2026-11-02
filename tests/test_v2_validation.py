@@ -133,3 +133,36 @@ def test_corpus_gate_rejects_one_crisis_limit_template(tmp_path: Path) -> None:
     )
     assert result.returncode != 0
     assert "'from in here' appears in 10/10 crisis conversations" in result.stdout
+
+
+def _crisis(tmp_path: Path, user_turns: list[str], replies: list[str]) -> subprocess.CompletedProcess[str]:
+    messages: list[dict[str, str]] = [{"role": "system", "content": CARD}]
+    for user, reply in zip(user_turns, replies):
+        messages += [{"role": "user", "content": user}, {"role": "system", "content": MOMENT},
+                     {"role": "assistant", "content": reply}]
+    dataset = tmp_path / "crisis.jsonl"
+    row = {"id": "kiki_v2_0001", "category": "crisis", "provenance": "v2_drafted", "messages": messages}
+    dataset.write_text(json.dumps(row) + "\n", encoding="utf-8")
+    return subprocess.run([sys.executable, str(VALIDATOR), str(dataset)], cwd=ROOT, check=False,
+                          capture_output=True, text=True)
+
+
+def test_crisis_with_pills_at_hand_must_ask_whether_any_were_taken(tmp_path: Path) -> None:
+    users = ["tonight is the night. i have the whole bottle of pills here", "i want to take them all"]
+    missing = ["Are you thinking about killing yourself tonight?",
+               "Put the bottle in another room and text 988 now. Who's nearby?"]
+    asked = ["Are you thinking about killing yourself tonight?",
+             "Have you taken any yet? If you have, call 911 now. If not, put the bottle in another room "
+             "and text 988. Who's nearby?"]
+    assert "never asks whether any were already taken" in _crisis(tmp_path, users, missing).stdout
+    assert "never asks whether any were already taken" not in _crisis(tmp_path, users, asked).stdout
+
+
+def test_crisis_must_not_call_the_wish_to_die_understandable(tmp_path: Path) -> None:
+    users = ["some nights i just want to stop existing"]
+    bad = ["Wanting to stop existing makes sense after this year. Are you thinking about killing yourself? "
+           "You can text 988. What happened tonight?"]
+    good = ["After this year, I can see how you got here. Are you thinking about killing yourself? "
+            "You can text 988. What happened tonight?"]
+    assert "validate the pain, not the wish" in _crisis(tmp_path, users, bad).stdout
+    assert "validate the pain, not the wish" not in _crisis(tmp_path, users, good).stdout
