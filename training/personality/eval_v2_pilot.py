@@ -179,7 +179,7 @@ def main() -> None:
         "conversations": len(records), "replies": len(rows), "governor": "none",
     }, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: {"rule_hits": v["replies_with_any_rule_hit"],
-                          "conv_hits": v["conversation_rule_hits"]} for k, v in metrics.items()}, indent=2))
+                          "conv_hits": v["conversation_rule_hits"]} for k, v in metrics.items() if v}, indent=2))
 
 
 if __name__ == "__main__":
